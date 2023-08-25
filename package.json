@@ -18,14 +18,16 @@
   },
   "homepage": "https://github.com/IXily/DII-event-listener#readme",
   "dependencies": {
-    "axios": "^0.19.2",
+    "@lit-protocol/lit-node-client-nodejs": "^2.1.123",
     "cors": "^2.8.5",
     "ejs": "^3.1.6",
+    "ethers": "^5.5.1",
     "express": "^4.18.2",
     "isomorphic-fetch": "^3.0.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.25",
-    "pubsub-js": "^1.9.4"
+    "pubsub-js": "^1.9.4",
+    "weavedb-sdk-node": "^0.28.18"
   },
   "devDependencies": {
     "@types/cors": "^2.8.13",
