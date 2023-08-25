@@ -1,0 +1,15 @@
+{
+	"ignore": [
+		"**/*.test.ts",
+		"**/*.spec.ts",
+		".git",
+		"node_modules",
+		"dist"
+	],
+	"watch": [
+		"src",
+		"example"
+	],
+	"exec": "nodemon ./src/app.ts --exec ts-node",
+	"ext": "ts"
+}
