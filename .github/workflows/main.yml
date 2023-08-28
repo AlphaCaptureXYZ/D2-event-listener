@@ -1,0 +1,84 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: CI/CD Settings (DII)
+
+on:
+  push:
+    branches:
+      - deploy-production
+
+jobs:
+  # slack-notification-start:
+  #   name: Slack Notification (Start)
+  #   runs-on: ubuntu-latest
+  #   if: ${{ !contains(github.event.head_commit.message, '#skip_notification') }}
+  #   steps:
+  #     - name: Notification
+  #       uses: rtCamp/action-slack-notify@v2
+  #       env:
+  #         SLACK_CHANNEL: development
+  #         SLACK_COLOR: 1BA9FF
+  #         SLACK_ICON: https://dii.ixily.io/assets/img/logo.png
+  #         SLACK_MESSAGE: Deploying the DII event listener app...
+  #         SLACK_TITLE: Deploy Notification
+  #         SLACK_USERNAME: Deploy Notification
+  #         SLACK_FOOTER: Powered by IXily Team
+  #         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+  deploy:
+    name: SSH Connection
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH Connection
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST  }}
+          username: ${{ secrets.USERNAME  }}
+          key: ${{ secrets.SSH_RSA_PRIVATE_KEY  }}
+          port: 22
+          command_timeout: 500m
+          script: |
+            sudo docker system prune --force
+            sudo rm -r DII-event-listener
+            sudo git clone https://${{ secrets.REPO_TOKEN  }}@github.com/IXily/DII.git
+            cd DII-event-listener
+            sudo git checkout deploy-production
+            sudo sh ./scripts/pull_spinup-live.sh
+  # slack-notification-finish:
+  #   name: Slack Notification (Finish)
+  #   needs: deploy
+  #   runs-on: ubuntu-latest
+  #   if: ${{ !contains(github.event.head_commit.message, '#skip_notification') }}
+  #   steps:
+  #     - name: Notification
+  #       uses: rtCamp/action-slack-notify@v2
+  #       env:
+  #         SLACK_CHANNEL: development
+  #         SLACK_COLOR: ${{ job.status }}
+  #         SLACK_ICON: https://dii.ixily.io/assets/img/logo.png
+  #         SLACK_MESSAGE: DII event listener app deployed, check the status from the Actions URL section.
+  #         SLACK_TITLE: Deploy Notification
+  #         SLACK_USERNAME: Deploy Notification
+  #         SLACK_FOOTER: Powered by IXily Team
+  #         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+  # slack-notification-error:
+  #   name: Slack Notification (Error)
+  #   runs-on: ubuntu-latest
+  #   if: ${{
+  #     failure() &&
+  #     !contains(github.event.head_commit.message, '#skip_notification')
+  #     }}
+  #   steps:
+  #     - name: Notification
+  #       uses: rtCamp/action-slack-notify@v2
+  #       env:
+  #         SLACK_CHANNEL: development
+  #         SLACK_COLOR: E13F31
+  #         SLACK_ICON: https://dii.ixily.io/assets/img/logo.png
+  #         SLACK_MESSAGE: The DII event listener app was not deployed (¡error!), check the status from the Actions URL section to see and solve the error.
+  #         SLACK_TITLE: Deploy Notification
+  #         SLACK_USERNAME: Deploy Notification
+  #         SLACK_FOOTER: Powered by IXily Team
+  #         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
