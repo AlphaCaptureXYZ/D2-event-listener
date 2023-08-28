@@ -1,8 +1,9 @@
-import 'dotenv/config';
-
 import { ethers } from "ethers";
+import { WeaveDBModule } from '../modules/weavedb.module';
 
-export const D2EventListener = (config: {
+import * as config from "../config/config";
+
+export const D2EventListener = (payload: {
     privateKey?: string;
     rpcUrl: string;
     network: string;
@@ -14,8 +15,7 @@ export const D2EventListener = (config: {
     ) => void;
 }) => {
 
-    const mode: 'development' | 'production' =
-        (process.env.APP_ENV as any) || 'development';
+    const mode = config.APP_ENV;
 
     const log = (
         message?: any, ...optionalParams: any[]
@@ -31,7 +31,7 @@ export const D2EventListener = (config: {
         contractAddress,
         abi,
         callback,
-    } = config;
+    } = payload;
 
     const WALLET_NETWORK_CHAIN_IDS_OPTS = {
         goerli: 5,
@@ -62,7 +62,9 @@ export const D2EventListener = (config: {
         );
         const signer = wallet.connect(provider);
         contract = new ethers.Contract(contractAddress, abi, signer);
+
         log(`Private key detected (${privateKey})`)
+        log(`Address: ${wallet.address}`);
     }
 
     if (!privateKey) {
