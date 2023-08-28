@@ -32,7 +32,7 @@ app.listen(PORT, () => {
         D2EventListener({
             rpcUrl: 'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78',
             network: 'mumbai',
-            privateKey: process.env.PRIVATE_KEY,
+            privateKey: process.env.WALLET_PRIVATE_KEY,
             contractAddress: '0xbb1FF71BEe377322284DdBb843a0563cc70229a6',
             abi: [
                 'event IdeaCreated(address,uint256,string,uint256,uint256,uint256)',
