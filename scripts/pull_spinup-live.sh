@@ -10,7 +10,7 @@ sudo docker stop $CURRENT_ID
 sudo docker rm $CURRENT_ID
 echo "Running the new image"
 sleep 1s
-sudo docker run -d -p 3000:3000 dii-event-listener-app
+sudo docker run -d -p 3006:3006 dii-event-listener-app
 echo "Listing the running containers"
 sudo docker ps
 echo "Cleaning up (prune)"
