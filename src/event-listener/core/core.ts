@@ -1,7 +1,9 @@
 import { ethers } from "ethers";
-import { WeaveDBModule } from '../modules/weavedb.module';
 
 import * as config from "../config/config";
+
+import { WeaveDBModule } from '../modules/weavedb.module';
+import { CredentialNFTModule } from "../modules/credential-nft.module";
 
 export const D2EventListener = (payload: {
     privateKey?: string;
@@ -32,6 +34,25 @@ export const D2EventListener = (payload: {
         abi,
         callback,
     } = payload;
+
+    // WeaveDBModule.getAllData<any>(network, { type: 'trigger' })
+    //     .then((data) => {
+    //         console.log('WeaveDBModule.getAllData (data)', data);
+    //     }).catch(err => {
+    //         console.log('WeaveDBModule.getAllData (err)', err);
+    //     });
+
+    // CredentialNFTModule.setConfig({
+    //     rpcUrl,
+    //     chain: network,
+    // });
+
+    // CredentialNFTModule.getCredentialByUUID('0x05c29570830f0fff8b7958f16b2398eb')
+    //     .then((credential) => {
+    //         console.log('CredentialNFTModule.getCredentialByUUID (credential)', credential);
+    //     }).catch(err => {
+    //         console.log('CredentialNFTModule.getCredentialByUUID (err)', err);
+    //     });
 
     const WALLET_NETWORK_CHAIN_IDS_OPTS = {
         goerli: 5,

@@ -100,7 +100,6 @@ const getAllData = async <T>(
 
         data = (await Promise?.all(docs?.map(async (res) => {
             try {
-
                 const docId = res?.id;
                 const info: any = res?.data;
 
@@ -140,7 +139,7 @@ const getAllData = async <T>(
         data = data?.filter((item) => item) || [];
 
     } catch (e) {
-        console.error(e)
+        console.error(e);
     }
 
     return data as T[];
@@ -148,4 +147,4 @@ const getAllData = async <T>(
 
 export const WeaveDBModule = {
     getAllData,
-}
+};

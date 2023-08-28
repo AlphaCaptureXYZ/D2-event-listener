@@ -2,18 +2,16 @@ import * as LitJsSdk from '@lit-protocol/lit-node-client-nodejs';
 
 import * as Siwe from 'siwe';
 
-import { ethers } from "ethers";
+import { ethers } from 'ethers';
 
-import * as config from "../config/config";
+import * as config from '../config/config';
 
 import {
     isNullOrUndefined
-} from "../helpers/helpers";
+} from '../helpers/helpers';
 
 const client = new LitJsSdk.LitNodeClientNodeJs({
-    alertWhenUnauthorized: false,
-    minNodeCount: 10,
-    litNetwork: 'serrano',
+    alertWhenUnauthorized: true,
     debug: false,
 });
 
@@ -74,14 +72,13 @@ class Lit {
         const privateKey = config.WALLET_PRIVATE_KEY;
 
         const signer = new ethers.Wallet(privateKey);
-
-        const address = signer.address;
+        const address = await signer.getAddress();
 
         const siweMessage = new Siwe.SiweMessage({
             domain: 'localhost',
             address,
             statement: 'This is a key for D2 Event Listener',
-            uri: 'http://localhost',
+            uri: 'https://localhost/login',
             version: '1',
             chainId: 1,
         });
@@ -125,7 +122,7 @@ class Lit {
 
         const encryptedSymmetricKeyString = LitJsSdk.uint8arrayToString(
             encryptedSymmetricKey,
-            "base16"
+            'base16'
         );
 
         return {
