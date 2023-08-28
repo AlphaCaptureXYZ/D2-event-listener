@@ -1,6 +1,9 @@
+import 'dotenv/config';
+
 import { ethers } from "ethers";
 
 const D2EventListener = (config: {
+    privateKey?: string;
     rpcUrl: string;
     network: string;
     contractAddress: string;
@@ -10,6 +13,25 @@ const D2EventListener = (config: {
         args: any[]
     ) => void;
 }) => {
+
+    const mode: 'development' | 'production' =
+        (process.env.APP_ENV as any) || 'development';
+
+    const log = (
+        message?: any, ...optionalParams: any[]
+    ) => {
+        // if (mode === 'production') return;
+        console.log(message, ...optionalParams);
+    };
+
+    const {
+        privateKey,
+        rpcUrl,
+        network,
+        contractAddress,
+        abi,
+        callback,
+    } = config;
 
     const WALLET_NETWORK_CHAIN_IDS_OPTS = {
         goerli: 5,
@@ -25,19 +47,30 @@ const D2EventListener = (config: {
         bnb: 56,
     };
 
-    const networkChainId = WALLET_NETWORK_CHAIN_IDS_OPTS[config.network] || -1;
+    const networkChainId = WALLET_NETWORK_CHAIN_IDS_OPTS[network] || -1;
 
-    if (networkChainId === -1) throw new Error(`Invalid network: ${config.network}`);
+    if (networkChainId === -1) throw new Error(`Invalid network: ${network}`);
 
-    const provider = new ethers.providers.JsonRpcProvider(config.rpcUrl, networkChainId);
+    const provider = new ethers.providers.JsonRpcProvider(rpcUrl, networkChainId);
 
-    const contract = new ethers.Contract(
-        config.contractAddress,
-        config.abi,
-        provider
-    );
+    let contract: ethers.Contract = null as any;
 
-    console.log(`Listening the events flow...`);
+    if (privateKey) {
+        const wallet = new ethers.Wallet(
+            privateKey,
+            provider,
+        );
+        const signer = wallet.connect(provider);
+        contract = new ethers.Contract(contractAddress, abi, signer);
+        log(`Private key detected (${privateKey})`)
+    }
+
+    if (!privateKey) {
+        contract = new ethers.Contract(contractAddress, abi, provider);
+        log(`No private key detected (optional)`);
+    }
+
+    log(`Listening the events flow...`);
 
     let events = Object.keys(contract.filters);
 
@@ -53,15 +86,15 @@ const D2EventListener = (config: {
     });
 
     if (events?.length > 0) {
-        console.log(`Events to listen: ${events.join(', ')}`);
+        log(`Events to listen: ${events.join(', ')}`);
     } else {
-        console.log(`No events found`);
+        log(`No events found`);
     }
-    console.log('');
+    log('');
 
     events?.map((key) => {
         contract.on(key, async (...args) => {
-            config.callback(key, args);
+            callback(key, args);
         });
     });
 };
@@ -72,6 +105,7 @@ const D2EventListener = (config: {
         D2EventListener({
             rpcUrl: 'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78',
             network: 'mumbai',
+            privateKey: process.env.PRIVATE_KEY,
             contractAddress: '0xbb1FF71BEe377322284DdBb843a0563cc70229a6',
             abi: [
                 'event IdeaCreated(address,uint256,string,uint256,uint256,uint256)',
@@ -125,6 +159,6 @@ const D2EventListener = (config: {
         });
 
     } catch (error) {
-        console.error(error);
+        error(error);
     }
 })();

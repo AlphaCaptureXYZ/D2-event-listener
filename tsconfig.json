@@ -11,7 +11,7 @@
 		"strict": false,
 		"moduleResolution": "node",
 		"typeRoots": ["node_module/@types", "types"],
-		"types": ["node", "mocha", "chai", "sinon", "sinon-chai", "multer"],
+		"types": [],
 		"noImplicitAny": false,
 		"skipLibCheck": true,
 		"strictNullChecks": false, // we need this as false because it has been causing problems with firebase
