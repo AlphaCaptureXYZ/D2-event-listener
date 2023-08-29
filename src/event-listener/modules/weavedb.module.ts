@@ -1,4 +1,4 @@
-import LitModule from './lit.module';
+import { LitModule } from './lit.module';
 
 import { ethers } from "ethers";
 
@@ -115,9 +115,9 @@ const getAllData = async <T>(
                     encryptedSymmetricKey,
                 } = doc;
 
-                LitModule.setChain(chain);
+                LitModule().setChain(chain);
 
-                const decryptedFile = await LitModule.decryptString(
+                const decryptedFile = await LitModule().decryptString(
                     encryptedData,
                     encryptedSymmetricKey,
                     acConditions,

@@ -15,6 +15,8 @@ const client = new LitJsSdk.LitNodeClientNodeJs({
     debug: false,
 });
 
+let litService = null;
+
 class Lit {
     private litNodeClient: any;
 
@@ -243,4 +245,9 @@ class Lit {
 
 }
 
-export default new Lit();
+export const LitModule = (): Lit => {
+    if (litService === null) {
+        litService = new Lit();
+    }
+    return litService;
+};

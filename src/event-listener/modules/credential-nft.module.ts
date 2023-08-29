@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-import LitModule from './lit.module';
+import { LitModule } from './lit.module';
 
 import * as config from '../config/config';
 
@@ -140,9 +140,9 @@ const getCredentialByUUID = async <T>(uuid: string): Promise<T> => {
             },
         ];
 
-        LitModule.setChain(configObj.chain);
+        LitModule().setChain(configObj.chain);
 
-        const decryptedFile = await LitModule.decryptString(
+        const decryptedFile = await LitModule().decryptString(
             encryptedFileB64,
             encryptedSymmetricKeyString,
             accessControlConditionsNFT

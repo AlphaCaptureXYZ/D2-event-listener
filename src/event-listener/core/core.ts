@@ -1,12 +1,15 @@
-import './watcher';
-
 import { ethers } from "ethers";
 
 import * as config from "../config/config";
 
-import { WatcherPubSub } from "./watcher/config/watcherPubSub";
+import {
+    EventEmitterModule,
+    EventType
+} from '../modules/event-emitter.module';
 
 import { INewIdeaNFT } from '../interfaces/new-idea-nft.i';
+
+import { newIdeaNFTEvent } from "./events/new-idea-nft";
 
 export const D2EventListener = (payload: {
     privateKey?: string;
@@ -98,15 +101,36 @@ export const D2EventListener = (payload: {
         contract.on(key, async (...args) => {
 
             if (key === 'IdeaCreated') {
-                await WatcherPubSub<INewIdeaNFT>('new-idea-nft', {
-                    creatorAddress: args[0],
-                    nftId: args[1].toNumber(),
-                    strategyReference: args[2],
-                    blockNumber: args[5].toNumber(),
-                });
+                await EventEmitterModule().emit<INewIdeaNFT>(
+                    'NEW_IDEA_NFT',
+                    {
+                        contract,
+                        creatorAddress: args[0],
+                        nftId: args[1].toNumber(),
+                        strategyReference: args[2],
+                        blockNumber: args[5].toNumber(),
+                    }
+                );
             };
 
         });
     });
 
 };
+
+(async function main() {
+    try {
+        EventEmitterModule().listen().subscribe(async (res) => {
+            const event = res.type as EventType;
+            const data = res?.data || null;
+
+            switch (event) {
+                case 'NEW_IDEA_NFT':
+                    await newIdeaNFTEvent(data as INewIdeaNFT);
+                    break;
+            }
+        });
+    } catch (error) {
+        error(error);
+    }
+})();
