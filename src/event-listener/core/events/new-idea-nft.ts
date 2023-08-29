@@ -1,5 +1,6 @@
-import { WeaveDBModule } from '../../modules/weavedb.module';
+import * as config from "../../config/config";
 
+import { WeaveDBModule } from '../../modules/weavedb.module';
 import { CredentialNFTModule } from "../../modules/credential-nft.module";
 import { CompressorModule } from "../../modules/compressor.module";
 import { LitModule } from '../../../event-listener/modules/lit.module';
@@ -12,25 +13,32 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
     try {
 
         const contract = payload?.contract;
-        const contractAddress = payload?.contractAddress;
         const network = payload?.network;
 
         const nftId = payload?.nftId;
         const blockNumber = payload?.blockNumber;
         const creatorAddress = payload?.creatorAddress;
+        const strategyReference = payload?.strategyReference;
 
         let ipfsMetadataId: any = null;
         let withAccess = false;
         let info: any = null;
 
         console.log('');
-        console.log(`New idea NFT event received! (Id: ${nftId}, Block: ${blockNumber} Creator: ${creatorAddress}) | getting the info...`);
+        console.log('=================================================================');
+        console.log(`New idea NFT event received!`);
+        console.log(`network: ${network}`);
+        console.log(`nftId: ${nftId}`);
+        console.log(`blockNumber: ${blockNumber}`);
+        console.log(`creatorAddress: ${creatorAddress}`);
+        console.log(`strategyReference: ${strategyReference}`);
+        console.log('Getting the encrypted info, please wait...');
+        console.log('=================================================================');
+        console.log('');
 
         await loop(
             async () => {
                 const nftIdeaUrl = `https://ipfs.io/ipfs/${ipfsMetadataId}`;
-
-                console.log('newIdeaNFTEvent (nftIdeaUrl)', nftIdeaUrl);
 
                 const nftIdeaString = await getJsonContent(
                     nftIdeaUrl,
@@ -52,7 +60,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
 
                         const acConditions = [
                             {
-                                contractAddress: contractAddress,
+                                contractAddress: config.IDEA_NFT_CONFIG.coreContractAddress,
                                 standardContractType: 'ERC1155',
                                 method: 'balanceOf',
                                 parameters: [':userAddress', nftId.toString()],
@@ -74,8 +82,6 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
                             );
 
                         const restoredIdea = JSON.parse(restoredStringIdea);
-
-                        console.log('newIdeaNFTEvent (restoredIdea)', restoredIdea);
 
                         nftObject.idea = restoredIdea;
                         withAccess = true;
@@ -125,13 +131,34 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
         );
 
         if (!withAccess) {
-            console.log(`New idea NFT event received! (Id: ${nftId}, Block: ${blockNumber} Creator: ${creatorAddress}) | without access`);
+            console.log('');
+            console.log('=================================================================');
+            console.log(`New idea NFT decrypted!`);
+            console.log(`network: ${network}`);
+            console.log(`nftId: ${nftId}`);
+            console.log(`blockNumber: ${blockNumber}`);
+            console.log(`We can't decrypt the idea (access denied)`);
+            console.log('=================================================================');
+            console.log('');
         };
 
         if (withAccess) {
-            console.log(`New idea NFT event received! (Id: ${nftId}, Block: ${blockNumber} Creator: ${creatorAddress}) | with access`);
+            console.log('');
+            console.log('=================================================================');
+            console.log(`New idea NFT decrypted!`);
+            console.log(`network: ${network}`);
+            console.log(`nftId: ${nftId}`);
+            console.log(`blockNumber: ${blockNumber}`);
+            console.log(`Provider: ${info?.data?.pricing?.provider}`);
+            console.log(`Ticker: ${info?.data?.idea?.asset?.ticker}`);
+            console.log(`Kind: ${info?.data?.idea?.kind}`);
+            console.log(`Price: $${info?.data?.idea?.priceInfo?.price?.globalPrice}`);
+            console.log(`Creator: ${info?.data?.creator?.name} (${info?.data?.creator?.walletAddress})`);
+            console.log(`Company: ${info?.data?.creator?.company}`);
+            console.log(`Strategy: ${info?.data?.strategy?.name} (${info?.data?.strategy?.reference})`);
+            console.log('=================================================================');
+            console.log('');
         };
-        console.log('');
 
         // console.log('');
         // console.log('newIdeaNFTEvent (info)', info);

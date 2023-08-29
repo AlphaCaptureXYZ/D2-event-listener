@@ -6,6 +6,5 @@ export interface INewIdeaNFT {
     blockNumber: number;
 
     contract: ethers.Contract;
-    contractAddress: string;
     network: string;
 };

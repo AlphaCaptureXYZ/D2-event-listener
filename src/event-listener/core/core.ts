@@ -11,14 +11,14 @@ import { INewIdeaNFT } from '../interfaces/new-idea-nft.i';
 
 import { newIdeaNFTEvent } from "./events/new-idea-nft";
 
+const rpcUrlByNetwork = {
+    mumbai: 'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78',
+};
+
 export const D2EventListener = (payload: {
     privateKey?: string;
-    rpcUrl: string;
     network: string;
-    contractAddress: string;
-    abi: string[];
 }) => {
-
     const mode = config.APP_ENV;
 
     const log = (
@@ -30,11 +30,12 @@ export const D2EventListener = (payload: {
 
     const {
         privateKey,
-        rpcUrl,
         network,
-        contractAddress,
-        abi,
     } = payload;
+
+    const rpcUrl = rpcUrlByNetwork[network] || null;
+
+    if (!rpcUrl) throw new Error(`Network not supported: ${network}`);
 
     const WALLET_NETWORK_CHAIN_IDS_OPTS = {
         goerli: 5,
@@ -64,14 +65,22 @@ export const D2EventListener = (payload: {
             provider,
         );
         const signer = wallet.connect(provider);
-        contract = new ethers.Contract(contractAddress, abi, signer);
+        contract = new ethers.Contract(
+            config.IDEA_NFT_CONFIG.gateContractAddress,
+            config.IDEA_NFT_CONFIG.gateAbi,
+            signer
+        );
 
         log(`Private key detected (${privateKey})`)
         log(`Address: ${wallet.address}`);
     }
 
     if (!privateKey) {
-        contract = new ethers.Contract(contractAddress, abi, provider);
+        contract = new ethers.Contract(
+            config.IDEA_NFT_CONFIG.gateContractAddress,
+            config.IDEA_NFT_CONFIG.gateAbi,
+            provider,
+        );
         log(`No private key detected (optional)`);
     }
 
@@ -104,9 +113,7 @@ export const D2EventListener = (payload: {
                     'NEW_IDEA_NFT',
                     {
                         contract,
-                        contractAddress,
                         network,
-
                         creatorAddress: args[0],
                         nftId: args[1].toNumber(),
                         strategyReference: args[2],
@@ -116,7 +123,6 @@ export const D2EventListener = (payload: {
             };
         });
     });
-
 };
 
 (async function main() {
