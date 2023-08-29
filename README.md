@@ -5,7 +5,7 @@ DII Event Listener
 - Add your .env
 
 ```
-WALLET_PRIVATE_KEY="a24...ab63" # optional
+WALLET_PRIVATE_KEY="a24...ab63"
 ```
 
 - Run (development)

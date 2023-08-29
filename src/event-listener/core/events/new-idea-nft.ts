@@ -16,25 +16,12 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
         const network = payload?.network;
 
         const blockNumber = payload?.blockNumber;
-        const creatorAddress = payload?.creatorAddress;
-        const strategyReference = payload?.strategyReference;
 
         let ipfsMetadataId: any = null;
         let withAccess = false;
         let info: any = null;
 
         let nftId = -1;
-
-        console.log('');
-        console.log('=================================================================');
-        console.log(`New idea NFT event received!`);
-        console.log(`network: ${network}`);
-        console.log(`blockNumber: ${blockNumber}`);
-        console.log(`creatorAddress: ${creatorAddress}`);
-        console.log(`strategyReference: ${strategyReference}`);
-        console.log('Getting the encrypted info, please wait...');
-        console.log('=================================================================');
-        console.log('');
 
         await loop(
             async () => {
@@ -134,9 +121,8 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
         if (!withAccess) {
             console.log('');
             console.log('=================================================================');
-            console.log(`New idea NFT decrypted!`);
+            console.log(`New idea NFT event received!`);
             console.log(`network: ${network}`);
-            console.log(`nftId: ${nftId}`);
             console.log(`blockNumber: ${blockNumber}`);
             console.log(`We can't decrypt the idea (access denied)`);
             console.log('=================================================================');
@@ -146,7 +132,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
         if (withAccess) {
             console.log('');
             console.log('=================================================================');
-            console.log(`New idea NFT decrypted!`);
+            console.log(`New idea NFT event received!`);
             console.log(`network: ${network}`);
             console.log(`nftId: ${nftId}`);
             console.log(`blockNumber: ${blockNumber}`);
@@ -161,32 +147,32 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
             console.log('');
         };
 
-        // console.log('');
-        // console.log('newIdeaNFTEvent (info)', info);
-        // console.log('newIdeaNFTEvent (nftId)', nftId);
-        // console.log('newIdeaNFTEvent (blockNumber)', blockNumber);
-        // console.log('newIdeaNFTEvent (ipfsMetadataId)', ipfsMetadataId);
-        // console.log('newIdeaNFTEvent (withAccess)', withAccess);
-        // console.log('');
+        const triggers =
+            await WeaveDBModule.getAllData<any>(network, { type: 'trigger' });
 
-        // WeaveDBModule.getAllData<any>(network, { type: 'trigger' })
-        //     .then((data) => {
-        //         console.log('WeaveDBModule.getAllData (data)', data);
-        //     }).catch(err => {
-        //         console.log('WeaveDBModule.getAllData (err)', err);
-        //     });
+        const triggersFiltered = triggers?.filter((item) => {
+            return item?.strategy?.reference === info?.data?.strategy?.reference;
+        });
 
-        // CredentialNFTModule.setConfig({
-        //     rpcUrl,
-        //     chain: network,
-        // });
+        CredentialNFTModule.setConfig({
+            rpcUrl: payload.rpcUrl,
+            chain: network,
+        });
 
-        // CredentialNFTModule.getCredentialByUUID('0x05c29570830f0fff8b7958f16b2398eb')
-        //     .then((credential) => {
-        //         console.log('CredentialNFTModule.getCredentialByUUID (credential)', credential);
-        //     }).catch(err => {
-        //         console.log('CredentialNFTModule.getCredentialByUUID (err)', err);
-        //     });
+        await Promise.all(triggersFiltered?.map(async (triggerInfo: any) => {
+
+            const action = triggerInfo?.action;
+            const settings = triggerInfo?.settings || null;
+
+            const credentialNftUUID = triggerInfo?.account?.reference;
+
+            console.log('newIdeaNFTEvent (credentialNftUUID)', credentialNftUUID);
+
+            const credential = await CredentialNFTModule.getCredentialByUUID(credentialNftUUID);
+
+            console.log('newIdeaNFTEvent (credential)', credential);
+        }));
+
 
     } catch (err) {
         console.log('newIdeaNFTEvent (error 3)', err?.message);

@@ -10,6 +10,7 @@ import {
 import { INewIdeaNFT } from '../interfaces/new-idea-nft.i';
 
 import { newIdeaNFTEvent } from "./events/new-idea-nft";
+import { rest } from "../helpers/helpers";
 
 const rpcUrlByNetwork = {
     mumbai: 'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78',
@@ -18,6 +19,10 @@ const rpcUrlByNetwork = {
 export const D2EventListener = (payload: {
     privateKey?: string;
     network: string;
+    test?: {
+        enabled: boolean;
+        blockNumber: number;
+    }
 }) => {
     const mode = config.APP_ENV;
 
@@ -54,35 +59,26 @@ export const D2EventListener = (payload: {
     const networkChainId = WALLET_NETWORK_CHAIN_IDS_OPTS[network] || -1;
 
     if (networkChainId === -1) throw new Error(`Invalid network: ${network}`);
+    if (!privateKey) throw new Error(`Private key is not defined`);
 
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl, networkChainId);
 
     let contract: ethers.Contract = null as any;
 
-    if (privateKey) {
-        const wallet = new ethers.Wallet(
-            privateKey,
-            provider,
-        );
-        const signer = wallet.connect(provider);
-        contract = new ethers.Contract(
-            config.IDEA_NFT_CONFIG.gateContractAddress,
-            config.IDEA_NFT_CONFIG.gateAbi,
-            signer
-        );
+    const wallet = new ethers.Wallet(
+        privateKey,
+        provider,
+    );
+    const signer = wallet.connect(provider);
+    contract = new ethers.Contract(
+        config.IDEA_NFT_CONFIG.gateContractAddress,
+        config.IDEA_NFT_CONFIG.gateAbi,
+        signer
+    );
 
-        log(`Private key detected (${privateKey})`)
-        log(`Address: ${wallet.address}`);
-    }
+    log(`Private key detected (${privateKey})`);
+    log(`Address: ${wallet.address}`);
 
-    if (!privateKey) {
-        contract = new ethers.Contract(
-            config.IDEA_NFT_CONFIG.gateContractAddress,
-            config.IDEA_NFT_CONFIG.gateAbi,
-            provider,
-        );
-        log(`No private key detected (optional)`);
-    }
 
     log(`Listening the events flow...`);
 
@@ -106,22 +102,41 @@ export const D2EventListener = (payload: {
     }
     log('');
 
-    events?.map((key) => {
-        contract.on(key, async (...args) => {
-            if (key === 'IdeaCreated') {
-                await EventEmitterModule().emit<INewIdeaNFT>(
-                    'NEW_IDEA_NFT',
-                    {
-                        contract,
-                        network,
-                        creatorAddress: args[0],
-                        strategyReference: args[2],
-                        blockNumber: args[5].toNumber(),
-                    }
-                );
-            };
+    if (!payload?.test?.enabled) {
+        events?.map((key) => {
+            contract.on(key, async (...args) => {
+                if (key === 'IdeaCreated') {
+                    await EventEmitterModule().emit<INewIdeaNFT>(
+                        'NEW_IDEA_NFT',
+                        {
+                            contract,
+                            network,
+                            rpcUrl,
+                            creatorAddress: args[0],
+                            strategyReference: args[2],
+                            blockNumber: args[5].toNumber(),
+                        }
+                    );
+                };
+            });
         });
-    });
+    }
+
+    if (payload?.test?.enabled) {
+        rest(1000).then(() => {
+            EventEmitterModule().emit<INewIdeaNFT>(
+                'NEW_IDEA_NFT',
+                {
+                    contract,
+                    network,
+                    rpcUrl,
+                    creatorAddress: 'xxx',
+                    strategyReference: 'xxx',
+                    blockNumber: payload.test.blockNumber,
+                }
+            );
+        });
+    }
 };
 
 (async function main() {
@@ -137,6 +152,6 @@ export const D2EventListener = (payload: {
             }
         });
     } catch (error) {
-        error(error);
+        console.log('Main Error: ', error?.message);
     }
 })();

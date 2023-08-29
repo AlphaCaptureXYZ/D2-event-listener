@@ -121,6 +121,12 @@ const getCredentialByUUID = async <T>(uuid: string): Promise<T> => {
         const id = await contract.getTokenId(uuid);
         const credentialInfo = fillCredential(await contract.getCredentialById(id));
 
+        const check = credentialInfo?.encryptedCredential?.encryptedFileB64?.trim()?.length > 0;
+
+        if (!check) {
+            throw new Error('Credential not found or not available/accessible');
+        }
+
         const encryptedFileB64 =
             credentialInfo?.encryptedCredential?.encryptedFileB64;
         const encryptedSymmetricKeyString =
