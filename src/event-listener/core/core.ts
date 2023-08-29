@@ -115,7 +115,6 @@ export const D2EventListener = (payload: {
                         contract,
                         network,
                         creatorAddress: args[0],
-                        nftId: args[1].toNumber(),
                         strategyReference: args[2],
                         blockNumber: args[5].toNumber(),
                     }

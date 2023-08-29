@@ -15,7 +15,6 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
         const contract = payload?.contract;
         const network = payload?.network;
 
-        const nftId = payload?.nftId;
         const blockNumber = payload?.blockNumber;
         const creatorAddress = payload?.creatorAddress;
         const strategyReference = payload?.strategyReference;
@@ -24,11 +23,12 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
         let withAccess = false;
         let info: any = null;
 
+        let nftId = -1;
+
         console.log('');
         console.log('=================================================================');
         console.log(`New idea NFT event received!`);
         console.log(`network: ${network}`);
-        console.log(`nftId: ${nftId}`);
         console.log(`blockNumber: ${blockNumber}`);
         console.log(`creatorAddress: ${creatorAddress}`);
         console.log(`strategyReference: ${strategyReference}`);
@@ -109,6 +109,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
                     payload.blockNumber,
                 );
 
+                nftId = metadataIdByBlockId[1]?.toNumber();
                 ipfsMetadataId = metadataIdByBlockId[2];
 
                 if ([null, undefined, 'none'].includes(ipfsMetadataId)) {

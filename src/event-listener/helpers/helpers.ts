@@ -104,4 +104,8 @@ export const loop = (
             }
             reject(err)
         }
-    })
+    });
+
+export const rest = async (delay: number) => {
+    await new Promise((resolve) => setTimeout(resolve, delay))
+}

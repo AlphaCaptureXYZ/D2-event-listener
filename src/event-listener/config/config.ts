@@ -1,5 +1,7 @@
 import 'dotenv/config';
 
+const MAX_LIT_ENC_DEC_ATTEMPTS = 5;
+
 const APP_ENV: 'development' | 'production' =
     (process.env.APP_ENV as any) || 'development';
 
@@ -49,4 +51,5 @@ export {
     APP_ENV,
     WALLET_PRIVATE_KEY,
     IDEA_NFT_CONFIG,
+    MAX_LIT_ENC_DEC_ATTEMPTS,
 };
