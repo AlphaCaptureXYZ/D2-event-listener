@@ -23,6 +23,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
         let withAccess = false;
         let info: any = null;
 
+        console.log('');
         console.log(`New idea NFT event received! (Id: ${nftId}, Block: ${blockNumber} Creator: ${creatorAddress}) | getting the info...`);
 
         await loop(
@@ -125,11 +126,12 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
 
         if (!withAccess) {
             console.log(`New idea NFT event received! (Id: ${nftId}, Block: ${blockNumber} Creator: ${creatorAddress}) | without access`);
-        }
+        };
 
         if (withAccess) {
             console.log(`New idea NFT event received! (Id: ${nftId}, Block: ${blockNumber} Creator: ${creatorAddress}) | with access`);
-        }
+        };
+        console.log('');
 
         // console.log('');
         // console.log('newIdeaNFTEvent (info)', info);
