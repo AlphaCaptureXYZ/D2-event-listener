@@ -1,9 +1,12 @@
+import './watcher';
+
 import { ethers } from "ethers";
 
 import * as config from "../config/config";
 
-import { WeaveDBModule } from '../modules/weavedb.module';
-import { CredentialNFTModule } from "../modules/credential-nft.module";
+import { WatcherPubSub } from "./watcher/config/watcherPubSub";
+
+import { INewIdeaNFT } from '../interfaces/new-idea-nft.i';
 
 export const D2EventListener = (payload: {
     privateKey?: string;
@@ -11,10 +14,6 @@ export const D2EventListener = (payload: {
     network: string;
     contractAddress: string;
     abi: string[];
-    callback: (
-        event: string,
-        args: any[]
-    ) => void;
 }) => {
 
     const mode = config.APP_ENV;
@@ -32,27 +31,7 @@ export const D2EventListener = (payload: {
         network,
         contractAddress,
         abi,
-        callback,
     } = payload;
-
-    // WeaveDBModule.getAllData<any>(network, { type: 'trigger' })
-    //     .then((data) => {
-    //         console.log('WeaveDBModule.getAllData (data)', data);
-    //     }).catch(err => {
-    //         console.log('WeaveDBModule.getAllData (err)', err);
-    //     });
-
-    // CredentialNFTModule.setConfig({
-    //     rpcUrl,
-    //     chain: network,
-    // });
-
-    // CredentialNFTModule.getCredentialByUUID('0x05c29570830f0fff8b7958f16b2398eb')
-    //     .then((credential) => {
-    //         console.log('CredentialNFTModule.getCredentialByUUID (credential)', credential);
-    //     }).catch(err => {
-    //         console.log('CredentialNFTModule.getCredentialByUUID (err)', err);
-    //     });
 
     const WALLET_NETWORK_CHAIN_IDS_OPTS = {
         goerli: 5,
@@ -117,7 +96,17 @@ export const D2EventListener = (payload: {
 
     events?.map((key) => {
         contract.on(key, async (...args) => {
-            callback(key, args);
+
+            if (key === 'IdeaCreated') {
+                await WatcherPubSub<INewIdeaNFT>('new-idea-nft', {
+                    creatorAddress: args[0],
+                    nftId: args[1].toNumber(),
+                    strategyReference: args[2],
+                    blockNumber: args[5].toNumber(),
+                });
+            };
+
         });
     });
+
 };

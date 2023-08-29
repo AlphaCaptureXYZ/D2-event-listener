@@ -24,6 +24,7 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    console.log('');
 });
 
 (async function main() {
@@ -69,20 +70,6 @@ app.listen(PORT, () => {
                 'function uri(uint256) view returns (string)',
                 'function withdrawMoney(address,uint256)',
             ],
-            callback: async (
-                event,
-                args
-            ) => {
-
-                const data = {
-                    creatorAddress: args[0],
-                    nftId: args[1].toNumber(),
-                    strategyReference: args[2],
-                    blockNumber: args[5].toNumber(),
-                };
-
-                console.log(`[${event}] (data)`, data);
-            },
         });
 
     } catch (error) {
