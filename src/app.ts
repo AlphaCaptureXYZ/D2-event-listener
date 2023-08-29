@@ -72,7 +72,7 @@ app.listen(PORT, () => {
             ],
         });
 
-    } catch (error) {
-        error(error);
+    } catch (err: any) {
+        console.log('Main Error: ', err?.message);
     }
 })();

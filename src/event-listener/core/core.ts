@@ -99,12 +99,14 @@ export const D2EventListener = (payload: {
 
     events?.map((key) => {
         contract.on(key, async (...args) => {
-
             if (key === 'IdeaCreated') {
                 await EventEmitterModule().emit<INewIdeaNFT>(
                     'NEW_IDEA_NFT',
                     {
                         contract,
+                        contractAddress,
+                        network,
+
                         creatorAddress: args[0],
                         nftId: args[1].toNumber(),
                         strategyReference: args[2],
@@ -112,7 +114,6 @@ export const D2EventListener = (payload: {
                     }
                 );
             };
-
         });
     });
 
