@@ -44,7 +44,8 @@ describe('Lit Action Cases', () => {
         const litActionCode = `
             const go = async () => {
       
-                const rpcUrl = 'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78';
+                const rpcUrl = 
+                    'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78';
 
                 const provider =
                     new ethers.providers.JsonRpcProvider(rpcUrl);
@@ -82,9 +83,9 @@ describe('Lit Action Cases', () => {
                     provider,
                 );
         
-                const id = await contract.getTokenId('0x7a47e50fef3a33db37fb8a2bca5b4a1c');
+                const id = await contract.getTokenId(credentialNftUUID);
 
-                console.log('id', id);
+                console.log('id', Number(id));
 
                 Lit.Actions.setResponse({response: JSON.stringify({})});
             }
@@ -93,7 +94,7 @@ describe('Lit Action Cases', () => {
         `;
 
         const listActionCodeParams = {
-
+            credentialNftUUID: '0x7a47e50fef3a33db37fb8a2bca5b4a1c'
         };
 
         const litActionResponse = await LitModule().runLitAction({

@@ -23,7 +23,6 @@
 			"chai",
 			"sinon",
 			"sinon-chai",
-			"multer"
 		],
 		"noImplicitAny": false,
 		"skipLibCheck": true,
