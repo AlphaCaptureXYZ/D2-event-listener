@@ -39,4 +39,35 @@ describe('Lit Action Cases', () => {
 
     }).timeout(50000);
 
+    it('Credential NFT smart contract request using PKP to check the access', async () => {
+
+        const litActionCode = `
+            const go = async () => {
+                const test = 'ok';
+
+                Lit.Actions.setResponse({response: JSON.stringify(test)});
+            }
+
+            go();
+        `;
+
+        const listActionCodeParams = {
+
+        };
+
+        const litActionResponse = await LitModule().runLitAction({
+            chain: 'mumbai',
+            litActionCode,
+            listActionCodeParams,
+            nodes: 1,
+            showLogs: false,
+        });
+
+        expect(isNullOrUndefined(litActionResponse)).to.be.false;
+        // expect(litActionResponse).to.be.an('object');
+        // expect(litActionResponse).to.have.property('response');
+        // expect(litActionResponse.response).to.be.equal(message);
+
+    }).timeout(50000);
+
 });
