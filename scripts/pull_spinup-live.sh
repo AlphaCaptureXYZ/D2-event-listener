@@ -4,7 +4,7 @@ echo "Getting current id"
 CURRENT_ID=$(sudo docker ps -a -q --filter ancestor=dii-event-listener-app)
 echo "the current id is $CURRENT_ID"
 echo "Building the DII Site image"
-sudo docker build . -t dii-event-listener-app --file Dockerfile
+sudo docker build . --no-cache -t dii-event-listener-app --file Dockerfile
 echo "Stopping and removing the previous image"
 sudo docker stop $CURRENT_ID
 sudo docker rm $CURRENT_ID
