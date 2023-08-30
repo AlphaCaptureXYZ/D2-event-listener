@@ -9,6 +9,12 @@ import { INewIdeaNFT } from '../../../event-listener/interfaces/new-idea-nft.i';
 
 import { loop } from '../../../event-listener/helpers/helpers';
 
+import * as litActions from '../lit-actions';
+
+// NOTE: all this code will be refactored and split into functions, etc
+// as a first test we will use the code as it is (without refactoring, same file, etc)
+// once is working we will refactor it
+
 export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
     try {
 
@@ -139,6 +145,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
             console.log(`Provider: ${info?.data?.pricing?.provider}`);
             console.log(`Ticker: ${info?.data?.idea?.asset?.ticker}`);
             console.log(`Kind: ${info?.data?.idea?.kind}`);
+            console.log(`Direction: ${info?.data?.idea?.trade?.direction}`);
             console.log(`Price: $${info?.data?.idea?.priceInfo?.price?.globalPrice}`);
             console.log(`Creator: ${info?.data?.creator?.name} (${info?.data?.creator?.walletAddress})`);
             console.log(`Company: ${info?.data?.creator?.company}`);
@@ -161,16 +168,79 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
 
         await Promise.all(triggersFiltered?.map(async (triggerInfo: any) => {
 
-            const action = triggerInfo?.action;
-            const settings = triggerInfo?.settings || null;
-
             const credentialNftUUID = triggerInfo?.account?.reference;
 
-            console.log('newIdeaNFTEvent (credentialNftUUID)', credentialNftUUID);
+            try {
+                const action = triggerInfo?.action;
+                const settings = triggerInfo?.settings || null;
 
-            const credential = await CredentialNFTModule.getCredentialByUUID(credentialNftUUID);
+                const credentialInfo =
+                    await CredentialNFTModule.getCredentialByUUID<any>(credentialNftUUID);
 
-            console.log('newIdeaNFTEvent (credential)', credential);
+                const environment = credentialInfo.environment;
+
+                if (action === 'copy-trade') {
+
+                    const temporalCheck =
+                        info?.data?.pricing?.provider === 'Binance' &&
+                        info?.data?.idea?.asset?.ticker === 'BTCUSDT';
+
+                    if (temporalCheck) {
+                        let litActionCode = null;
+                        let listActionCodeParams = null;
+
+                        switch (info?.data?.pricing?.provider) {
+                            case 'Binance':
+                                litActionCode = litActions.binance.placeOrder(environment as any);
+
+                                const sideSelector = {
+                                    'LONG': 'BUY',
+                                    'SHORT': 'SELL',
+                                };
+
+                                const direction =
+                                    sideSelector[info?.data?.idea?.trade?.direction.toUpperCase()];
+
+                                listActionCodeParams = {
+                                    credentials: credentialInfo.credential,
+                                    form: {
+                                        asset: info?.data?.idea?.asset?.ticker,
+                                        direction,
+                                        quantity: 0.00044, // 12 USDT
+                                    },
+                                };
+                                break;
+                        }
+
+                        try {
+                            const litActionCall = await LitModule().runLitAction({
+                                chain: network,
+                                litActionCode,
+                                listActionCodeParams,
+                                nodes: 1,
+                                showLogs: true,
+                            });
+
+                            const response = litActionCall?.response as any;
+
+                            const orderId = response?.orderId || null;
+
+                            if (orderId) {
+                                console.log(`Order placed successfully. OrderID: ${orderId}`);
+                            } else {
+                                console.log('binancePlaceOrder (response)', response);
+                            }
+                        } catch (err) { }
+                    }
+
+                }
+
+            } catch (err) {
+                console.log('newIdeaNFTEvent (error (listener logic))', {
+                    credentialNftUUID,
+                    err: err?.message,
+                });
+            }
         }));
 
 

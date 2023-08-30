@@ -38,20 +38,33 @@ let configObj = {
     chain: null,
 };
 
-interface ICredentialNft {
+interface ICredentialNftBasicInfo {
     uuid: string;
     tokenId: number;
     provider: string;
     environment: string;
     accountName: string;
+    pkpAddress: string;
+};
+
+interface ICredentialNftRaw extends ICredentialNftBasicInfo {
     encryptedCredential: {
         encryptedFileB64: string;
         encryptedSymmetricKeyString: string;
     };
+};
+
+interface ICredentialNft<T> {
+    uuid: string;
+    tokenId: number;
+    provider: string;
+    environment: string;
+    accountName: string;
+    credential: T;
     pkpAddress: string;
 };
 
-const fillCredential = (data: any): ICredentialNft => {
+const fillCredential = (data: any): ICredentialNftRaw => {
     const [
         encryptedFileB64,
         encryptedSymmetricKeyString,
@@ -113,8 +126,8 @@ const init = async () => {
     }
 }
 
-const getCredentialByUUID = async <T>(uuid: string): Promise<T> => {
-    let credential: T = null as any;
+const getCredentialByUUID = async <T>(uuid: string): Promise<ICredentialNft<T>> => {
+    let credentialResponse: ICredentialNft<T> = null as any;
     try {
         await init();
 
@@ -154,12 +167,23 @@ const getCredentialByUUID = async <T>(uuid: string): Promise<T> => {
             accessControlConditionsNFT
         );
 
-        credential = JSON.parse(decryptedFile) as T;
+        const credential = JSON.parse(decryptedFile) as T;
+
+        credentialResponse = {
+            uuid: credentialInfo.uuid,
+            tokenId: credentialInfo.tokenId,
+            accountName: credentialInfo.accountName,
+            environment: credentialInfo.environment,
+            pkpAddress: credentialInfo.pkpAddress,
+            provider: credentialInfo.provider,
+            credential,
+        };
 
     } catch (err) {
         throw err;
     }
-    return credential;
+
+    return credentialResponse;
 };
 
 export const CredentialNFTModule = {
