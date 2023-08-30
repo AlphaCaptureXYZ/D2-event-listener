@@ -16,6 +16,8 @@ import * as litActions from '../lit-actions';
 // once is working we will refactor it
 
 export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
+    let eventResult = [];
+
     try {
 
         const contract = payload?.contract;
@@ -166,9 +168,10 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
             chain: network,
         });
 
-        await Promise.all(triggersFiltered?.map(async (triggerInfo: any) => {
+        eventResult = await Promise.all(triggersFiltered?.map(async (triggerInfo: any) => {
 
             const credentialNftUUID = triggerInfo?.account?.reference;
+            let response = null;
 
             try {
                 const action = triggerInfo?.action;
@@ -221,7 +224,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
                                 showLogs: true,
                             });
 
-                            const response = litActionCall?.response as any;
+                            response = litActionCall?.response as any;
 
                             const orderId = response?.orderId || null;
 
@@ -230,6 +233,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
                             } else {
                                 console.log('binancePlaceOrder (response)', response);
                             }
+
                         } catch (err) { }
                     }
 
@@ -241,12 +245,15 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
                     err: err?.message,
                 });
             }
-        }));
 
+            return response;
+        }));
 
     } catch (err) {
         console.log('newIdeaNFTEvent (error 3)', err?.message);
     }
+
+    return eventResult;
 };
 
 const getJsonContent = async (

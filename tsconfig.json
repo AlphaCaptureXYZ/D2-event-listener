@@ -5,19 +5,35 @@
 		"baseUrl": ".",
 		"rootDir": "./src",
 		"outDir": "./dist",
-		"lib": ["es2021", "dom"],
+		"lib": [
+			"es2021",
+			"dom"
+		],
 		"sourceMap": true,
 		"declaration": true,
 		"strict": false,
 		"moduleResolution": "node",
-		"typeRoots": ["node_module/@types", "types"],
-		"types": [],
+		"typeRoots": [
+			"node_module/@types",
+			"types"
+		],
+		"types": [
+			"node",
+			"mocha",
+			"chai",
+			"sinon",
+			"sinon-chai",
+			"multer"
+		],
 		"noImplicitAny": false,
 		"skipLibCheck": true,
-		"strictNullChecks": false, // we need this as false because it has been causing problems with firebase
+		"strictNullChecks": false,
 		"allowSyntheticDefaultImports": true
 	},
-	"include": ["src/**/*.ts", "src/**/*.md"],
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.md"
+	],
 	"exclude": [
 		".nyc_output",
 		".vscode",
@@ -25,6 +41,11 @@
 		"dist",
 		"documentation-output",
 		"node_modules",
+		"tests",
+		"src/test-done",
+		"src/tests",
+		"src/test-temp",
+		"src/test-tba",
 		"src/**/*.spec.ts",
 		"src/**/*.e2e.ts",
 		"src/**/testing"

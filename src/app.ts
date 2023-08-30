@@ -29,7 +29,7 @@ app.listen(PORT, () => {
 
 (async function main() {
     try {
-        D2EventListener({
+        await D2EventListener({
             network: 'mumbai',
             privateKey: process.env.WALLET_PRIVATE_KEY,
             test: {

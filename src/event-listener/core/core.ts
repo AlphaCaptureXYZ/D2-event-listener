@@ -16,114 +16,149 @@ const rpcUrlByNetwork = {
     mumbai: 'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78',
 };
 
-export const D2EventListener = (payload: {
+let watcherLoaded = false;
+
+export const D2EventListener = async (payload: {
     privateKey?: string;
     network: string;
     test?: {
         enabled: boolean;
         blockNumber: number;
     }
-}) => {
-    const mode = config.APP_ENV;
+}) => new Promise<any>(async (resolve, reject) => {
+    try {
 
-    const log = (
-        message?: any, ...optionalParams: any[]
-    ) => {
-        // if (mode === 'production') return;
-        console.log(message, ...optionalParams);
-    };
+        const mode = config.APP_ENV;
 
-    const {
-        privateKey,
-        network,
-    } = payload;
+        // watcher process
+        try {
+            if (!watcherLoaded) {
+                EventEmitterModule().listen().subscribe(async (res) => {
+                    const event = res.type as EventType;
+                    const data = res?.data || null;
 
-    const rpcUrl = rpcUrlByNetwork[network] || null;
+                    switch (event) {
+                        case 'NEW_IDEA_NFT':
+                            const response = await newIdeaNFTEvent(data as INewIdeaNFT);
 
-    if (!rpcUrl) throw new Error(`Network not supported: ${network}`);
+                            if (payload?.test?.enabled) {
+                                resolve(response);
+                            };
 
-    const WALLET_NETWORK_CHAIN_IDS_OPTS = {
-        goerli: 5,
-        hardhat: 1337,
-        kovan: 42,
-        ethereum: 1,
-        rinkeby: 4,
-        ropsten: 3,
-        maticmum: 0xa4ec,
-        sepolia: 11155111,
-        polygon: 137,
-        mumbai: 80001,
-        bnb: 56,
-    };
+                            break;
+                    }
+                });
+                watcherLoaded = true;
+            }
+        } catch (error) {
+            console.log('Watcher Error: ', error?.message);
+        }
 
-    const networkChainId = WALLET_NETWORK_CHAIN_IDS_OPTS[network] || -1;
+        const log = (
+            message?: any, ...optionalParams: any[]
+        ) => {
+            // if (mode === 'production') return;
+            console.log(message, ...optionalParams);
+        };
 
-    if (networkChainId === -1) throw new Error(`Invalid network: ${network}`);
-    if (!privateKey) throw new Error(`Private key is not defined`);
+        const {
+            privateKey,
+            network,
+        } = payload;
 
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl, networkChainId);
+        const rpcUrl = rpcUrlByNetwork[network] || null;
 
-    let contract: ethers.Contract = null as any;
+        if (!rpcUrl) throw new Error(`Network not supported: ${network}`);
 
-    const wallet = new ethers.Wallet(
-        privateKey,
-        provider,
-    );
-    const signer = wallet.connect(provider);
-    contract = new ethers.Contract(
-        config.IDEA_NFT_CONFIG.gateContractAddress,
-        config.IDEA_NFT_CONFIG.gateAbi,
-        signer
-    );
+        const WALLET_NETWORK_CHAIN_IDS_OPTS = {
+            goerli: 5,
+            hardhat: 1337,
+            kovan: 42,
+            ethereum: 1,
+            rinkeby: 4,
+            ropsten: 3,
+            maticmum: 0xa4ec,
+            sepolia: 11155111,
+            polygon: 137,
+            mumbai: 80001,
+            bnb: 56,
+        };
 
-    log(`Private key detected (${privateKey})`);
-    log(`Address: ${wallet.address}`);
+        const networkChainId = WALLET_NETWORK_CHAIN_IDS_OPTS[network] || -1;
 
+        if (networkChainId === -1) throw new Error(`Invalid network: ${network}`);
+        if (!privateKey) throw new Error(`Private key is not defined`);
 
-    log(`Listening the events flow...`);
+        const provider = new ethers.providers.JsonRpcProvider(rpcUrl, networkChainId);
 
-    let events = Object.keys(contract.filters);
+        let contract: ethers.Contract = null as any;
 
-    events = events.map((key) => {
-        key = (key.split('(')[0]);
-        return key;
-    });
+        const wallet = new ethers.Wallet(
+            privateKey,
+            provider,
+        );
 
-    events = [...new Set(events)];
+        const signer = wallet.connect(provider);
 
-    events = events.filter((key) => {
-        return key !== 'Initialized';
-    });
+        contract = new ethers.Contract(
+            config.IDEA_NFT_CONFIG.gateContractAddress,
+            config.IDEA_NFT_CONFIG.gateAbi,
+            signer
+        );
 
-    if (events?.length > 0) {
-        log(`Events to listen: ${events.join(', ')}`);
-    } else {
-        log(`No events found`);
-    }
-    log('');
+        log(`Private key detected (${privateKey})`);
+        log(`Address: ${wallet.address}`);
 
-    if (!payload?.test?.enabled) {
-        events?.map((key) => {
-            contract.on(key, async (...args) => {
-                if (key === 'IdeaCreated') {
-                    await EventEmitterModule().emit<INewIdeaNFT>(
-                        'NEW_IDEA_NFT',
-                        {
-                            contract,
-                            network,
-                            rpcUrl,
-                            creatorAddress: args[0],
-                            strategyReference: args[2],
-                            blockNumber: args[5].toNumber(),
-                        }
-                    );
-                };
-            });
+        log(`Listening the events flow...`);
+
+        let events = Object.keys(contract.filters);
+
+        events = events.map((key) => {
+            key = (key.split('(')[0]);
+            return key;
         });
-    }
 
-    if (payload?.test?.enabled) {
-        rest(1000).then(() => {
+        events = [...new Set(events)];
+
+        events = events.filter((key) => {
+            return key !== 'Initialized';
+        });
+
+        if (events?.length > 0) {
+            log(`Events to listen: ${events.join(', ')}`);
+        }
+
+        if (events?.length <= 0) {
+            log(`No events found`);
+        }
+
+        log('');
+
+        if (!payload?.test?.enabled) {
+            events?.map((key) => {
+                contract.on(key, async (...args) => {
+                    if (key === 'IdeaCreated') {
+                        await EventEmitterModule().emit<INewIdeaNFT>(
+                            'NEW_IDEA_NFT',
+                            {
+                                contract,
+                                network,
+                                rpcUrl,
+                                creatorAddress: args[0],
+                                strategyReference: args[2],
+                                blockNumber: args[5].toNumber(),
+                            }
+                        );
+                    };
+                });
+            });
+
+            resolve(true);
+        }
+
+        if (payload?.test?.enabled) {
+            await rest(1000);
+
             EventEmitterModule().emit<INewIdeaNFT>(
                 'NEW_IDEA_NFT',
                 {
@@ -135,23 +170,9 @@ export const D2EventListener = (payload: {
                     blockNumber: payload.test.blockNumber,
                 }
             );
-        });
-    }
-};
+        }
 
-(async function main() {
-    try {
-        EventEmitterModule().listen().subscribe(async (res) => {
-            const event = res.type as EventType;
-            const data = res?.data || null;
-
-            switch (event) {
-                case 'NEW_IDEA_NFT':
-                    await newIdeaNFTEvent(data as INewIdeaNFT);
-                    break;
-            }
-        });
-    } catch (error) {
-        console.log('Main Error: ', error?.message);
+    } catch (err) {
+        reject(err);
     }
-})();
+});
