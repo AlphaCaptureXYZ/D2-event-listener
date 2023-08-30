@@ -32,10 +32,6 @@ app.listen(PORT, () => {
         await D2EventListener({
             network: 'mumbai',
             privateKey: process.env.WALLET_PRIVATE_KEY,
-            test: {
-                enabled: true,
-                blockNumber: 39535294,
-            }
         });
     } catch (err: any) {
         console.log('Main Error: ', err?.message);
