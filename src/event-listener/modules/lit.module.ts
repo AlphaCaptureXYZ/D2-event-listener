@@ -194,10 +194,12 @@ class Lit {
         pkpKey?: string,
         nodes?: number,
         showLogs?: boolean,
+        sigName?: string,
     }) {
 
         let {
             pkpKey,
+            sigName,
             litActionCode,
             listActionCodeParams,
             nodes,
@@ -217,6 +219,9 @@ class Lit {
         if (!isNullOrUndefined(listActionCodeParams)) {
             if (!isNullOrUndefined(pkpKey)) {
                 listActionCodeParams.publicKey = pkpKey;
+            }
+            if (isNullOrUndefined(sigName)) {
+                listActionCodeParams.sigName = 'sig1';
             }
             listActionCodeParams.authSig = authSig;
         };
