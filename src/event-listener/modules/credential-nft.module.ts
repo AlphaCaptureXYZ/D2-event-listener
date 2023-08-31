@@ -4,10 +4,13 @@ import { LitModule } from './lit.module';
 
 import * as config from '../config/config';
 
-const abi = [
+export const contractAddress = '0xAD7b59D03702BBD1Eae4c2e403856dd094D7561A';
+
+export const abi = [
     "constructor()",
     "event ApprovalForAll(address indexed,address indexed,bool)",
     "event CredentialCreated(uint256,bytes16,address)",
+    "event CredentialInfoViaPKP(tuple(bytes16,uint256,string,string,string,string,address),address)",
     "event Initialized(uint8)",
     "event TransferBatch(address indexed,address indexed,address indexed,uint256[],uint256[])",
     "event TransferSingle(address indexed,address indexed,address indexed,uint256,uint256)",
@@ -17,19 +20,18 @@ const abi = [
     "function createCredential(string,string,string,string,address)",
     "function generateUUID() view returns (bytes16)",
     "function getCredentialById(uint256) view returns (tuple(bytes16,uint256,string,string,string,string,address))",
+    "function getCredentialByIdViaPkp(uint256)",
     "function getMyCredentials() view returns (tuple(bytes16,uint256,string,string,string,string,address)[])",
     "function getMyCredentialsTotal() view returns (uint256)",
     "function getTokenId(bytes16) view returns (uint256)",
     "function isApprovedForAll(address,address) view returns (bool)",
     "function safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)",
     "function safeTransferFrom(address,address,uint256,uint256,bytes)",
-    "function sayHello(address) view returns (string)",
     "function setApprovalForAll(address,bool)",
     "function supportsInterface(bytes4) view returns (bool)",
     "function uri(uint256) view returns (string)"
 ];
 
-const contractAddress = '0x9056609c1dc0D925EA79f019669a15b8b080f833';
 
 let contract: any = null;
 

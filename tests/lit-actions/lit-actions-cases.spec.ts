@@ -1,11 +1,15 @@
 import 'dotenv/config';
 
 import { expect } from 'chai';
-import { isNullOrUndefined } from '../../src/event-listener/helpers/helpers';
+
+import { isNullOrUndefined, rest } from '../../src/event-listener/helpers/helpers';
 
 import { LitModule } from '../../src/event-listener/modules/lit.module';
 
-import { serialize } from "@ethersproject/transactions";
+import {
+    contractAddress as credentialNftContractAddress,
+    abi as credentialNftAbi,
+} from '../../src/event-listener/modules/credential-nft.module';
 
 import { ethers } from 'ethers';
 
@@ -48,60 +52,26 @@ describe('Lit Action Cases', () => {
         const litActionCode = `
             const go = async () => {
 
-                const fillCredential = (data) => {
-                    const [
-                        encryptedFileB64,
-                        encryptedSymmetricKeyString,
-                    ] = data[5]?.toString()?.split('||');
-            
-                    const credential = {
-                        uuid: data[0]?.toString(),
-                        tokenId: Number(data[1]),
-                        provider: data[2]?.toString(),
-                        environment: data[3]?.toString(),
-                        accountName: data[4]?.toString(),
-                        encryptedCredential: {
-                            encryptedFileB64,
-                            encryptedSymmetricKeyString,
-                        },
-                        pkpAddress: data[6]?.toString(),
-                    }
-            
-                    return credential;
+                const WALLET_NETWORK_CHAIN_IDS_OPTS = {
+                    goerli: 5,
+                    hardhat: 1337,
+                    kovan: 42,
+                    ethereum: 1,
+                    rinkeby: 4,
+                    ropsten: 3,
+                    maticmum: 0xa4ec,
+                    sepolia: 11155111,
+                    polygon: 137,
+                    mumbai: 80001,
+                    bnb: 56,
                 };
-            
-                const rpcUrl = 
-                    'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78';
 
                 const provider =
                     new ethers.providers.JsonRpcProvider(rpcUrl);
 
-                const contractAddress = '0x9056609c1dc0D925EA79f019669a15b8b080f833';
+                const contractAddress = '${credentialNftContractAddress}';
 
-                const abi = [
-                    "constructor()",
-                    "event ApprovalForAll(address indexed,address indexed,bool)",
-                    "event CredentialCreated(uint256,bytes16,address)",
-                    "event Initialized(uint8)",
-                    "event TransferBatch(address indexed,address indexed,address indexed,uint256[],uint256[])",
-                    "event TransferSingle(address indexed,address indexed,address indexed,uint256,uint256)",
-                    "event URI(string,uint256 indexed)",
-                    "function balanceOf(address,uint256) view returns (uint256)",
-                    "function balanceOfBatch(address[],uint256[]) view returns (uint256[])",
-                    "function createCredential(string,string,string,string,address)",
-                    "function generateUUID() view returns (bytes16)",
-                    "function getCredentialById(uint256) view returns (tuple(bytes16,uint256,string,string,string,string,address))",
-                    "function getMyCredentials() view returns (tuple(bytes16,uint256,string,string,string,string,address)[])",
-                    "function getMyCredentialsTotal() view returns (uint256)",
-                    "function getTokenId(bytes16) view returns (uint256)",
-                    "function isApprovedForAll(address,address) view returns (bool)",
-                    "function safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)",
-                    "function safeTransferFrom(address,address,uint256,uint256,bytes)",
-                    "function sayHello(address) view returns (string)",
-                    "function setApprovalForAll(address,bool)",
-                    "function supportsInterface(bytes4) view returns (bool)",
-                    "function uri(uint256) view returns (string)"
-                ];
+                const abi = '${JSON.stringify(credentialNftAbi)}';
         
                 const contract = new ethers.Contract(
                     contractAddress,
@@ -109,51 +79,66 @@ describe('Lit Action Cases', () => {
                     provider,
                 );
         
-                const id = await contract.getTokenId(credentialNftUUID);
+                let tokenId = await contract.getTokenId(credentialNftUUID);
 
                 const pkpAddress = ethers.utils.computeAddress(publicKey);
 
                 const latestNonce = await Lit.Actions.getLatestNonce({
                     address: pkpAddress,
-                    chain: "mumbai",
+                    chain,
                 });
 
                 const iface = new ethers.utils.Interface(abi);
 
-                const data = iface.encodeFunctionData("getCredentialById", [
-                    id
+                const data = iface.encodeFunctionData("getCredentialByIdViaPkp", [
+                    tokenId
                 ]);
 
-                const gas = await contract.estimateGas.getCredentialById(id);
+                const networkChainId = WALLET_NETWORK_CHAIN_IDS_OPTS[chain] || -1;
+
+                if (networkChainId === -1) throw new Error('Invalid chain');
+
+                const gasPrice = await provider.getGasPrice();
 
                 const txParams = {
                   nonce: latestNonce,
-                  gasPrice: "0x2e90edd000",
-                  gasLimit: gas.mul(2).toHexString(),
                   to: contractAddress,
-                  chainId: 80001,
                   data,
+                  chainId: networkChainId,
+                  value: 0,
+                  gasPrice: gasPrice.toHexString(),
+                  gasLimit: 190000,
                 };
                 
                 const serializedTx = ethers.utils.serializeTransaction(txParams);
-                const rlpEncodedTxn = ethers.utils.arrayify(serializedTx);
-                const unsignedTxn =  ethers.utils.arrayify(ethers.utils.keccak256(rlpEncodedTxn));
-
-                const sigShare = 
-                    await LitActions.signEcdsa({ toSign: unsignedTxn, publicKey, sigName });
+                const unsignedTxn = ethers.utils.keccak256(serializedTx);
+                const toSign = ethers.utils.arrayify(unsignedTxn);
 
                 LitActions.setResponse({ response: JSON.stringify(txParams) });
+
+                const sigShare = await LitActions.signEcdsa({ 
+                    toSign, 
+                    publicKey, 
+                    sigName 
+                });
             }
 
             go();
         `;
 
+        const rpcUrl =
+            'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78';
+
+        const chain = 'mumbai';
+
         const listActionCodeParams = {
-            credentialNftUUID: '0x7a47e50fef3a33db37fb8a2bca5b4a1c'
+            rpcUrl,
+            chain,
+            credentialNftUUID: '0xef99bf0770a920e643f2c855038d4e33',
         };
 
         const signResult = await LitModule().runLitAction({
-            chain: 'mumbai',
+            chain,
             litActionCode,
             listActionCodeParams,
             nodes: 10,
@@ -162,19 +147,30 @@ describe('Lit Action Cases', () => {
 
         });
 
+        const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+
         const tx = signResult.response as any;
         const signature = signResult.signatures["sig1"].signature;
         const serializedTx = ethers.utils.serializeTransaction(tx, signature);
 
-        const rpcUrl =
-            'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78';
-
-        const provider =
-            new ethers.providers.JsonRpcProvider(rpcUrl);
-
         const transaction = await provider.sendTransaction(serializedTx);
 
+        console.log('[transaction]', serializedTx);
+
+        const contract = new ethers.Contract(
+            credentialNftContractAddress,
+            credentialNftAbi,
+            provider,
+        );
+
+        contract?.on('CredentialInfoViaPKP', (credentialInfo: any, address: string) => {
+            console.log('CredentialInfoViaPKP (credentialInfo)', credentialInfo);
+            console.log('CredentialInfoViaPKP (address)', address);
+        });
+
         await transaction.wait();
+
+        await rest(4000);
 
         // expect(isNullOrUndefined(litActionResponse)).to.be.false;
         // expect(litActionResponse).to.be.an('object');
