@@ -73,15 +73,9 @@ class Lit {
             chainId: 1,
         });
 
-        console.log('getAuthSig (siweMessage)', siweMessage);
-
         const messageToSign = siweMessage.prepareMessage();
 
-        console.log('getAuthSig (messageToSign)', messageToSign);
-
         const sig = await signer?.signMessage(messageToSign);
-
-        console.log('getAuthSig (sig)', sig);
 
         const authSig = {
             sig,

@@ -9,7 +9,7 @@ import {
 
 describe('D2EventListener Implementation', () => {
 
-    it('Complete full test: Listen the idea nft, retrive info (trigger, credential, etc) and decrypt to place the order', async () => {
+    it('Full event listener test: Listen/Watch the idea nft flow (crypto), retrive info (trigger, credential, and decrypt, etc) and place the Binance order', async () => {
 
         const data: any[] = await D2EventListener({
             network: 'mumbai',
