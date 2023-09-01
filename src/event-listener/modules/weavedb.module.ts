@@ -16,7 +16,7 @@ const init = async () => {
     if (isNullOrUndefined(db)) {
 
         db = new WeaveDB({
-            contractTxId: 'gxnODFeY8DkbeVLo62RXKoipkJGIJhPtYhkgRF7kcoQ',
+            contractTxId: 'C7J5obxRkWLFPzvhcVd3MzgSffLj7S4H12Djbzbi7Jg',
         });
 
         await db.initializeWithoutWallet();
