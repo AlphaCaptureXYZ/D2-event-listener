@@ -4,7 +4,7 @@ import { LitModule } from './lit.module';
 
 import * as config from '../config/config';
 
-export const contractAddress = '0xAD7b59D03702BBD1Eae4c2e403856dd094D7561A';
+export const contractAddress = '0x784b4FA834B753661398b661985b784C11D14ca8';
 
 export const abi = [
     "constructor()",
@@ -21,6 +21,7 @@ export const abi = [
     "function generateUUID() view returns (bytes16)",
     "function getCredentialById(uint256) view returns (tuple(bytes16,uint256,string,string,string,string,address))",
     "function getCredentialByIdViaPkp(uint256)",
+    "function getCredentialByUUID(bytes16) view returns (tuple(bytes16,uint256,string,string,string,string,address))",
     "function getMyCredentials() view returns (tuple(bytes16,uint256,string,string,string,string,address)[])",
     "function getMyCredentialsTotal() view returns (uint256)",
     "function getTokenId(bytes16) view returns (uint256)",
@@ -31,7 +32,6 @@ export const abi = [
     "function supportsInterface(bytes4) view returns (bool)",
     "function uri(uint256) view returns (string)"
 ];
-
 
 let contract: any = null;
 
@@ -133,8 +133,7 @@ const getCredentialByUUID = async <T>(uuid: string): Promise<ICredentialNft<T>> 
     try {
         await init();
 
-        const id = await contract.getTokenId(uuid);
-        const credentialInfo = fillCredential(await contract.getCredentialById(id));
+        const credentialInfo = fillCredential(await contract.getCredentialByUUID(uuid));
 
         const check = credentialInfo?.encryptedCredential?.encryptedFileB64?.trim()?.length > 0;
 
@@ -152,7 +151,7 @@ const getCredentialByUUID = async <T>(uuid: string): Promise<ICredentialNft<T>> 
                 contractAddress,
                 standardContractType: 'ERC1155',
                 method: 'balanceOf',
-                parameters: [':userAddress', id?.toString()],
+                parameters: [':userAddress', credentialInfo?.tokenId?.toString()],
                 returnValueTest: {
                     comparator: '>',
                     value: '0',

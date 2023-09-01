@@ -14,7 +14,7 @@ import { ethers } from 'ethers';
 import * as Siwe from 'siwe';
 import { getRpcUrlByNetwork } from '../helpers/helpers';
 
-const getCredentialNftEncrypted = async (
+const getCredentialNftEncryptedDeprecated = async (
     payload: {
         chain: string
         credentialNftUUID: string
@@ -216,6 +216,97 @@ const getCredentialNftEncrypted = async (
     return response;
 };
 
+const getCredentialNftEncrypted = async (
+    payload: {
+        chain: string
+        credentialNftUUID: string
+    }
+): Promise<ICredentialNft<any>> => {
+
+    let response: ICredentialNft<any> = null as any;
+
+    try {
+
+        const {
+            credentialNftUUID,
+            chain,
+        } = payload;
+
+        const rpcUrl = getRpcUrlByNetwork(chain);
+
+        const litActionGetCredentialCode = `
+            const go = async () => {
+
+                const fillCredential = (data) => {
+                    const [
+                        encryptedFileB64,
+                        encryptedSymmetricKeyString,
+                    ] = data[5]?.toString()?.split('||');
+        
+                    const credential = {
+                        uuid: data[0]?.toString(),
+                        tokenId: Number(data[1]),
+                        provider: data[2]?.toString(),
+                        environment: data[3]?.toString(),
+                        accountName: data[4]?.toString(),
+                        encryptedCredential: {
+                            encryptedFileB64,
+                            encryptedSymmetricKeyString,
+                        },
+                        pkpAddress: data[6]?.toString(),
+                    }
+        
+                    return credential;
+                };
+
+                const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+
+                const contract = new ethers.Contract(
+                    contractAddress,
+                    abi,
+                    provider,
+                );
+
+                const credentialInfo = await contract.getCredentialByUUID(
+                    credentialNftUUID
+                );
+
+                const credential = fillCredential(credentialInfo);
+               
+                LitActions.setResponse({ response: JSON.stringify({
+                    credential,
+                })});
+            }
+
+            go();
+        `;
+
+        const listActionGetCredentialCodeParams = {
+            rpcUrl,
+            chain,
+            contractAddress,
+            abi,
+            credentialNftUUID,
+        };
+
+        const getCredential = await LitModule().runLitAction({
+            chain,
+            litActionCode: litActionGetCredentialCode,
+            listActionCodeParams: listActionGetCredentialCodeParams,
+            nodes: 1,
+            showLogs: false,
+            pkpKey: process.env.PKP_KEY,
+        });
+
+        response = (getCredential?.response as any)?.credential as ICredentialNft<any>;
+
+    } catch (err: any) {
+        console.log('PKP CREDENTIAL NFT (getCredentialNftEncrypted) ERROR', err?.message);
+    }
+
+    return response;
+};
+
 const decryptCredentialNft = async <T>(
     payload: {
         chain: string
@@ -346,6 +437,7 @@ const getFullCredential = async <T>(
 }
 
 export const PkpCredentialNftModule = {
+    getCredentialNftEncryptedDeprecated,
     getCredentialNftEncrypted,
     decryptCredentialNft,
     getFullCredential,
