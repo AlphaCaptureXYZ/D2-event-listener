@@ -7,6 +7,8 @@ const APP_ENV: 'development' | 'production' =
 
 const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY;
 
+const PKP_KEY = process.env.PKP_KEY;
+
 const IDEA_NFT_CONFIG = {
     gateContractAddress: '0xbb1FF71BEe377322284DdBb843a0563cc70229a6',
     coreContractAddress: '0x558Ed14d87396990a766d906451280391D57fA46',
@@ -50,6 +52,7 @@ const IDEA_NFT_CONFIG = {
 export {
     APP_ENV,
     WALLET_PRIVATE_KEY,
+    PKP_KEY,
     IDEA_NFT_CONFIG,
     MAX_LIT_ENC_DEC_ATTEMPTS,
 };

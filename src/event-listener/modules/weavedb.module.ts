@@ -85,7 +85,8 @@ const getAllData = async <T>(
     chain: string,
     payload: {
         type: string
-    }
+    },
+    authSig: any = null,
 ) => {
     let data = [];
 
@@ -115,11 +116,25 @@ const getAllData = async <T>(
                     encryptedSymmetricKey,
                 } = doc;
 
-                const decryptedFile = await LitModule().decryptString(
-                    encryptedData,
-                    encryptedSymmetricKey,
-                    acConditions,
-                );
+                let decryptedFile = null;
+
+                if (isNullOrUndefined(authSig)) {
+                    decryptedFile = await LitModule().decryptString(
+                        encryptedData,
+                        encryptedSymmetricKey,
+                        acConditions,
+                    );
+                }
+
+                if (!isNullOrUndefined(authSig)) {
+                    decryptedFile = await LitModule().decryptStringByPkp(
+                        authSig,
+                        chain,
+                        encryptedData,
+                        encryptedSymmetricKey,
+                        acConditions,
+                    );
+                }
 
                 const decryptedString = JSON.parse(decryptedFile);
 

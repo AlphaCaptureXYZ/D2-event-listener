@@ -159,7 +159,7 @@ class Lit {
         return decryptedString;
     }
 
-    async decryptStringTest(
+    async decryptStringByPkp(
         authSig: any,
         chain: string,
         encryptedBase64Str: string,

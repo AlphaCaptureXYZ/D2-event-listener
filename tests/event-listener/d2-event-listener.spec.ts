@@ -16,7 +16,7 @@ describe('D2EventListener Implementation', () => {
             privateKey: process.env.WALLET_PRIVATE_KEY,
             test: {
                 enabled: true,
-                // Block number linked to BTCUSDT order
+                // Block number linked to BTCUSDT test idea
                 blockNumber: 39535294,
             }
         });

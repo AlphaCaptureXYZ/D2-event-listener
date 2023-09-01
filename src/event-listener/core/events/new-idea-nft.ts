@@ -1,7 +1,6 @@
 import * as config from "../../config/config";
 
 import { WeaveDBModule } from '../../modules/weavedb.module';
-import { CredentialNFTModule } from "../../modules/credential-nft.module";
 import { CompressorModule } from "../../modules/compressor.module";
 import { LitModule } from '../../../event-listener/modules/lit.module';
 
@@ -10,6 +9,8 @@ import { INewIdeaNFT } from '../../../event-listener/interfaces/new-idea-nft.i';
 import { loop } from '../../../event-listener/helpers/helpers';
 
 import * as litActions from '../lit-actions';
+
+import { PkpCredentialNftModule } from '../../../event-listener/modules/pkp-credential-nft.module';
 
 // NOTE: all this code will be refactored and split into functions, etc
 // as a first test we will use the code as it is (without refactoring, same file, etc)
@@ -154,21 +155,22 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
             console.log('');
         };
 
+        const pkpAuthSig = await PkpCredentialNftModule.getPkpAuthSig(
+            network,
+            config.PKP_KEY,
+        );
+
         const triggers =
-            await WeaveDBModule.getAllData<any>(network, { type: 'trigger' });
+            await WeaveDBModule.getAllData<any>(network, { type: 'trigger' }, pkpAuthSig);
 
         const triggersFiltered = triggers?.filter((item) => {
             return item?.strategy?.reference === info?.data?.strategy?.reference;
         });
 
-        CredentialNFTModule.setConfig({
-            rpcUrl: payload.rpcUrl,
-            chain: network,
-        });
-
         eventResult = await Promise.all(triggersFiltered?.map(async (triggerInfo: any) => {
 
             const credentialNftUUID = triggerInfo?.account?.reference;
+
             let response = null;
 
             try {
@@ -176,7 +178,11 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
                 const settings = triggerInfo?.settings || null;
 
                 const credentialInfo =
-                    await CredentialNFTModule.getCredentialByUUID<any>(credentialNftUUID);
+                    await PkpCredentialNftModule.getFullCredential<any>({
+                        chain: network,
+                        credentialNftUUID,
+                        authSig: pkpAuthSig,
+                    });
 
                 const environment = credentialInfo.environment;
 
@@ -203,7 +209,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
                                     sideSelector[info?.data?.idea?.trade?.direction.toUpperCase()];
 
                                 listActionCodeParams = {
-                                    credentials: credentialInfo.credential,
+                                    credentials: credentialInfo.decryptedCredential,
                                     form: {
                                         asset: info?.data?.idea?.asset?.ticker,
                                         direction,

@@ -1,18 +1,101 @@
-import 'dotenv/config';
+import * as config from '../config/config';
 
 import { ICredentialNft } from '../interfaces/credential-nft.i';
-
-import {
-    contractAddress,
-    abi,
-} from './credential-nft.module';
 
 import { LitModule } from './lit.module';
 
 import { ethers } from 'ethers';
 
 import * as Siwe from 'siwe';
-import { getRpcUrlByNetwork } from '../helpers/helpers';
+
+import { getRpcUrlByNetwork, isNullOrUndefined } from '../helpers/helpers';
+
+export const contractAddress = '0x784b4FA834B753661398b661985b784C11D14ca8';
+
+export const abi = [
+    "constructor()",
+    "event ApprovalForAll(address indexed,address indexed,bool)",
+    "event CredentialCreated(uint256,bytes16,address)",
+    "event CredentialInfoViaPKP(tuple(bytes16,uint256,string,string,string,string,address),address)",
+    "event Initialized(uint8)",
+    "event TransferBatch(address indexed,address indexed,address indexed,uint256[],uint256[])",
+    "event TransferSingle(address indexed,address indexed,address indexed,uint256,uint256)",
+    "event URI(string,uint256 indexed)",
+    "function balanceOf(address,uint256) view returns (uint256)",
+    "function balanceOfBatch(address[],uint256[]) view returns (uint256[])",
+    "function createCredential(string,string,string,string,address)",
+    "function generateUUID() view returns (bytes16)",
+    "function getCredentialById(uint256) view returns (tuple(bytes16,uint256,string,string,string,string,address))",
+    "function getCredentialByIdViaPkp(uint256)",
+    "function getCredentialByUUID(bytes16) view returns (tuple(bytes16,uint256,string,string,string,string,address))",
+    "function getMyCredentials() view returns (tuple(bytes16,uint256,string,string,string,string,address)[])",
+    "function getMyCredentialsTotal() view returns (uint256)",
+    "function getTokenId(bytes16) view returns (uint256)",
+    "function isApprovedForAll(address,address) view returns (bool)",
+    "function safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)",
+    "function safeTransferFrom(address,address,uint256,uint256,bytes)",
+    "function setApprovalForAll(address,bool)",
+    "function supportsInterface(bytes4) view returns (bool)",
+    "function uri(uint256) view returns (string)"
+];
+
+const getPkpAuthSig = async (
+    chain: string,
+    pkpKey: string,
+) => {
+    const pkpWalletAddress = ethers.utils.computeAddress(pkpKey);
+
+    const siweMessage = new Siwe.SiweMessage({
+        domain: 'localhost',
+        address: pkpWalletAddress,
+        statement: 'This is a key for D2 Event Listener',
+        uri: 'https://localhost/login',
+        version: '1',
+        chainId: 1,
+    });
+
+    const message = siweMessage.prepareMessage();
+
+    const litActionCode = `
+        const go = async () => {
+            const sigShare = 
+                await LitActions.ethPersonalSignMessageEcdsa({ message, publicKey, sigName });
+        }
+        go();
+    `;
+
+    const listActionCodeParams = {
+        message,
+    };
+
+    const litActionResponse = await LitModule().runLitAction({
+        chain,
+        litActionCode,
+        listActionCodeParams,
+        nodes: 10,
+        showLogs: false,
+        pkpKey: config.PKP_KEY,
+        sigName: 'pkpAuthSig',
+    });
+
+    const signature = litActionResponse.signatures?.pkpAuthSig;
+
+    const sig = ethers.utils.joinSignature({
+        r: '0x' + signature.r,
+        s: '0x' + signature.s,
+        v: signature.recid,
+    });
+
+    const authSig = {
+        sig,
+        derivedVia: 'web3.eth.personal.sign',
+        signedMessage: message,
+        address: pkpWalletAddress,
+    };
+
+    return authSig;
+}
+
 
 const getCredentialNftEncryptedDeprecated = async (
     payload: {
@@ -119,7 +202,7 @@ const getCredentialNftEncryptedDeprecated = async (
             listActionCodeParams: listActionSignCodeParams,
             nodes: 10,
             showLogs: false,
-            pkpKey: process.env.PKP_KEY,
+            pkpKey: config.PKP_KEY,
         });
 
         const litActionGetCredentialCode = `
@@ -204,7 +287,7 @@ const getCredentialNftEncryptedDeprecated = async (
             listActionCodeParams: listActionGetCredentialCodeParams,
             nodes: 1,
             showLogs: false,
-            pkpKey: process.env.PKP_KEY,
+            pkpKey: config.PKP_KEY,
         });
 
         response = (getCredential?.response as any)?.credential as ICredentialNft<any>;
@@ -295,7 +378,7 @@ const getCredentialNftEncrypted = async (
             listActionCodeParams: listActionGetCredentialCodeParams,
             nodes: 1,
             showLogs: false,
-            pkpKey: process.env.PKP_KEY,
+            pkpKey: config.PKP_KEY,
         });
 
         response = (getCredential?.response as any)?.credential as ICredentialNft<any>;
@@ -311,65 +394,23 @@ const decryptCredentialNft = async <T>(
     payload: {
         chain: string
         credentialInfo: ICredentialNft<T>,
+        authSig?: any,
     }
 ): Promise<ICredentialNft<T>> => {
 
-    const {
+    let {
         chain,
         credentialInfo,
+        authSig,
     } = payload;
 
     try {
 
-        const pkpWalletAddress = ethers.utils.computeAddress(process.env.PKP_KEY as string);
-
-        const siweMessage = new Siwe.SiweMessage({
-            domain: 'localhost',
-            address: pkpWalletAddress,
-            statement: 'This is a key for D2 Event Listener',
-            uri: 'https://localhost/login',
-            version: '1',
-            chainId: 1,
-        });
-
-        const message = siweMessage.prepareMessage();
-
-        const litActionCode = `
-            const go = async () => {
-                const sigShare = 
-                    await LitActions.ethPersonalSignMessageEcdsa({ message, publicKey, sigName });
-            }
-
-            go();
-        `;
-
-        const listActionCodeParams = {
-            message,
-        };
-
-        const litActionResponse = await LitModule().runLitAction({
-            chain,
-            litActionCode,
-            listActionCodeParams,
-            nodes: 10,
-            showLogs: false,
-            pkpKey: process.env.PKP_KEY,
-            sigName: 'pkpAuthSig',
-        });
-
-        const signature = litActionResponse.signatures?.pkpAuthSig;
-
-        const sig = ethers.utils.joinSignature({
-            r: '0x' + signature.r,
-            s: '0x' + signature.s,
-            v: signature.recid,
-        });
-
-        const authSig = {
-            sig,
-            derivedVia: 'web3.eth.personal.sign',
-            signedMessage: message,
-            address: pkpWalletAddress,
+        if (isNullOrUndefined(authSig)) {
+            authSig = await getPkpAuthSig(
+                chain,
+                config.PKP_KEY as string,
+            );
         };
 
         const accessControlConditionsNFT = [
@@ -386,7 +427,7 @@ const decryptCredentialNft = async <T>(
             },
         ];
 
-        const data = await LitModule().decryptStringTest(
+        const data = await LitModule().decryptStringByPkp(
             authSig,
             chain,
             credentialInfo.encryptedCredential.encryptedFileB64,
@@ -409,7 +450,8 @@ const decryptCredentialNft = async <T>(
 const getFullCredential = async <T>(
     payload: {
         chain: string
-        credentialNftUUID: string
+        credentialNftUUID: string,
+        authSig?: any,
     }
 ): Promise<ICredentialNft<T>> => {
 
@@ -419,6 +461,7 @@ const getFullCredential = async <T>(
 
         const {
             chain,
+            authSig,
         } = payload;
 
         const credentialEncrypted = await getCredentialNftEncrypted(payload);
@@ -426,6 +469,7 @@ const getFullCredential = async <T>(
         const credentialNftDecrypted = await decryptCredentialNft({
             chain,
             credentialInfo: credentialEncrypted,
+            authSig,
         });
 
         credentialInfo = credentialNftDecrypted;
@@ -437,8 +481,11 @@ const getFullCredential = async <T>(
 }
 
 export const PkpCredentialNftModule = {
-    getCredentialNftEncryptedDeprecated,
+    getPkpAuthSig,
     getCredentialNftEncrypted,
     decryptCredentialNft,
     getFullCredential,
+
+    // Deprecated (not used anymore)
+    getCredentialNftEncryptedDeprecated,
 }
