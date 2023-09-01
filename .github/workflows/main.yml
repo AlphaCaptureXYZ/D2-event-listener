@@ -30,5 +30,5 @@ jobs:
             sudo chown -R ${{ secrets.USERNAME  }} ./DII-event-listener
             cd DII-event-listener
             sudo git checkout deploy-production
-            sudo echo "WALLET_PRIVATE_KEY=${{secrets.WALLET_PRIVATE_KEY}}" > .env
+            sudo echo "WALLET_PRIVATE_KEY=${{secrets.WALLET_PRIVATE_KEY}} \n PKP_KEY=${{secrets.PKP_KEY}}" > .env
             sudo sh ./scripts/pull_spinup-live.sh
