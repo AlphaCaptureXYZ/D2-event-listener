@@ -109,3 +109,15 @@ export const loop = (
 export const rest = async (delay: number) => {
     await new Promise((resolve) => setTimeout(resolve, delay))
 }
+
+export const getRpcUrlByNetwork = (network: string) => {
+    const rpcUrlByNetwork = {
+        mumbai: 'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78',
+    };
+
+    const rpcUrl = rpcUrlByNetwork[network] || null;
+
+    if (!rpcUrl) throw new Error(`Network not supported: ${network}`);
+
+    return rpcUrl;
+}

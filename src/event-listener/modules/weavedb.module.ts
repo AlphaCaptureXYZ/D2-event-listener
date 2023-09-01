@@ -115,8 +115,6 @@ const getAllData = async <T>(
                     encryptedSymmetricKey,
                 } = doc;
 
-                LitModule().setChain(chain);
-
                 const decryptedFile = await LitModule().decryptString(
                     encryptedData,
                     encryptedSymmetricKey,

@@ -161,8 +161,6 @@ const getCredentialByUUID = async <T>(uuid: string): Promise<ICredentialNft<T>> 
             },
         ];
 
-        LitModule().setChain(configObj.chain);
-
         const decryptedFile = await LitModule().decryptString(
             encryptedFileB64,
             encryptedSymmetricKeyString,

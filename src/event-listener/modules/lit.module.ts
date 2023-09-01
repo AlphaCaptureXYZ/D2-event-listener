@@ -20,21 +20,9 @@ let litService = null;
 class Lit {
     private litNodeClient: any;
 
-    private chain = null;
-
     async connect() {
         await client.connect();
         this.litNodeClient = client;
-    }
-
-    setChain(chain: string) {
-        this.chain = chain;
-    }
-
-    private checkChain() {
-        if (isNullOrUndefined(this.chain)) {
-            throw new Error('Chain is not set');
-        }
     }
 
     private base64StringToBlob(base64Data: string): Blob {
@@ -85,9 +73,15 @@ class Lit {
             chainId: 1,
         });
 
+        console.log('getAuthSig (siweMessage)', siweMessage);
+
         const messageToSign = siweMessage.prepareMessage();
 
+        console.log('getAuthSig (messageToSign)', messageToSign);
+
         const sig = await signer?.signMessage(messageToSign);
+
+        console.log('getAuthSig (sig)', sig);
 
         const authSig = {
             sig,
@@ -103,8 +97,8 @@ class Lit {
         str: string,
         accessControlConditions: any[],
         permanent: boolean = false,
+        chain: string = 'mumbai',
     ) {
-        this.checkChain();
 
         if (!this.litNodeClient) {
             await this.connect();
@@ -118,7 +112,7 @@ class Lit {
             accessControlConditions,
             symmetricKey,
             authSig,
-            chain: this.chain,
+            chain,
             permanent,
         });
 
@@ -139,8 +133,8 @@ class Lit {
         encryptedBase64Str: string,
         encryptedSymmetricKey: string,
         accessControlConditionsNFT: any,
+        chain: string = 'mumbai',
     ) {
-        this.checkChain();
 
         if (!this.litNodeClient) {
             await this.connect();
@@ -151,7 +145,36 @@ class Lit {
         const encryptionKey = await this.litNodeClient.getEncryptionKey({
             accessControlConditions: accessControlConditionsNFT,
             toDecrypt: encryptedSymmetricKey,
-            chain: this.chain,
+            chain,
+            authSig,
+        });
+
+        const blob = this.base64StringToBlob(encryptedBase64Str);
+
+        const decryptedString = await LitJsSdk.decryptString(
+            blob,
+            encryptionKey
+        );
+
+        return decryptedString;
+    }
+
+    async decryptStringTest(
+        authSig: any,
+        chain: string,
+        encryptedBase64Str: string,
+        encryptedSymmetricKey: string,
+        accessControlConditionsNFT: any,
+    ) {
+
+        if (!this.litNodeClient) {
+            await this.connect();
+        };
+
+        const encryptionKey = await this.litNodeClient.getEncryptionKey({
+            accessControlConditions: accessControlConditionsNFT,
+            toDecrypt: encryptedSymmetricKey,
+            chain,
             authSig,
         });
 
@@ -168,9 +191,8 @@ class Lit {
     async updateAccessControlConditions(
         encryptedSymmetricKey: string,
         accessControlConditions: any,
+        chain: string = 'mumbai',
     ) {
-
-        this.checkChain();
 
         if (!this.litNodeClient) {
             await this.connect();
@@ -182,7 +204,7 @@ class Lit {
             accessControlConditions,
             encryptedSymmetricKey,
             authSig,
-            chain: this.chain,
+            chain,
             permanent: true,
         });
     }
@@ -220,9 +242,13 @@ class Lit {
             if (!isNullOrUndefined(pkpKey)) {
                 listActionCodeParams.publicKey = pkpKey;
             }
+
             if (isNullOrUndefined(sigName)) {
                 listActionCodeParams.sigName = 'sig1';
+            } else {
+                listActionCodeParams.sigName = sigName;
             }
+
             listActionCodeParams.authSig = authSig;
         };
 

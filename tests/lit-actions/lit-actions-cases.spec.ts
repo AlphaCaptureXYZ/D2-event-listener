@@ -2,305 +2,102 @@ import 'dotenv/config';
 
 import { expect } from 'chai';
 
-import { isNullOrUndefined, rest } from '../../src/event-listener/helpers/helpers';
+import { isNullOrUndefined } from '../../src/event-listener/helpers/helpers';
 
-import { LitModule } from '../../src/event-listener/modules/lit.module';
-
-import {
-    contractAddress,
-    abi,
-} from '../../src/event-listener/modules/credential-nft.module';
-
-import { ethers } from 'ethers';
+import { PkpCredentialNftModule } from '../../src/event-listener/modules/pkp-credential-nft.module';
 
 describe('Lit Action Cases', () => {
 
-    xit('Retrive one basic/simple message like "Hello World"', async () => {
+    xit('Credential NFT smart contract request using PKP key to check the access', async () => {
 
-        const message = 'Hello World';
-
-        const litActionCode = `
-            const go = async () => {
-                Lit.Actions.setResponse({response: JSON.stringify(message)});
-            }
-
-            go();
-        `;
-
-        const listActionCodeParams = {
-            message,
-        };
-
-        const litActionResponse = await LitModule().runLitAction({
+        const result = await PkpCredentialNftModule.getCredentialNftEncrypted({
             chain: 'mumbai',
-            litActionCode,
-            listActionCodeParams,
-            nodes: 10,
-            showLogs: false,
+            credentialNftUUID: '0xef99bf0770a920e643f2c855038d4e33',
         });
 
-        expect(isNullOrUndefined(litActionResponse)).to.be.false;
-        expect(litActionResponse).to.be.an('object');
-        expect(litActionResponse).to.have.property('response');
-        expect(litActionResponse.response).to.be.equal(message);
+        expect(isNullOrUndefined(result)).to.be.false;
+        expect(result).to.be.an('object');
+        expect(result.uuid.trim().length > 0).to.be.true;
+        expect(result.tokenId > 0).to.be.true;
+        expect(result.provider.trim().length > 0).to.be.true;
+        expect(result.environment.trim().length > 0).to.be.true;
+        expect(result.accountName.trim().length > 0).to.be.true;
+        expect(result.pkpAddress.trim().length > 0).to.be.true;
+        expect(result.encryptedCredential.encryptedFileB64.trim().length > 0).to.be.true;
+        expect(result.encryptedCredential.encryptedSymmetricKeyString.trim().length > 0).to.be.true;
 
     }).timeout(50000);
 
-    it('Credential NFT smart contract request using PKP key to check the access', async () => {
+    xit('Decrypt credentials using the Pkp with the pkpAuthSig"', async () => {
 
-        const rpcUrl =
-            'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78';
-
-        const chain = 'mumbai';
-
-        const credentialNftUUID = '0xef99bf0770a920e643f2c855038d4e33';
-
-        const litActionSignCode = `
-            const go = async () => {
-
-                const WALLET_NETWORK_CHAIN_IDS_OPTS = {
-                    goerli: 5,
-                    hardhat: 1337,
-                    kovan: 42,
-                    ethereum: 1,
-                    rinkeby: 4,
-                    ropsten: 3,
-                    maticmum: 0xa4ec,
-                    sepolia: 11155111,
-                    polygon: 137,
-                    mumbai: 80001,
-                    bnb: 56,
-                };
-
-                const provider =
-                    new ethers.providers.JsonRpcProvider(rpcUrl);
-        
-                const contract = new ethers.Contract(
-                    contractAddress,
-                    abi,
-                    provider,
-                );
-        
-                let tokenId = await contract.getTokenId(credentialNftUUID);
-
-                const pkpAddress = ethers.utils.computeAddress(publicKey);
-
-                const latestNonce = await Lit.Actions.getLatestNonce({
-                    address: pkpAddress,
-                    chain,
-                });
-
-                const iface = new ethers.utils.Interface(abi);
-
-                const data = iface.encodeFunctionData("getCredentialByIdViaPkp", [
-                    tokenId
-                ]);
-
-                const networkChainId = WALLET_NETWORK_CHAIN_IDS_OPTS[chain] || -1;
-
-                if (networkChainId === -1) throw new Error('Invalid chain');
-
-                const gasPrice = await provider.getGasPrice();
-
-                const txParams = {
-                  nonce: latestNonce,
-                  to: contractAddress,
-                  data,
-                  chainId: networkChainId,
-                  value: 0,
-                  gasPrice: gasPrice.toHexString(),
-                  gasLimit: 190000,
-                };
-                
-                const serializedTx = ethers.utils.serializeTransaction(txParams);
-                const unsignedTxn = ethers.utils.keccak256(serializedTx);
-                const toSign = ethers.utils.arrayify(unsignedTxn);
-
-                LitActions.setResponse({ response: JSON.stringify(txParams) });
-
-                const sigShare = await LitActions.signEcdsa({ 
-                    toSign, 
-                    publicKey, 
-                    sigName 
-                });
-            }
-
-            go();
-        `;
-
-        const listActionSignCodeParams = {
-            rpcUrl,
-            chain,
-            credentialNftUUID,
-            contractAddress,
-            abi,
+        const mock = {
+            uuid: '0xef99bf0770a920e643f2c855038d4e33',
+            tokenId: 1,
+            provider: 'Binance',
+            environment: 'demo',
+            accountName: 'Binance Demo Credentials',
+            encryptedCredential: {
+                encryptedFileB64: 'KxNvJOKDvuunzxcfSFJfFzaKUerfNFIddPlIw8wFC7JH6M8SId1KVfHYUStNS65Xvc7br_Y6Yh8XETFGGQiCFq2xCOMHOxGdh2K2zSlMvPLWL7oemXA_LIH8bubF1Ez-p1tw59QsD6Kc7_eicSK9WYQ_et3Z2aa42kBrgvGv6kgxs4jgW7XJd5637DwqW2dB77CkgUFUQvm_PJUKf1jO5X__qnkDW95xOdcFd6CoT7g=',
+                encryptedSymmetricKeyString: 'd5e5a8edbd0138ab23b963f871da526d95ace27fc606725c6b974dc20812e25817687626a8a5c63071f9aad18fdcc40660d0831a81e60fa45e26a4939c9772cc7742883facb17c6ef43de24239ff5f9079ce17c414a461358ddbd7a93a824aa99e1b532bcb475da380390930dcef1d641b1be6c9ac4aa94ce997a75ed4cccd380000000000000020918ffd63c945ae0d285bd3cb4b4f24070fdb353731ada6f73eaf786777723c42782f6cdf29b7af3f0827367755f8fc89'
+            },
+            pkpAddress: '0xDF0Fc359919D13D5fe1F3948106f491163Ce5AE2'
         };
 
-        const signResult = await LitModule().runLitAction({
-            chain,
-            litActionCode: litActionSignCode,
-            listActionCodeParams: listActionSignCodeParams,
-            nodes: 10,
-            showLogs: true,
-            pkpKey: process.env.PKP_KEY,
+        const result = await PkpCredentialNftModule.decryptCredentialNft<{
+            apiKey: string;
+            apiSecret: string;
+        }>({
+            chain: 'mumbai',
+            credentialInfo: mock,
         });
 
-        const litActionGetCredentialCode = `
-            const go = async () => {
-                const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-
-                const tx = signResult?.response;
-                const signature = signResult.signatures["sig1"].signature;
-                const serializedTx = ethers.utils.serializeTransaction(tx, signature);
-        
-                const transaction = await provider.sendTransaction(serializedTx);
-        
-                const nftCommitted = await transaction.wait();
-        
-                const abiForEvent = [
-                    "event CredentialInfoViaPKP(tuple(bytes16,uint256,string,string,string,string,address),address)",
-                ];
-        
-                const ifaceForEvent = new ethers.utils.Interface(abiForEvent);
-        
-                const parsedLogs = [];
-        
-                for (const logIn of nftCommitted.logs) {
-                    try {
-                        const parsedLog = ifaceForEvent.parseLog(logIn);
-                        parsedLogs.push(parsedLog);
-                    } catch (e) { };
-                };
-        
-                if (parsedLogs.length !== 1) {
-                    throw new Error('Data not found');
-                };
-        
-                const fillCredential = (data) => {
-                    const [
-                        encryptedFileB64,
-                        encryptedSymmetricKeyString,
-                    ] = data[5]?.toString()?.split('||');
-        
-                    const credential = {
-                        uuid: data[0]?.toString(),
-                        tokenId: Number(data[1]),
-                        provider: data[2]?.toString(),
-                        environment: data[3]?.toString(),
-                        accountName: data[4]?.toString(),
-                        encryptedCredential: {
-                            encryptedFileB64,
-                            encryptedSymmetricKeyString,
-                        },
-                        pkpAddress: data[6]?.toString(),
-                    }
-        
-                    return credential;
-                };
-        
-                const targetEvent = parsedLogs[0];
-        
-                const credentialInfo = targetEvent.args[0];
-
-                // const base64StringToBlob = (base64Data) => {
-                //     const contentType = 'application/octet-stream;base64';
-                //     const begin = 'data:' + contentType + ',';
-                //     const base64DataNoBegin = base64Data.replace(begin, '');
-            
-                //     const sliceSize = 1024;
-                //     const byteCharacters = Buffer.from(base64DataNoBegin, 'base64').toString(
-                //         'latin1',
-                //     );
-            
-                //     const bytesLength = byteCharacters.length;
-                //     const slicesCount = Math.ceil(bytesLength / sliceSize);
-                //     const byteArrays = new Array(slicesCount);
-            
-                //     for (let sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
-                //         const begin = sliceIndex * sliceSize;
-                //         const end = Math.min(begin + sliceSize, bytesLength);
-            
-                //         const bytes = new Array(end - begin);
-            
-                //         for (let offset = begin, i = 0; offset < end; ++i, ++offset) {
-                //             bytes[i] = byteCharacters[offset].charCodeAt(0);
-                //         }
-            
-                //         byteArrays[sliceIndex] = new Uint8Array(bytes);
-                //     }
-            
-                //     const blob = new Blob(byteArrays, { type: contentType });
-            
-                //     return blob;
-                // };
-        
-                const credential = fillCredential(credentialInfo);
-
-                // const tokenId = credential.tokenId;
-
-                // const encryptedFileB64 = 
-                //     credential.encryptedCredential.encryptedFileB64;
-
-                // const encryptedSymmetricKeyString = 
-                //     credential.encryptedCredential.encryptedSymmetricKeyString;
-
-                // const accessControlConditionsNFT = [
-                //     {
-                //         contractAddress: contractAddress,
-                //         standardContractType: 'ERC1155',
-                //         method: 'balanceOf',
-                //         parameters: [':userAddress', tokenId?.toString()],
-                //         returnValueTest: {
-                //             comparator: '>',
-                //             value: '0',
-                //         },
-                //         chain,
-                //     },
-                // ];
-
-                // try {
-                //     const encryptionKey = await LitActions.getEncryptionKey({ 
-                //         conditions: accessControlConditionsNFT, 
-                //         authSig, 
-                //         chain, 
-                //         toDecrypt: encryptedSymmetricKeyString
-                //     });
-
-                // }catch(err){
-                //     console.log('encryptionKey (error)', err?.message);
-                // }
-
-                LitActions.setResponse({ response: JSON.stringify({
-                    credential,
-                })});
-            }
-
-            go();
-        `;
-
-        const listActionGetCredentialCodeParams = {
-            rpcUrl,
-            chain,
-            signResult,
-            contractAddress,
-            abi,
+        const binanceCredentials = {
+            apiKey: result.decryptedCredential?.apiKey as string,
+            apiSecret: result.decryptedCredential?.apiSecret as string,
         };
 
-        const getCredential = await LitModule().runLitAction({
-            chain,
-            litActionCode: litActionGetCredentialCode,
-            listActionCodeParams: listActionGetCredentialCodeParams,
-            nodes: 1,
-            showLogs: true,
-            pkpKey: process.env.PKP_KEY,
+        console.log('result', result);
+
+        expect(isNullOrUndefined(result)).to.be.false;
+        expect(result).to.be.an('object');
+        expect(result.uuid.trim().length > 0).to.be.true;
+        expect(result.tokenId > 0).to.be.true;
+        expect(result.provider.trim().length > 0).to.be.true;
+        expect(result.environment.trim().length > 0).to.be.true;
+        expect(result.accountName.trim().length > 0).to.be.true;
+        expect(result.pkpAddress.trim().length > 0).to.be.true;
+        expect(binanceCredentials.apiKey?.trim()?.length > 0).to.be.true;
+        expect(binanceCredentials.apiSecret?.trim()?.length > 0).to.be.true;
+
+    }).timeout(50000);
+
+    it('Retrieve Full credential pkp access', async () => {
+
+        const result = await PkpCredentialNftModule.getFullCredential<{
+            apiKey: string;
+            apiSecret: string;
+        }>({
+            chain: 'mumbai',
+            credentialNftUUID: '0xef99bf0770a920e643f2c855038d4e33',
         });
 
-        console.log('[getCredential]', (getCredential?.response as any)?.credential);
+        const binanceCredentials = {
+            apiKey: result.decryptedCredential?.apiKey as string,
+            apiSecret: result.decryptedCredential?.apiSecret as string,
+        };
 
-        // expect(isNullOrUndefined(litActionResponse)).to.be.false;
-        // expect(litActionResponse).to.be.an('object');
-        // expect(litActionResponse).to.have.property('response');
-        // expect(litActionResponse.response).to.be.equal(message);
+        console.log('result', result);
+
+        expect(isNullOrUndefined(result)).to.be.false;
+        expect(result).to.be.an('object');
+        expect(result.uuid.trim().length > 0).to.be.true;
+        expect(result.tokenId > 0).to.be.true;
+        expect(result.provider.trim().length > 0).to.be.true;
+        expect(result.environment.trim().length > 0).to.be.true;
+        expect(result.accountName.trim().length > 0).to.be.true;
+        expect(result.pkpAddress.trim().length > 0).to.be.true;
+        expect(binanceCredentials.apiKey?.trim()?.length > 0).to.be.true;
+        expect(binanceCredentials.apiSecret?.trim()?.length > 0).to.be.true;
 
     }).timeout(50000);
 

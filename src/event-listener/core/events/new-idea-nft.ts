@@ -67,8 +67,6 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
                             },
                         ];
 
-                        LitModule().setChain(network);
-
                         const restoredStringIdea =
                             await LitModule().decryptString(
                                 encryptedData,
@@ -221,7 +219,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
                                 litActionCode,
                                 listActionCodeParams,
                                 nodes: 1,
-                                showLogs: true,
+                                showLogs: false,
                             });
 
                             response = litActionCall?.response as any;

@@ -10,11 +10,7 @@ import {
 import { INewIdeaNFT } from '../interfaces/new-idea-nft.i';
 
 import { newIdeaNFTEvent } from "./events/new-idea-nft";
-import { rest } from "../helpers/helpers";
-
-const rpcUrlByNetwork = {
-    mumbai: 'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78',
-};
+import { getRpcUrlByNetwork, rest } from "../helpers/helpers";
 
 let watcherLoaded = false;
 
@@ -66,9 +62,7 @@ export const D2EventListener = async (payload: {
             network,
         } = payload;
 
-        const rpcUrl = rpcUrlByNetwork[network] || null;
-
-        if (!rpcUrl) throw new Error(`Network not supported: ${network}`);
+        const rpcUrl = getRpcUrlByNetwork(network);
 
         const WALLET_NETWORK_CHAIN_IDS_OPTS = {
             goerli: 5,
