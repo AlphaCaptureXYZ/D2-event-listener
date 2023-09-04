@@ -5,7 +5,7 @@ const binanceUrlSelector = {
     prod: 'https://api.binance.com/api',
 };
 
-const proxyUrl = 'https://activ-api.ixily.io/v1/proxy';
+const proxyUrl = 'https://api.ixily.io/v1/proxy';
 
 /* <helpers> */
 const objectToQueryString = `

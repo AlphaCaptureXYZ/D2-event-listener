@@ -10,13 +10,13 @@ import * as Siwe from 'siwe';
 
 import { getRpcUrlByNetwork, isNullOrUndefined } from '../helpers/helpers';
 
-export const contractAddress = '0x784b4FA834B753661398b661985b784C11D14ca8';
+export const contractAddress = '0x8f58fd7f9eE19eC25a3F9dd035140E4d218c4178';
 
 export const abi = [
     "constructor()",
     "event ApprovalForAll(address indexed,address indexed,bool)",
     "event CredentialCreated(uint256,bytes16,address)",
-    "event CredentialInfoViaPKP(tuple(bytes16,uint256,string,string,string,string,address),address)",
+    "event CredentialInfoViaPKP(tuple(bytes16,uint256,string,string,string,string,address,address),address)",
     "event Initialized(uint8)",
     "event TransferBatch(address indexed,address indexed,address indexed,uint256[],uint256[])",
     "event TransferSingle(address indexed,address indexed,address indexed,uint256,uint256)",
@@ -25,10 +25,10 @@ export const abi = [
     "function balanceOfBatch(address[],uint256[]) view returns (uint256[])",
     "function createCredential(string,string,string,string,address)",
     "function generateUUID() view returns (bytes16)",
-    "function getCredentialById(uint256) view returns (tuple(bytes16,uint256,string,string,string,string,address))",
+    "function getCredentialById(uint256) view returns (tuple(bytes16,uint256,string,string,string,string,address,address))",
     "function getCredentialByIdViaPkp(uint256)",
-    "function getCredentialByUUID(bytes16) view returns (tuple(bytes16,uint256,string,string,string,string,address))",
-    "function getMyCredentials() view returns (tuple(bytes16,uint256,string,string,string,string,address)[])",
+    "function getCredentialByUUID(bytes16) view returns (tuple(bytes16,uint256,string,string,string,string,address,address))",
+    "function getMyCredentials() view returns (tuple(bytes16,uint256,string,string,string,string,address,address)[])",
     "function getMyCredentialsTotal() view returns (uint256)",
     "function getTokenId(bytes16) view returns (uint256)",
     "function isApprovedForAll(address,address) view returns (bool)",
@@ -253,7 +253,8 @@ const getCredentialNftEncryptedDeprecated = async (
                             encryptedFileB64,
                             encryptedSymmetricKeyString,
                         },
-                        pkpAddress: data[6]?.toString(),
+                        owner: data[6]?.toString(),
+                        pkpAddress: data[7]?.toString()
                     }
         
                     return credential;
@@ -336,7 +337,8 @@ const getCredentialNftEncrypted = async (
                             encryptedFileB64,
                             encryptedSymmetricKeyString,
                         },
-                        pkpAddress: data[6]?.toString(),
+                        owner: data[6]?.toString(),
+                        pkpAddress: data[7]?.toString(),
                     }
         
                     return credential;

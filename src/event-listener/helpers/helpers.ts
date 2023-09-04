@@ -1,3 +1,5 @@
+import { ethers } from 'ethers';
+
 export const isNullOrUndefined = (value: any) => {
     const checkValue = [
         undefined,
@@ -120,4 +122,52 @@ export const getRpcUrlByNetwork = (network: string) => {
     if (!rpcUrl) throw new Error(`Network not supported: ${network}`);
 
     return rpcUrl;
+}
+
+export const getBalance = async (payload: {
+    network: string;
+    walletAddress: string;
+}) => {
+
+    let response = {
+        balance: 0,
+        base: null,
+    }
+
+    const {
+        network,
+        walletAddress,
+    } = payload;
+
+    const rpcUrl = getRpcUrlByNetwork(network);
+    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    const balance = await provider.getBalance(walletAddress);
+
+    const wei = Number(balance);
+
+    // convert wei to MATIC
+    const matic = wei / 1000000000000000000;
+
+    // convert wei to ETH
+    const eth = wei / 1000000000000000000;
+
+    if ([
+        'mumbai',
+    ].includes(network)) {
+        response = {
+            balance: matic,
+            base: 'MATIC',
+        }
+    };
+
+    if ([
+        'ethereum',
+    ].includes(network)) {
+        response = {
+            balance: eth,
+            base: 'ETH',
+        }
+    };
+
+    return response;
 }

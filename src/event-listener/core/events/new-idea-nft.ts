@@ -8,7 +8,7 @@ import { LitModule } from '../../../event-listener/modules/lit.module';
 
 import { INewIdeaNFT } from '../../../event-listener/interfaces/new-idea-nft.i';
 
-import { loop } from '../../../event-listener/helpers/helpers';
+import { getBalance, loop } from '../../../event-listener/helpers/helpers';
 
 import * as litActions from '../lit-actions';
 
@@ -187,6 +187,15 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
                         credentialNftUUID,
                         authSig: pkpAuthSig,
                     });
+
+                const credentialOwner = credentialInfo?.owner;
+
+                const balanceInfo = await getBalance({
+                    network,
+                    walletAddress: credentialOwner,
+                });
+
+                console.log('balanceInfo', balanceInfo);
 
                 const environment = credentialInfo.environment;
 

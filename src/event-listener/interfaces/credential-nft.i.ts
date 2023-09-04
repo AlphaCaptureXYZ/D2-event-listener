@@ -8,6 +8,7 @@ export interface ICredentialNft<T> {
         encryptedFileB64: string;
         encryptedSymmetricKeyString: string;
     };
+    owner: string;
     pkpAddress: string;
     decryptedCredential?: T;
 };
