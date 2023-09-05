@@ -55,7 +55,7 @@ export const notification = async (
                                 },
                                 {
                                     title: 'Balance of Credential Owner',
-                                    value: `${balanceInfo?.balance} ${balanceInfo?.base}`,
+                                    value: `${balanceInfo?.balance?.toFixed(4)} ${balanceInfo?.base}`,
                                     short: false,
                                 },
                                 {
