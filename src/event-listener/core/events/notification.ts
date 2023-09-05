@@ -16,7 +16,7 @@ export const notification = async (
                 balanceInfo,
                 nftId,
                 blockNumber,
-                info,
+                data,
                 orderId,
             } = payload;
 
@@ -70,37 +70,37 @@ export const notification = async (
                                 },
                                 {
                                     title: 'Strategy',
-                                    value: `${info?.data?.strategy?.name} (${info?.data?.strategy?.reference})`,
+                                    value: `${data?.strategy?.name} (${data?.strategy?.reference})`,
                                     short: false
                                 },
                                 {
                                     title: 'Creator',
-                                    value: `${info?.data?.creator?.name} (${info?.data?.creator?.walletAddress})`,
+                                    value: `${data?.creator?.name} (${data?.creator?.walletAddress})`,
                                     short: false
                                 },
                                 {
                                     title: 'Company',
-                                    value: info?.data?.creator?.company,
+                                    value: data?.creator?.company,
                                     short: false,
                                 },
                                 {
                                     title: 'Ticker',
-                                    value: info?.data?.idea?.asset?.ticker,
+                                    value: data?.idea?.asset?.ticker,
                                     short: false
                                 },
                                 {
                                     title: 'Direction',
-                                    value: info?.data?.idea?.trade?.direction || 'none',
+                                    value: data?.idea?.trade?.direction || 'none',
                                     short: false,
                                 },
                                 {
                                     title: 'Kind',
-                                    value: info?.data?.idea?.kind,
+                                    value: data?.idea?.kind,
                                     short: false,
                                 },
                                 {
                                     title: 'Provider',
-                                    value: info?.data?.pricing?.provider,
+                                    value: data?.pricing?.provider,
                                     short: false,
                                 },
                                 {

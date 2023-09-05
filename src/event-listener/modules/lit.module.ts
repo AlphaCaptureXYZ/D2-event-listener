@@ -246,6 +246,8 @@ class Lit {
             listActionCodeParams.authSig = authSig;
         };
 
+        listActionCodeParams.debug = showLogs;
+        
         const litActionResult = await litNodeClient.executeJs({
             code: litActionCode,
             authSig,
