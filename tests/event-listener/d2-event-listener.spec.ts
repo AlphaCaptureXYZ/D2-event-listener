@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import * as config from '../../src/event-listener/config/config';
 
 import { expect } from 'chai';
 import { isNullOrUndefined } from '../../src/event-listener/helpers/helpers';
@@ -13,7 +13,7 @@ describe('D2EventListener Implementation', () => {
 
         const data: any[] = await D2EventListener({
             network: 'mumbai',
-            privateKey: process.env.WALLET_PRIVATE_KEY,
+            privateKey: config.WALLET_PRIVATE_KEY,
             test: {
                 enabled: true,
                 // Block number linked to BTCUSDT test idea

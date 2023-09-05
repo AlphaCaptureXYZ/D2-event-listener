@@ -1,13 +1,13 @@
 import 'dotenv/config';
 
-const MAX_LIT_ENC_DEC_ATTEMPTS = 5;
+const MAX_LIT_ENC_DEC_ATTEMPTS = 5 as number;
 
 const APP_ENV: 'development' | 'production' =
     (process.env.APP_ENV as any) || 'development';
 
-const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY;
+const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY as string;
 
-const PKP_KEY = process.env.PKP_KEY;
+const PKP_KEY = process.env.PKP_KEY as string;
 
 const IDEA_NFT_CONFIG = {
     gateContractAddress: '0xbb1FF71BEe377322284DdBb843a0563cc70229a6',
