@@ -4,7 +4,4 @@ export interface INewIdeaNFT {
     contract: ethers.Contract;
     network: string;
     rpcUrl: string;
-
-    creatorAddress: string;
-    strategyReference: string;
 };

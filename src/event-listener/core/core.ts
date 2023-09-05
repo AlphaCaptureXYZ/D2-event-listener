@@ -73,9 +73,7 @@ export const D2EventListener = async (
                                 contract,
                                 network,
                                 rpcUrl,
-                                creatorAddress: args[0],
-                                strategyReference: args[2],
-                                blockNumber: args[5].toNumber(),
+                                blockNumber: args[6]?.blockNumber,
                             }
                         );
                     };
@@ -94,8 +92,6 @@ export const D2EventListener = async (
                     contract,
                     network,
                     rpcUrl,
-                    creatorAddress: 'xxx',
-                    strategyReference: 'xxx',
                     blockNumber: payload.test.blockNumber,
                 }
             );
