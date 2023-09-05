@@ -10,6 +10,8 @@ import {
 import { INewIdeaNFT } from '../interfaces/new-idea-nft.i';
 
 import { newIdeaNFTEvent } from "./events/new-idea-nft";
+import { notification } from "./events/notification";
+
 import { getRpcUrlByNetwork, rest } from "../helpers/helpers";
 
 let watcherLoaded = false;
@@ -36,13 +38,15 @@ export const D2EventListener = async (payload: {
                     switch (event) {
                         case 'NEW_IDEA_NFT':
                             const response = await newIdeaNFTEvent(data as INewIdeaNFT);
-
                             if (payload?.test?.enabled) {
                                 resolve(response);
                             };
-
                             break;
-                    }
+                        case 'NOTIFICATION':
+                            await notification(data?.type, data?.payload);
+                            break;
+                    };
+
                 });
                 watcherLoaded = true;
             }

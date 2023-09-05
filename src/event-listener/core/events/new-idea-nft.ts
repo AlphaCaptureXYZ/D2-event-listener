@@ -5,6 +5,7 @@ import * as config from "../../config/config";
 import { WeaveDBModule } from '../../modules/weavedb.module';
 import { CompressorModule } from "../../modules/compressor.module";
 import { LitModule } from '../../../event-listener/modules/lit.module';
+import { EventEmitterModule } from '../../../event-listener/modules/event-emitter.module';
 
 import { INewIdeaNFT } from '../../../event-listener/interfaces/new-idea-nft.i';
 
@@ -13,8 +14,6 @@ import { getBalance, loop } from '../../../event-listener/helpers/helpers';
 import * as litActions from '../lit-actions';
 
 import { PkpCredentialNftModule } from '../../../event-listener/modules/pkp-credential-nft.module';
-
-import { NotificatorModule } from '../../modules/notificator.module';
 
 // NOTE: all this code will be refactored and split into functions, etc
 // as a first test we will use the code as it is (without refactoring, same file, etc)
@@ -195,8 +194,6 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
                     walletAddress: credentialOwner,
                 });
 
-                console.log('balanceInfo', balanceInfo);
-
                 const environment = credentialInfo.environment;
 
                 if (action === 'copy-trade') {
@@ -246,93 +243,18 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
                             const orderId = response?.orderId || null;
 
                             if (orderId) {
-                                console.log(`Order placed successfully. OrderID: ${orderId}`);
-
-                                // just to test (will be removed)
-                                await NotificatorModule.sendNotification({
-                                    url: process.env.SLACK_WEBHOOK_URL,
+                                EventEmitterModule().emit('NOTIFICATION', {
+                                    type: 'NEW_ORDER',
                                     payload: {
-                                        username: 'D2 Event Listener (Order)',
-                                        text: `A new order has been placed. Check the details to know more about it.`,
-                                        icon_emoji: ':page_with_curl:',
-                                        attachments: [
-                                            {
-                                                color: '#71BFF0',
-                                                fields: [
-                                                    {
-                                                        title: 'Context',
-                                                        value: 'D2 Event Listener (Order)',
-                                                        short: false,
-                                                    },
-                                                    {
-                                                        title: 'Pkp Key',
-                                                        value: config.PKP_KEY,
-                                                        short: false
-                                                    },
-                                                    {
-                                                        title: 'Credential UUID',
-                                                        value: credentialNftUUID,
-                                                        short: false
-                                                    },
-                                                    {
-                                                        title: 'Idea NFT',
-                                                        value: nftId,
-                                                        short: false,
-                                                    },
-                                                    {
-                                                        title: 'BlockNumber',
-                                                        value: blockNumber,
-                                                        short: false,
-                                                    },
-                                                    {
-                                                        title: 'Strategy',
-                                                        value: `${info?.data?.strategy?.name} (${info?.data?.strategy?.reference})`,
-                                                        short: false
-                                                    },
-                                                    {
-                                                        title: 'Creator',
-                                                        value: `${info?.data?.creator?.name} (${info?.data?.creator?.walletAddress})`,
-                                                        short: false
-                                                    },
-                                                    {
-                                                        title: 'Company',
-                                                        value: info?.data?.creator?.company,
-                                                        short: false,
-                                                    },
-                                                    {
-                                                        title: 'Ticker',
-                                                        value: info?.data?.idea?.asset?.ticker,
-                                                        short: false
-                                                    },
-                                                    {
-                                                        title: 'Direction',
-                                                        value: info?.data?.idea?.trade?.direction || 'none',
-                                                        short: false,
-                                                    },
-                                                    {
-                                                        title: 'Kind',
-                                                        value: info?.data?.idea?.kind,
-                                                        short: false,
-                                                    },
-                                                    {
-                                                        title: 'Provider',
-                                                        value: info?.data?.pricing?.provider,
-                                                        short: false,
-                                                    },
-                                                    {
-                                                        title: 'OrderID',
-                                                        value: orderId,
-                                                        short: false,
-                                                    }
-                                                ],
-                                                actions: []
-                                            }
-                                        ],
-                                    }
-                                })
-
-                            } else {
-                                console.log('binancePlaceOrder (response)', response);
+                                        credentialNftUUID,
+                                        credentialOwner,
+                                        balanceInfo,
+                                        nftId,
+                                        blockNumber,
+                                        info,
+                                        orderId,
+                                    },
+                                });
                             }
 
                         } catch (err) { }
