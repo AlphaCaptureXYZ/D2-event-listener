@@ -1,12 +1,18 @@
 import * as config from '../../config/config';
 
+import { INotificationPayload } from '../../../event-listener/interfaces/notification.i';
+
 import { NotificatorModule } from '../../modules/notificator.module';
 
 export const notification = async (
-    type: string,
-    payload: any
+    payload: INotificationPayload
 ) => {
     try {
+
+        const {
+            type,
+            info,
+        } = payload;
 
         if (type === 'NEW_ORDER') {
 
@@ -18,7 +24,7 @@ export const notification = async (
                 blockNumber,
                 data,
                 orderId,
-            } = payload;
+            } = info;
 
             console.log(`Order placed successfully. OrderID: ${orderId}`);
 
@@ -113,7 +119,7 @@ export const notification = async (
                         }
                     ],
                 }
-            })
+            });
         }
 
     } catch (err) {

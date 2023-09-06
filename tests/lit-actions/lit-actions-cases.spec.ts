@@ -12,7 +12,7 @@ describe('Lit Action Cases', () => {
 
         const result = await PkpCredentialNftModule.getCredentialNftEncrypted({
             chain: 'mumbai',
-            credentialNftUUID: '0x4008fed076a278396f848c110d3b4a96',
+            credentialNftUUID: '0xd06b243c18ffc6f0c24338804773b5b4',
         });
 
         expect(isNullOrUndefined(result)).to.be.false;
@@ -35,7 +35,7 @@ describe('Lit Action Cases', () => {
             apiSecret: string;
         }>({
             chain: 'mumbai',
-            credentialNftUUID: '0x4008fed076a278396f848c110d3b4a96',
+            credentialNftUUID: '0xd06b243c18ffc6f0c24338804773b5b4',
         });
 
         const binanceCredentials = {

@@ -3,17 +3,23 @@ import { ethers } from "ethers";
 import * as config from "../config/config";
 
 import {
-    EventEmitterModule,
+    EventEmitterModule as EventEmitter,
     EventType
 } from '../modules/event-emitter.module';
 
-import { INewIdeaNFT } from '../interfaces/new-idea-nft.i';
-
+/* events */
 import { newIdeaNFTEvent } from "./events/new-idea-nft";
 import { notification } from "./events/notification";
+import { orderStore } from "./events/order-store";
 
+/* helpers */
 import { getRpcUrlByNetwork, rest } from "../helpers/helpers";
+
+/* interfaces */
+import { INewIdeaNFT } from '../interfaces/new-idea-nft.i';
 import { ID2EventListenerPayload } from "../interfaces/shared.i";
+import { INotificationPayload } from "../interfaces/notification.i";
+import { IOrderStorePayload } from "../interfaces/order.i";
 
 let watcherLoaded = false;
 
@@ -67,7 +73,7 @@ export const D2EventListener = async (
             events?.map((key) => {
                 contract.on(key, async (...args) => {
                     if (key === 'IdeaCreated') {
-                        await EventEmitterModule().emit<INewIdeaNFT>(
+                        await EventEmitter().emit<INewIdeaNFT>(
                             'NEW_IDEA_NFT',
                             {
                                 contract,
@@ -86,7 +92,7 @@ export const D2EventListener = async (
         if (isAUnitTest) {
             await rest(1000);
 
-            EventEmitterModule().emit<INewIdeaNFT>(
+            EventEmitter().emit<INewIdeaNFT>(
                 'NEW_IDEA_NFT',
                 {
                     contract,
@@ -154,10 +160,11 @@ const watcherLoader = (
     // watcher process
     try {
         if (!watcherLoaded) {
-            EventEmitterModule().listen().subscribe(async (res) => {
+            EventEmitter().listen().subscribe(async (res) => {
                 const event = res.type as EventType;
                 const data = res?.data || null;
 
+                // event selector
                 switch (event) {
                     case 'NEW_IDEA_NFT':
                         const response = await newIdeaNFTEvent(data as INewIdeaNFT);
@@ -167,9 +174,13 @@ const watcherLoader = (
                         break;
                     case 'NOTIFICATION':
                         if (!payload?.test?.enabled) {
-                            await notification(data?.type, data?.payload);
+                            await notification(data as INotificationPayload);
                         }
                         break;
+                    case 'ORDER_STORE':
+                        // if (!payload?.test?.enabled) {
+                            await orderStore(data as IOrderStorePayload);
+                        // }
                 };
 
             });

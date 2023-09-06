@@ -17,7 +17,7 @@ describe('D2EventListener Implementation', () => {
             test: {
                 enabled: true,
                 // Block number linked to BTCUSDT test idea
-                blockNumber: 39782565,
+                blockNumber: 39793282,
             }
         });
 

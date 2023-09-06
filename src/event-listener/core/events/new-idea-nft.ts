@@ -5,7 +5,10 @@ import * as config from "../../config/config";
 import { WeaveDBModule } from '../../modules/weavedb.module';
 import { CompressorModule } from "../../modules/compressor.module";
 import { LitModule } from '../../../event-listener/modules/lit.module';
-import { EventEmitterModule } from '../../../event-listener/modules/event-emitter.module';
+
+import {
+    EventEmitterModule as EventEmitter
+} from '../../../event-listener/modules/event-emitter.module';
 
 import { INewIdeaNFT } from '../../../event-listener/interfaces/new-idea-nft.i';
 
@@ -14,6 +17,8 @@ import { getBalance, loop } from '../../../event-listener/helpers/helpers';
 import * as litActions from '../lit-actions';
 
 import { PkpCredentialNftModule } from '../../../event-listener/modules/pkp-credential-nft.module';
+import { IOrderStorePayload } from 'src/event-listener/interfaces/order.i';
+import { INotificationPayload } from 'src/event-listener/interfaces/notification.i';
 
 export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
     let eventResult = [];
@@ -148,17 +153,27 @@ const orderProcess = async (
                         const orderId = response?.orderId || null;
 
                         if (orderId) {
-                            EventEmitterModule().emit('NOTIFICATION', {
+
+                            // send notification (slack, email, sms, etc) - optional
+                            EventEmitter().emit<INotificationPayload>('NOTIFICATION', {
                                 type: 'NEW_ORDER',
-                                payload: {
+                                info: {
                                     credentialNftUUID,
                                     credentialOwner,
                                     balanceInfo,
-                                    nftId,
+                                    nftId: nftId.toString(),
                                     blockNumber,
                                     data,
                                     orderId,
                                 },
+                            });
+
+                            // store order in weaveDB(default )
+                            EventEmitter().emit<IOrderStorePayload>('ORDER_STORE', {
+                                chain: network,
+                                provider: data?.pricing?.provider,
+                                userWalletAddress: credentialOwner,
+                                response,
                             });
                         }
 
