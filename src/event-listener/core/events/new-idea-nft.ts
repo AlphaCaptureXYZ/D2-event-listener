@@ -82,7 +82,7 @@ const orderProcess = async (
 
         const credentialNftUUID = triggerInfo?.account?.reference;
 
-        let response = null;
+        let result = null as any;
 
         try {
             const action = triggerInfo?.action;
@@ -148,9 +148,14 @@ const orderProcess = async (
                             showLogs: false,
                         });
 
-                        response = litActionCall?.response as any;
+                        const litActionResult = litActionCall?.response as any;
 
-                        const orderId = response?.orderId || null;
+                        result = {
+                            request: litActionResult?.request,
+                            response: litActionResult?.response,
+                        };
+
+                        const orderId = result?.response?.orderId || null;
 
                         if (orderId) {
 
@@ -173,7 +178,7 @@ const orderProcess = async (
                                 chain: network,
                                 provider: data?.pricing?.provider,
                                 userWalletAddress: credentialOwner,
-                                response,
+                                result,
                             });
                         }
 
@@ -189,7 +194,7 @@ const orderProcess = async (
             });
         }
 
-        return response;
+        return result;
     }));
 }
 

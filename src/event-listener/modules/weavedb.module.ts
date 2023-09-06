@@ -1,10 +1,11 @@
+import * as config from "../config/config";
+
 import { LitModule } from './lit.module';
+import { CompressorModule } from './compressor.module';
 
 import { ethers } from "ethers";
 
 import * as WeaveDB from 'weavedb-sdk-node';
-
-import * as config from "../config/config";
 
 import { isNullOrUndefined } from '../helpers/helpers';
 
@@ -12,14 +13,16 @@ import { blobToBase64String } from '@lit-protocol/lit-node-client-nodejs';
 
 const COLLECTION_NAME = 'D2-data';
 
-const contractTxId = 'C7J5obxRkWLFPzvhcVd3MzgSffLj7S4H12Djbzbi7Jg';
+const contractTxId = 'zIcSGRZ47XDF8LVWTLG-ffBuVB28dvXIvfPZfa-baeI';
 
 let db = null as any;
 
 const init = async () => {
     if (isNullOrUndefined(db)) {
 
-        db = new WeaveDB({ contractTxId });
+        db = new WeaveDB({
+            contractTxId,
+        });
 
         await db.initializeWithoutWallet();
 
@@ -28,6 +31,8 @@ const init = async () => {
         if (privateKey) {
             const wallet = new ethers.Wallet(privateKey);
             const address = wallet.address;
+
+            console.log('init (address)', address);
 
             const config = {
                 getAddressString: () => address.toLowerCase(),
@@ -56,7 +61,7 @@ const accessControlConditions = (
             ],
             returnValueTest: {
                 comparator: '=',
-                value: userWallet,
+                value: userWallet.toLowerCase(),
             },
         },
     ];
@@ -86,7 +91,7 @@ const accessControlConditions = (
 const getAllData = async <T>(
     chain: string,
     payload: {
-        type: string
+        type: string,
     },
     authSig: any = null,
 ) => {
@@ -111,6 +116,7 @@ const getAllData = async <T>(
 
                 const acConditions = accessControlConditions(chain, userWallet, pkpWalletAddress);
 
+                info.data = await CompressorModule.inflate(info?.data);
                 const doc = JSON.parse(atob(info?.data));
 
                 const {
@@ -125,6 +131,7 @@ const getAllData = async <T>(
                         encryptedData,
                         encryptedSymmetricKey,
                         acConditions,
+                        chain,
                     );
                 }
 
@@ -147,7 +154,7 @@ const getAllData = async <T>(
                 return decryptedString;
 
             } catch (err: any) {
-                // console.log('ERROR', err?.message);
+                console.log('ERROR', err?.message);
             }
         }))) || [];
 
@@ -171,21 +178,20 @@ const addData = async <T>(
         type: string,
         // pkp key to store data for enable external access
         pkpKey: string,
-        // if the docId is provided, the data will be updated instead of created
-        // uf the docId not exists, the data will be created
-        docId?: string,
     },
 ) => {
+
+    let result: any = null;
+
     try {
+        await init();
+
         const {
             jsonData,
             userWallet,
             type,
             pkpKey,
-            docId,
         } = payload;
-
-        await init();
 
         const pkpWalletAddress = ethers.utils.computeAddress(pkpKey);
 
@@ -209,7 +215,8 @@ const addData = async <T>(
             encryptedSymmetricKey: encryptedSymmetricKeyString,
         };
 
-        const data = Buffer.from(JSON.stringify(info)).toString('base64');
+        let data = Buffer.from(JSON.stringify(info)).toString('base64');
+        data = await CompressorModule.deflate(data);
 
         const obj = {
             id,
@@ -220,27 +227,39 @@ const addData = async <T>(
             pkpWalletAddress,
         };
 
-        if (!pkpWalletAddress) {
+        if (isNullOrUndefined(pkpWalletAddress)) {
             delete obj.pkpWalletAddress;
         }
 
         let tx = null as any;
 
-        if (!docId) {
-            tx = await db?.add(
-                obj,
-                COLLECTION_NAME,
-            );
-        }
+        tx = await db.add(
+            obj,
+            COLLECTION_NAME,
+        );
 
         await tx.getResult();
 
+        result = tx;
+
     } catch (e: any) {
-        console.log('addData', e?.message);
+        throw new Error(e?.message);
     }
+
+    return result;
 }
+
+const deleteData = async (
+    docId: string,
+) => {
+    await init();
+    const result = await db.delete(COLLECTION_NAME, docId);
+    await result?.getResult();
+    return result;
+};
 
 export const WeaveDBModule = {
     addData,
     getAllData,
+    deleteData,
 }

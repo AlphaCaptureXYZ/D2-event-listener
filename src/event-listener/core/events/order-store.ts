@@ -12,23 +12,21 @@ export const orderStore = async (
             chain,
             provider,
             userWalletAddress,
-            response,
+            result,
         } = payload;
 
-        const orderStored = await WeaveDBModule.addData<any>(
+        await WeaveDBModule.addData<any>(
             chain,
             {
                 jsonData: {
                     provider,
-                    response,
+                    result,
                 },
                 pkpKey: config.PKP_KEY,
                 type: 'order',
                 userWallet: userWalletAddress,
             }
         );
-
-        console.log('orderStore (success)', orderStored);
 
     } catch (err) {
         console.log('orderStore (error)', err.message);

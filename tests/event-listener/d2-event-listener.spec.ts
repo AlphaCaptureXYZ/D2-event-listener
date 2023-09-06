@@ -21,13 +21,17 @@ describe('D2EventListener Implementation', () => {
             }
         });
 
-        const order = data.find(res => res);
+        const orderDetail = data.find(res => res);
 
-        expect(isNullOrUndefined(order)).to.be.false;
-        expect(order).to.be.an('object');
-        expect(order).to.have.property('orderId');
-        expect(order).to.have.property('status');
-        expect(order.status).to.be.equal('FILLED');
+        const orderRequest = orderDetail?.request;
+        const orderResponse = orderDetail?.response;
+
+        expect(isNullOrUndefined(orderRequest)).to.be.false;
+        expect(isNullOrUndefined(orderResponse)).to.be.false;
+        expect(orderResponse).to.be.an('object');
+        expect(orderResponse).to.have.property('orderId');
+        expect(orderResponse).to.have.property('status');
+        expect(orderResponse.status).to.be.equal('FILLED');
 
     }).timeout(50000);
 

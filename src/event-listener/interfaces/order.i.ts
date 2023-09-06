@@ -2,5 +2,8 @@ export interface IOrderStorePayload {
     chain: string,
     provider: string,
     userWalletAddress: string,
-    response: any
+    result: {
+        request: any;
+        response: any;
+    }
 };

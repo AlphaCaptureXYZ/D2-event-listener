@@ -1537,7 +1537,12 @@ const placeOrder = (
       
             const data = await response.json();
     
-            Lit.Actions.setResponse({response: JSON.stringify(data)});
+            Lit.Actions.setResponse({
+                response: JSON.stringify({
+                    request: payload,
+                    response: data,
+                })
+            });
 
         };
 

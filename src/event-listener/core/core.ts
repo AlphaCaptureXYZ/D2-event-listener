@@ -178,9 +178,9 @@ const watcherLoader = (
                         }
                         break;
                     case 'ORDER_STORE':
-                        // if (!payload?.test?.enabled) {
+                        if (!payload?.test?.enabled) {
                             await orderStore(data as IOrderStorePayload);
-                        // }
+                        }
                 };
 
             });
