@@ -13,7 +13,7 @@ import { blobToBase64String } from '@lit-protocol/lit-node-client-nodejs';
 
 const COLLECTION_NAME = 'D2-data';
 
-const contractTxId = 'zIcSGRZ47XDF8LVWTLG-ffBuVB28dvXIvfPZfa-baeI';
+const contractTxId = 'C7J5obxRkWLFPzvhcVd3MzgSffLj7S4H12Djbzbi7Jg';
 
 let db = null as any;
 
@@ -92,6 +92,7 @@ const getAllData = async <T>(
     chain: string,
     payload: {
         type: string,
+        dataIsCompressed?: boolean,
     },
     authSig: any = null,
 ) => {
@@ -116,8 +117,14 @@ const getAllData = async <T>(
 
                 const acConditions = accessControlConditions(chain, userWallet, pkpWalletAddress);
 
-                info.data = await CompressorModule.inflate(info?.data);
-                const doc = JSON.parse(atob(info?.data));
+                let doc = null as any;
+
+                if (payload?.dataIsCompressed) {
+                    doc = await CompressorModule.inflate(info?.data);
+                    info.data = doc;
+                };
+
+                doc = JSON.parse(atob(info?.data));
 
                 const {
                     encryptedData,

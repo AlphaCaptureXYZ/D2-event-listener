@@ -85,8 +85,11 @@ describe('WeaveDB Cases', () => {
             chain,
             {
                 type: 'order',
+                dataIsCompressed: true,
             }
         );
+
+        console.log(data);
 
         expect(isNullOrUndefined(data)).to.be.false;
 
@@ -94,7 +97,7 @@ describe('WeaveDB Cases', () => {
 
     xit('Delete info (order)', async () => {
 
-        const docID = 'DN7zX84HSOMNql2dyOGJ';
+        const docID = '7HgvgcO5uMxyR1bnnm';
 
         const data = await WeaveDBModule.deleteData(docID);
 
