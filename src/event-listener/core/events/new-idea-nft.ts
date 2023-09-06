@@ -159,6 +159,8 @@ const orderProcess = async (
 
                         if (orderId) {
 
+                            console.log(`Order placed successfully. OrderID: ${orderId}`);
+
                             // send notification (slack, email, sms, etc) - optional
                             EventEmitter().emit<INotificationPayload>('NOTIFICATION', {
                                 type: 'NEW_ORDER',

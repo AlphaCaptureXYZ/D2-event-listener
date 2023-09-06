@@ -13,7 +13,7 @@ import { blobToBase64String } from '@lit-protocol/lit-node-client-nodejs';
 
 const COLLECTION_NAME = 'D2-data';
 
-const contractTxId = 'C7J5obxRkWLFPzvhcVd3MzgSffLj7S4H12Djbzbi7Jg';
+const contractTxId = 'zIcSGRZ47XDF8LVWTLG-ffBuVB28dvXIvfPZfa-baeI';
 
 let db = null as any;
 

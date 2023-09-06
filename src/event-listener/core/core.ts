@@ -173,14 +173,11 @@ const watcherLoader = (
                         };
                         break;
                     case 'NOTIFICATION':
-                        if (!payload?.test?.enabled) {
-                            await notification(data as INotificationPayload);
-                        }
+                        await notification(data as INotificationPayload);
                         break;
                     case 'ORDER_STORE':
-                        if (!payload?.test?.enabled) {
-                            await orderStore(data as IOrderStorePayload);
-                        }
+                        await orderStore(data as IOrderStorePayload);
+                        break;
                 };
 
             });

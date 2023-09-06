@@ -26,8 +26,6 @@ export const notification = async (
                 orderId,
             } = info;
 
-            console.log(`Order placed successfully. OrderID: ${orderId}`);
-
             // just to test (will be removed)
             await NotificatorModule.sendNotification({
                 url: process.env.SLACK_WEBHOOK_URL,
