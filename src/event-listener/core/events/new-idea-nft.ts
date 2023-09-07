@@ -16,6 +16,7 @@ import { getBalance, loop } from '../../../event-listener/helpers/helpers';
 
 import * as litActions from '../lit-actions';
 
+import { PkpAuthModule } from '../../../event-listener/modules/pkp-auth.module';
 import { PkpCredentialNftModule } from '../../../event-listener/modules/pkp-credential-nft.module';
 import { IOrderStorePayload } from 'src/event-listener/interfaces/order.i';
 import { INotificationPayload } from 'src/event-listener/interfaces/notification.i';
@@ -32,7 +33,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
             nftId,
         } = await getIdeaNFTInfo(payload);
 
-        const pkpAuthSig = await PkpCredentialNftModule.getPkpAuthSig(
+        const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
             network,
             config.PKP_KEY,
         );

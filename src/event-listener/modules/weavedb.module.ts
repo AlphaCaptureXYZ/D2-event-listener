@@ -32,8 +32,6 @@ const init = async () => {
             const wallet = new ethers.Wallet(privateKey);
             const address = wallet.address;
 
-            console.log('init (address)', address);
-
             const config = {
                 getAddressString: () => address.toLowerCase(),
                 getPrivateKey: () => Buffer.from(privateKey, 'hex'),
@@ -193,12 +191,14 @@ const addData = async <T>(
     try {
         await init();
 
-        const {
+        let {
             jsonData,
             userWallet,
             type,
             pkpKey,
         } = payload;
+
+        userWallet = userWallet.toLowerCase();
 
         const pkpWalletAddress = ethers.utils.computeAddress(pkpKey);
 
