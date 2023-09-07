@@ -10,6 +10,7 @@ import * as WeaveDB from 'weavedb-sdk-node';
 import { isNullOrUndefined } from '../helpers/helpers';
 
 import { blobToBase64String } from '@lit-protocol/lit-node-client-nodejs';
+import { getCurrentWalletAddress } from "../utils/utils";
 
 const COLLECTION_NAME = 'D2-data';
 
@@ -29,8 +30,7 @@ const init = async () => {
         const privateKey = config.WALLET_PRIVATE_KEY;
 
         if (privateKey) {
-            const wallet = new ethers.Wallet(privateKey);
-            const address = wallet.address;
+            const address = getCurrentWalletAddress();
 
             const config = {
                 getAddressString: () => address.toLowerCase(),
@@ -99,11 +99,17 @@ const getAllData = async <T>(
     try {
         await init();
 
-        const docs: any[] = await db.cget(
+        const wallet = getCurrentWalletAddress();
+
+        let docs: any[] = await db.cget(
             COLLECTION_NAME,
             ['type'],
-            ['type', '==', payload.type]
+            ['type', '==', payload.type],
         );
+
+        docs = docs?.filter((doc) => {
+            return doc?.data?.userAddress === wallet;
+        });
 
         data = (await Promise?.all(docs?.map(async (res) => {
             try {

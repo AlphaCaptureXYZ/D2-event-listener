@@ -13,7 +13,10 @@ import { notification } from "./events/notification";
 import { orderStore } from "./events/order-store";
 
 /* helpers */
-import { getRpcUrlByNetwork, rest } from "../helpers/helpers";
+import { rest } from "../helpers/helpers";
+
+/* utils */
+import { getRpcUrlByNetwork } from "../utils/utils";
 
 /* interfaces */
 import { INewIdeaNFT } from '../interfaces/new-idea-nft.i';

@@ -10,7 +10,8 @@ import { ethers } from 'ethers';
 
 import * as Siwe from 'siwe';
 
-import { getRpcUrlByNetwork, isNullOrUndefined } from '../helpers/helpers';
+import { isNullOrUndefined } from '../helpers/helpers';
+import { getRpcUrlByNetwork } from '../utils/utils';
 
 export const contractAddress = '0x8f58fd7f9eE19eC25a3F9dd035140E4d218c4178';
 

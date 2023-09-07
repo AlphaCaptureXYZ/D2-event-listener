@@ -12,7 +12,8 @@ import {
 
 import { INewIdeaNFT } from '../../../event-listener/interfaces/new-idea-nft.i';
 
-import { getBalance, loop } from '../../../event-listener/helpers/helpers';
+import { loop } from '../../../event-listener/helpers/helpers';
+import { getBalance } from '../../../event-listener/utils/utils';
 
 import * as litActions from '../lit-actions';
 
