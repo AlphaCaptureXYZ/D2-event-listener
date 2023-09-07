@@ -32,7 +32,7 @@
     "request-promise-native": "^1.0.9",
     "rxjs": "^7.5.6",
     "siwe": "^1.1.6",
-    "weavedb-sdk-node": "^0.25.4"
+    "weavedb-sdk-node": "^0.29.2"
   },
   "devDependencies": {
     "@types/chai": "^4.3.1",
