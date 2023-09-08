@@ -43,7 +43,12 @@ const init = async (
             await db.setDefaultWallet(config, 'evm');
         }
 
-        console.log('WeaveDB initialized!');
+        if(payload?.reset){
+            console.log('WeaveDB re-initialized!');
+        } else {
+            console.log('WeaveDB initialized!');
+        }
+    
     }
 
     return db;
