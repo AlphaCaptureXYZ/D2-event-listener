@@ -16,32 +16,27 @@ const COLLECTION_NAME = 'D2-data';
 
 const contractTxId = 'zIcSGRZ47XDF8LVWTLG-ffBuVB28dvXIvfPZfa-baeI';
 
-let dbInstance: any = null;
-
 const getWeaveDB = async () => {
-    if (isNullOrUndefined(dbInstance)) {
-        const db = new WeaveDB({
-            contractTxId,
-        });
+    const db = new WeaveDB({
+        contractTxId,
+    });
 
-        await db.initializeWithoutWallet();
+    await db.initializeWithoutWallet();
 
-        const privateKey = config.WALLET_PRIVATE_KEY;
+    const privateKey = config.WALLET_PRIVATE_KEY;
 
-        if (privateKey) {
-            const address = getCurrentWalletAddress();
+    if (privateKey) {
+        const address = getCurrentWalletAddress();
 
-            const config = {
-                getAddressString: () => address.toLowerCase(),
-                getPrivateKey: () => Buffer.from(privateKey, 'hex'),
-            };
+        const config = {
+            getAddressString: () => address.toLowerCase(),
+            getPrivateKey: () => Buffer.from(privateKey, 'hex'),
+        };
 
-            await db.setDefaultWallet(config, 'evm');
-        }
-
-        dbInstance = db;
-    };
-    return dbInstance;
+        await db.setDefaultWallet(config, 'evm');
+    }
+    
+    return db;
 }
 
 const accessControlConditions = (
