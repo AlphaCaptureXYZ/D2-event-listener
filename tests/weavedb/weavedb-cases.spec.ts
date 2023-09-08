@@ -86,6 +86,7 @@ describe('WeaveDB Cases', () => {
             {
                 type: 'order',
                 dataIsCompressed: true,
+                byUserWalletFilter: true,
             }
         );
 

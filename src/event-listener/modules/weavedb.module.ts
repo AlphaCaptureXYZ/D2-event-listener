@@ -16,12 +16,11 @@ const COLLECTION_NAME = 'D2-data';
 
 const contractTxId = 'zIcSGRZ47XDF8LVWTLG-ffBuVB28dvXIvfPZfa-baeI';
 
-let db = null as any;
+let dbInstance: any = null;
 
-const init = async () => {
-    if (isNullOrUndefined(db)) {
-
-        db = new WeaveDB({
+const getWeaveDB = async () => {
+    if (isNullOrUndefined(dbInstance)) {
+        const db = new WeaveDB({
             contractTxId,
         });
 
@@ -37,9 +36,12 @@ const init = async () => {
                 getPrivateKey: () => Buffer.from(privateKey, 'hex'),
             };
 
-            db.setDefaultWallet(config, 'evm');
+            await db.setDefaultWallet(config, 'evm');
         }
-    }
+
+        dbInstance = db;
+    };
+    return dbInstance;
 }
 
 const accessControlConditions = (
@@ -91,25 +93,33 @@ const getAllData = async <T>(
     payload: {
         type: string,
         dataIsCompressed?: boolean,
+        byUserWalletFilter?: boolean,
     },
     authSig: any = null,
 ) => {
     let data = [];
 
     try {
-        await init();
+        const {
+            byUserWalletFilter,
+            type,
+        } = payload;
+
+        const db = await getWeaveDB();
 
         const wallet = getCurrentWalletAddress();
 
         let docs: any[] = await db.cget(
             COLLECTION_NAME,
             ['type'],
-            ['type', '==', payload.type],
+            ['type', '==', type],
         );
 
-        docs = docs?.filter((doc) => {
-            return doc?.data?.userAddress === wallet;
-        });
+        if (byUserWalletFilter) {
+            docs = docs?.filter((doc) => {
+                return doc?.data?.userAddress === wallet;
+            });
+        }
 
         data = (await Promise?.all(docs?.map(async (res) => {
             try {
@@ -195,7 +205,7 @@ const addData = async <T>(
     let result: any = null;
 
     try {
-        await init();
+        const db = await getWeaveDB();
 
         let {
             jsonData,
@@ -244,9 +254,7 @@ const addData = async <T>(
             delete obj.pkpWalletAddress;
         }
 
-        let tx = null as any;
-
-        tx = await db.add(
+        const tx = await db.add(
             obj,
             COLLECTION_NAME,
         );
@@ -265,7 +273,7 @@ const addData = async <T>(
 const deleteData = async (
     docId: string,
 ) => {
-    await init();
+    const db = await getWeaveDB();
     const result = await db.delete(COLLECTION_NAME, docId);
     await result?.getResult();
     return result;

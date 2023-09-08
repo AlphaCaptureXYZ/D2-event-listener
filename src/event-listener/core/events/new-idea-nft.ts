@@ -122,13 +122,16 @@ const orderProcess = async (
                         case 'Binance':
                             litActionCode = litActions.binance.placeOrder(environment as any);
 
-                            const sideSelector = {
-                                'LONG': 'BUY',
-                                'SHORT': 'SELL',
+                            const kind = data?.idea?.kind.toUpperCase();
+
+                            // this is SPOT and we can just buy or sell (this is not furture to use short orders, etc)
+                            const directionByKind = {
+                                'open': 'BUY',
+                                'adjust': 'BUY',
+                                'close': 'SELL',
                             };
 
-                            const direction =
-                                sideSelector[data?.idea?.trade?.direction.toUpperCase()];
+                            const direction = directionByKind[kind.toLowerCase()];
 
                             listActionCodeParams = {
                                 credentials: credentialInfo.decryptedCredential,
@@ -153,6 +156,10 @@ const orderProcess = async (
                         const litActionResult = litActionCall?.response as any;
 
                         result = {
+                            additionalInfo: {
+                                nftId,
+                                credentialNftUUID,
+                            },
                             request: litActionResult?.request,
                             response: litActionResult?.response,
                         };
@@ -186,7 +193,9 @@ const orderProcess = async (
                             });
                         }
 
-                    } catch (err) { }
+                    } catch (err) {
+                        console.log('orderProcess (error)', credentialNftUUID, err?.message);
+                    }
                 }
 
             }
