@@ -10,8 +10,8 @@ const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY as string;
 const PKP_KEY = process.env.PKP_KEY as string;
 
 const IDEA_NFT_CONFIG = {
-    gateContractAddress: '0x80f2AdD99E7E46529dd11335ccBEDF5721970c10',
-    coreContractAddress: '0x19179609aBBFd90Ac9dEFBBAb368853c8d45d736',
+    gateContractAddress: '0x571A9207816bb926B21665567D370f3DC1A4dfa4',
+    coreContractAddress: '0x5FcaffB996C5D241F2CF344FFE742993Df764e05',
     gateAbi: [
         'event IdeaCreated(address,uint256,string,uint256,uint256,uint256)',
         'event Initialized(uint8)',
