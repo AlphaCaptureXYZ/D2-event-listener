@@ -119,9 +119,9 @@ describe('WeaveDB Cases', () => {
 
     }).timeout(50000);
 
-    xit('Delete info (order)', async () => {
+    it('Delete info (order)', async () => {
 
-        const docID = '38d6ecc6e6b2fb80783974892b3911d7';
+        const docID = 'acb81c9d9fc5d14e0909f19d22c552af';
 
         const data = await WeaveDBModule.deleteData(docID);
 
