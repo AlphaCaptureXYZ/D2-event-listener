@@ -16,28 +16,42 @@ const COLLECTION_NAME = 'D2-data';
 
 const contractTxId = 'zIcSGRZ47XDF8LVWTLG-ffBuVB28dvXIvfPZfa-baeI';
 
-const getWeaveDB = async () => {
-    const db = new WeaveDB({
-        contractTxId,
-    });
+let db: any = null;
 
-    await db.initializeWithoutWallet();
-
-    const privateKey = config.WALLET_PRIVATE_KEY;
-
-    if (privateKey) {
-        const address = getCurrentWalletAddress();
-
-        const config = {
-            getAddressString: () => address.toLowerCase(),
-            getPrivateKey: () => Buffer.from(privateKey, 'hex'),
-        };
-
-        await db.setDefaultWallet(config, 'evm');
+const init = async (
+    payload?: {
+        reset?: boolean,
     }
-    
+) => {
+    if (isNullOrUndefined(db) || payload?.reset) {
+        db = new WeaveDB({
+            contractTxId,
+        });
+
+        await db.initializeWithoutWallet();
+
+        const privateKey = config.WALLET_PRIVATE_KEY;
+
+        if (privateKey) {
+            const address = getCurrentWalletAddress();
+
+            const config = {
+                getAddressString: () => address.toLowerCase(),
+                getPrivateKey: () => Buffer.from(privateKey, 'hex'),
+            };
+
+            await db.setDefaultWallet(config, 'evm');
+        }
+
+        console.log('WeaveDB initialized!');
+    }
+
     return db;
 }
+
+(async function main() {
+    await init();
+})();
 
 const accessControlConditions = (
     chain: string,
@@ -100,7 +114,9 @@ const getAllData = async <T>(
             type,
         } = payload;
 
-        const db = await getWeaveDB();
+        await init({
+            reset: true,
+        });
 
         const wallet = getCurrentWalletAddress();
 
@@ -200,7 +216,7 @@ const addData = async <T>(
     let result: any = null;
 
     try {
-        const db = await getWeaveDB();
+        await init();
 
         let {
             jsonData,
@@ -268,7 +284,8 @@ const addData = async <T>(
 const deleteData = async (
     docId: string,
 ) => {
-    const db = await getWeaveDB();
+    await init();
+
     const result = await db.delete(COLLECTION_NAME, docId);
     await result?.getResult();
     return result;
@@ -278,4 +295,4 @@ export const WeaveDBModule = {
     addData,
     getAllData,
     deleteData,
-}
+};
