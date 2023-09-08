@@ -262,7 +262,7 @@ const addData = async <T>(
         result = tx;
 
     } catch (e: any) {
-        throw new Error(e?.message);
+        // todo: handle error
     }
 
     return result;
