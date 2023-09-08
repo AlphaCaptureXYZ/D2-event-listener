@@ -259,8 +259,6 @@ const addData = async <T>(
             COLLECTION_NAME,
         );
 
-        await tx.getResult();
-
         result = tx;
 
     } catch (e: any) {
@@ -274,9 +272,7 @@ const deleteData = async (
     docId: string,
 ) => {
     await init();
-
     const result = await db.delete(COLLECTION_NAME, docId);
-    await result?.getResult();
     return result;
 };
 
