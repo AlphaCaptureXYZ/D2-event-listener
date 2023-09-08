@@ -13,7 +13,6 @@ import {
 const client = new LitJsSdk.LitNodeClientNodeJs({
     alertWhenUnauthorized: true,
     debug: false,
-    litNetwork: 'serrano',
 });
 
 let litService = null;

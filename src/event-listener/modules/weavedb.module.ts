@@ -18,14 +18,12 @@ const contractTxId = 'zIcSGRZ47XDF8LVWTLG-ffBuVB28dvXIvfPZfa-baeI';
 
 let db: any = null;
 
-const init = async (
-    payload?: {
-        reset?: boolean,
-    }
-) => {
-    if (isNullOrUndefined(db) || payload?.reset) {
+const init = async () => {
+    if (isNullOrUndefined(db)) {
+        
         db = new WeaveDB({
             contractTxId,
+            nocache: true,
         });
 
         await db.initializeWithoutWallet();
@@ -42,21 +40,9 @@ const init = async (
 
             await db.setDefaultWallet(config, 'evm');
         }
-
-        if(payload?.reset){
-            console.log('WeaveDB re-initialized!');
-        } else {
-            console.log('WeaveDB initialized!');
-        }
-    
     }
-
     return db;
 }
-
-(async function main() {
-    await init();
-})();
 
 const accessControlConditions = (
     chain: string,
@@ -119,9 +105,7 @@ const getAllData = async <T>(
             type,
         } = payload;
 
-        await init({
-            reset: true,
-        });
+        await init();
 
         const wallet = getCurrentWalletAddress();
 

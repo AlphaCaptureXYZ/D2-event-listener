@@ -8,6 +8,8 @@ import { isNullOrUndefined } from '../../src/event-listener/helpers/helpers';
 
 import { WeaveDBModule } from '../../src/event-listener/modules/weavedb.module';
 
+import { PkpAuthModule } from '../../src/event-listener/modules/pkp-auth.module';
+
 describe('WeaveDB Cases', () => {
 
     xit('Store/Add info (orders)', async () => {
@@ -91,6 +93,27 @@ describe('WeaveDB Cases', () => {
         );
 
         console.log(data);
+
+        expect(isNullOrUndefined(data)).to.be.false;
+
+    }).timeout(50000);
+
+    xit('Get trigger info by pkp', async () => {
+
+        const chain = 'mumbai';
+
+        const authSigh = await PkpAuthModule.getPkpAuthSig(
+            chain,
+            config.PKP_KEY,
+        );
+
+        const data = await WeaveDBModule.getAllData<any>(
+            chain,
+            {
+                type: 'trigger',
+            },
+            authSigh
+        );
 
         expect(isNullOrUndefined(data)).to.be.false;
 
