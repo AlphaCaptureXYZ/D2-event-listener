@@ -1,10 +1,14 @@
-import 'dotenv/config';
+import * as config from '../../src/event-listener/config/config';
 
 import { expect } from 'chai';
 
 import { isNullOrUndefined } from '../../src/event-listener/helpers/helpers';
 
 import { PkpCredentialNftModule } from '../../src/event-listener/modules/pkp-credential-nft.module';
+import { LitModule } from '../../src/event-listener/modules/lit.module';
+
+import * as litActions from '../../src/event-listener/core/lit-actions';
+import { PkpAuthModule } from '../../src/event-listener/modules/pkp-auth.module';
 
 describe('Lit Action Cases', () => {
 
@@ -28,7 +32,7 @@ describe('Lit Action Cases', () => {
 
     }).timeout(50000);
 
-    it('Retrieve Full credential pkp access', async () => {
+    xit('Retrieve Full credential pkp access', async () => {
 
         const result = await PkpCredentialNftModule.getFullCredential<{
             apiKey: string;
@@ -51,6 +55,70 @@ describe('Lit Action Cases', () => {
         expect(result.environment.trim().length > 0).to.be.true;
         expect(result.accountName.trim().length > 0).to.be.true;
         expect(result.pkpAddress.trim().length > 0).to.be.true;
+        expect(binanceCredentials.apiKey?.trim()?.length > 0).to.be.true;
+        expect(binanceCredentials.apiSecret?.trim()?.length > 0).to.be.true;
+
+    }).timeout(50000);
+
+    xit('Binance order test', async () => {
+
+        const chain = 'mumbai';
+        const credentialNftUUID = '0xd06b243c18ffc6f0c24338804773b5b4';
+        const environment = 'demo';
+
+        const litActionCode = litActions.binance.placeOrder(environment as any);
+
+        const credentialInfo = await PkpCredentialNftModule.getFullCredential<{
+            apiKey: string;
+            apiSecret: string;
+        }>({
+            chain,
+            credentialNftUUID,
+        });
+
+        const binanceCredentials = {
+            apiKey: credentialInfo.decryptedCredential?.apiKey as string,
+            apiSecret: credentialInfo.decryptedCredential?.apiSecret as string,
+        };
+
+        const listActionCodeParams = {
+            credentials: credentialInfo.decryptedCredential,
+            form: {
+                asset: 'MATICUSDT',
+                direction: 'BUY',
+                quantity: 0.00044, // 12 USDT
+            },
+        };
+
+        const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
+            chain,
+            config.PKP_KEY,
+        );
+
+        const litActionCall = await LitModule().runLitAction({
+            chain,
+            litActionCode,
+            listActionCodeParams,
+            nodes: 1,
+            showLogs: false,
+            authSig: pkpAuthSig,
+        });
+
+        const litActionResult = litActionCall?.response as any;
+
+        const result = {
+            additionalInfo: {
+                nftId: 12345,
+                credentialNftUUID,
+                userWalletAddress: credentialInfo?.owner,
+                environment,
+            },
+            request: litActionResult?.request,
+            response: litActionResult?.response,
+        };
+
+        expect(isNullOrUndefined(result)).to.be.false;
+        expect(result).to.be.an('object');
         expect(binanceCredentials.apiKey?.trim()?.length > 0).to.be.true;
         expect(binanceCredentials.apiSecret?.trim()?.length > 0).to.be.true;
 

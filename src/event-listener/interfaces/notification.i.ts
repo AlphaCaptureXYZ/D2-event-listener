@@ -7,6 +7,7 @@ export interface INotificationPayload {
         blockNumber: number;
         data: any;
 
+        error?: string;
         orderId?: string;
         docID?: string;
     }

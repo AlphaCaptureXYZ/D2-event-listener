@@ -24,7 +24,100 @@ export const notification = async (
                 data,
                 orderId,
                 docID,
+                error,
             } = info;
+
+            const fields = [
+                {
+                    title: 'Context',
+                    value: 'D2 Event Listener (Order)',
+                    short: false,
+                },
+                {
+                    title: 'Pkp Key',
+                    value: config.PKP_KEY,
+                    short: false
+                },
+                {
+                    title: 'Credential NFT (UUID)',
+                    value: credentialNftUUID,
+                    short: false
+                },
+                {
+                    title: 'Credential Owner',
+                    value: credentialOwner,
+                    short: false,
+                },
+                {
+                    title: 'Idea NFT (ID)',
+                    value: nftId,
+                    short: false,
+                },
+                {
+                    title: 'BlockNumber',
+                    value: blockNumber,
+                    short: false,
+                },
+                {
+                    title: 'Strategy',
+                    value: `${data?.strategy?.name} (${data?.strategy?.reference})`,
+                    short: false
+                },
+                {
+                    title: 'Creator',
+                    value: `${data?.creator?.name} (${data?.creator?.walletAddress})`,
+                    short: false
+                },
+                {
+                    title: 'Company',
+                    value: data?.creator?.company,
+                    short: false,
+                },
+                {
+                    title: 'Ticker',
+                    value: data?.idea?.asset?.ticker,
+                    short: false
+                },
+                {
+                    title: 'Direction',
+                    value: data?.idea?.trade?.direction || 'none',
+                    short: false,
+                },
+                {
+                    title: 'Kind',
+                    value: data?.idea?.kind,
+                    short: false,
+                },
+                {
+                    title: 'Provider',
+                    value: data?.pricing?.provider,
+                    short: false,
+                },
+            ];
+
+            if (orderId) {
+                fields.push({
+                    title: 'OrderID',
+                    value: orderId,
+                    short: false,
+                });
+            }
+
+            if (docID) {
+                fields.push({
+                    title: 'DocumentID (weavedb)',
+                    value: docID,
+                    short: false,
+                });
+            }
+
+            if (error) {
+                fields.push({
+                    title: 'Error',
+                    value: error,
+                    short: false,
+                });
+            }
 
             // just to test (will be removed)
             await NotificatorModule.sendNotification({
@@ -36,83 +129,7 @@ export const notification = async (
                     attachments: [
                         {
                             color: '#71BFF0',
-                            fields: [
-                                {
-                                    title: 'Context',
-                                    value: 'D2 Event Listener (Order)',
-                                    short: false,
-                                },
-                                {
-                                    title: 'Pkp Key',
-                                    value: config.PKP_KEY,
-                                    short: false
-                                },
-                                {
-                                    title: 'Credential NFT (UUID)',
-                                    value: credentialNftUUID,
-                                    short: false
-                                },
-                                {
-                                    title: 'Credential Owner',
-                                    value: credentialOwner,
-                                    short: false,
-                                },
-                                {
-                                    title: 'Idea NFT (ID)',
-                                    value: nftId,
-                                    short: false,
-                                },
-                                {
-                                    title: 'BlockNumber',
-                                    value: blockNumber,
-                                    short: false,
-                                },
-                                {
-                                    title: 'Strategy',
-                                    value: `${data?.strategy?.name} (${data?.strategy?.reference})`,
-                                    short: false
-                                },
-                                {
-                                    title: 'Creator',
-                                    value: `${data?.creator?.name} (${data?.creator?.walletAddress})`,
-                                    short: false
-                                },
-                                {
-                                    title: 'Company',
-                                    value: data?.creator?.company,
-                                    short: false,
-                                },
-                                {
-                                    title: 'Ticker',
-                                    value: data?.idea?.asset?.ticker,
-                                    short: false
-                                },
-                                {
-                                    title: 'Direction',
-                                    value: data?.idea?.trade?.direction || 'none',
-                                    short: false,
-                                },
-                                {
-                                    title: 'Kind',
-                                    value: data?.idea?.kind,
-                                    short: false,
-                                },
-                                {
-                                    title: 'Provider',
-                                    value: data?.pricing?.provider,
-                                    short: false,
-                                },
-                                {
-                                    title: 'OrderID',
-                                    value: orderId || 'None (Order error, check the info via D2 (orders section)',
-                                    short: false,
-                                },
-                                {
-                                    title: 'DocumentID (weavedb)',
-                                    value: docID,
-                                    short: false,
-                                }
-                            ],
+                            fields,
                             actions: []
                         }
                     ],

@@ -193,6 +193,7 @@ const orderProcess = async (
             const credentialOwner = orderResult?.additionalInfo?.credentialOwner;
 
             const orderId = orderResult?.response?.orderId || null;
+            const error = orderResult?.response?.error || null;
 
             const dataStored = await WeaveDBModule.addData<any>(
                 network,
@@ -220,6 +221,7 @@ const orderProcess = async (
                     data,
                     orderId,
                     docID,
+                    error,
                 },
             });
 
