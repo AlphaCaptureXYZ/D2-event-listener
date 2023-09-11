@@ -5,7 +5,6 @@ let eventService = null;
 export type EventType =
     | 'NEW_IDEA_NFT'
     | 'NOTIFICATION'
-    | 'ORDER_STORE'
 
 class EventEmitterService {
     private dataSource;

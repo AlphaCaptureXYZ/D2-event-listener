@@ -92,13 +92,16 @@ class Lit {
         accessControlConditions: any[],
         permanent: boolean = false,
         chain: string = 'mumbai',
+        authSig = null,
     ) {
 
         if (!this.litNodeClient) {
             await this.connect();
         };
 
-        const authSig = await this.getAuthSig();
+        if (isNullOrUndefined(authSig)) {
+            authSig = await this.getAuthSig();
+        }
 
         const { encryptedString, symmetricKey } = await LitJsSdk.encryptString(str);
 
@@ -211,6 +214,7 @@ class Lit {
         nodes?: number,
         showLogs?: boolean,
         sigName?: string,
+        authSig?: any,
     }) {
 
         let {
@@ -220,11 +224,14 @@ class Lit {
             listActionCodeParams,
             nodes,
             showLogs,
+            authSig,
         } = payload;
 
         nodes = nodes || 10;
 
-        const authSig = await this.getAuthSig();
+        if (isNullOrUndefined(authSig)) {
+            authSig = await this.getAuthSig();
+        }
 
         const litNodeClient = new LitJsSdk.LitNodeClientNodeJs({
             litNetwork: 'serrano',
@@ -247,7 +254,7 @@ class Lit {
         };
 
         listActionCodeParams.debug = showLogs;
-        
+
         const litActionResult = await litNodeClient.executeJs({
             code: litActionCode,
             authSig,

@@ -20,25 +20,28 @@ let db: any = null;
 
 const init = async () => {
     if (isNullOrUndefined(db)) {
-        
-        db = new WeaveDB({
-            contractTxId,
-            nocache: true,
-        });
+        try {
+            db = new WeaveDB({
+                contractTxId,
+                nocache: true,
+            });
 
-        await db.initializeWithoutWallet();
+            await db.initializeWithoutWallet();
 
-        const privateKey = config.WALLET_PRIVATE_KEY;
+            const privateKey = config.WALLET_PRIVATE_KEY;
 
-        if (privateKey) {
-            const address = getCurrentWalletAddress();
+            if (privateKey) {
+                const address = getCurrentWalletAddress();
 
-            const config = {
-                getAddressString: () => address.toLowerCase(),
-                getPrivateKey: () => Buffer.from(privateKey, 'hex'),
-            };
+                const config = {
+                    getAddressString: () => address.toLowerCase(),
+                    getPrivateKey: () => Buffer.from(privateKey, 'hex'),
+                };
 
-            await db.setDefaultWallet(config, 'evm');
+                await db.setDefaultWallet(config, 'evm');
+            }
+        } catch (err: any) {
+            console.log('[weavedb] init (error)', err?.message);
         }
     }
     return db;
@@ -200,6 +203,7 @@ const addData = async <T>(
         // pkp key to store data for enable external access
         pkpKey: string,
     },
+    authSig: any = null,
 ) => {
 
     let result: any = null;
@@ -227,6 +231,8 @@ const addData = async <T>(
             JSON.stringify(jsonData),
             acConditions,
             true,
+            chain,
+            authSig,
         );
 
         const encryptedFileB64 = await blobToBase64String(encryptedFile);
@@ -261,8 +267,9 @@ const addData = async <T>(
 
         result = tx;
 
-    } catch (e: any) {
+    } catch (err: any) {
         // todo: handle error
+        console.log('[weavedb] addData (error)', err?.message);
     }
 
     return result;

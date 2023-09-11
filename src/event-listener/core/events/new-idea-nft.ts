@@ -19,7 +19,6 @@ import * as litActions from '../lit-actions';
 
 import { PkpAuthModule } from '../../../event-listener/modules/pkp-auth.module';
 import { PkpCredentialNftModule } from '../../../event-listener/modules/pkp-credential-nft.module';
-import { IOrderStorePayload } from 'src/event-listener/interfaces/order.i';
 import { INotificationPayload } from 'src/event-listener/interfaces/notification.i';
 
 export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
@@ -80,7 +79,9 @@ const orderProcess = async (
         blockNumber,
     } = payload;
 
-    return Promise.all(triggers?.map(async (triggerInfo: any) => {
+    const pricingProvider = data?.pricing?.provider;
+
+    const orderResults = await Promise.all(triggers?.map(async (triggerInfo: any) => {
 
         const credentialNftUUID = triggerInfo?.account?.reference;
 
@@ -111,14 +112,14 @@ const orderProcess = async (
             if (action === 'copy-trade') {
 
                 const temporalCheck =
-                    data?.pricing?.provider === 'Binance' &&
+                    pricingProvider === 'Binance' &&
                     data?.idea?.asset?.ticker === 'BTCUSDT';
 
                 if (temporalCheck) {
                     let litActionCode = null;
                     let listActionCodeParams = null;
 
-                    switch (data?.pricing?.provider) {
+                    switch (pricingProvider) {
                         case 'Binance':
                             litActionCode = litActions.binance.placeOrder(environment as any);
 
@@ -151,6 +152,7 @@ const orderProcess = async (
                             listActionCodeParams,
                             nodes: 1,
                             showLogs: false,
+                            authSig: pkpAuthSig,
                         });
 
                         const litActionResult = litActionCall?.response as any;
@@ -159,6 +161,7 @@ const orderProcess = async (
                             additionalInfo: {
                                 nftId,
                                 credentialNftUUID,
+                                userWalletAddress: credentialOwner
                             },
                             request: litActionResult?.request,
                             response: litActionResult?.response,
@@ -184,13 +187,6 @@ const orderProcess = async (
                                 },
                             });
 
-                            // store order in weaveDB(default )
-                            EventEmitter().emit<IOrderStorePayload>('ORDER_STORE', {
-                                chain: network,
-                                provider: data?.pricing?.provider,
-                                userWalletAddress: credentialOwner,
-                                result,
-                            });
                         }
 
                     } catch (err) {
@@ -209,6 +205,30 @@ const orderProcess = async (
 
         return result;
     }));
+
+    for (const orderResult of orderResults) {
+        if (orderResult) {
+
+            const userWalletAddress = orderResult?.additionalInfo?.userWalletAddress;
+
+            await WeaveDBModule.addData<any>(
+                network,
+                {
+                    jsonData: {
+                        provider: pricingProvider,
+                        result: orderResult,
+                    },
+                    pkpKey: config.PKP_KEY,
+                    type: 'order',
+                    userWallet: userWalletAddress,
+                },
+                pkpAuthSig,
+            );
+
+        }
+    }
+
+    return orderResults;
 }
 
 const getIdeaNFTInfo = async (

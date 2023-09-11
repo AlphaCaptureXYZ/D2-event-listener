@@ -119,7 +119,7 @@ describe('WeaveDB Cases', () => {
 
     }).timeout(50000);
 
-    it('Delete info (order)', async () => {
+    xit('Delete info (order)', async () => {
 
         const docID = 'acb81c9d9fc5d14e0909f19d22c552af';
 

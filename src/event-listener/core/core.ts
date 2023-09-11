@@ -10,7 +10,6 @@ import {
 /* events */
 import { newIdeaNFTEvent } from "./events/new-idea-nft";
 import { notification } from "./events/notification";
-import { orderStore } from "./events/order-store";
 
 /* helpers */
 import { rest } from "../helpers/helpers";
@@ -22,7 +21,6 @@ import { getRpcUrlByNetwork } from "../utils/utils";
 import { INewIdeaNFT } from '../interfaces/new-idea-nft.i';
 import { ID2EventListenerPayload } from "../interfaces/shared.i";
 import { INotificationPayload } from "../interfaces/notification.i";
-import { IOrderStorePayload } from "../interfaces/order.i";
 
 let watcherLoaded = false;
 
@@ -164,6 +162,7 @@ const watcherLoader = (
     try {
         if (!watcherLoaded) {
             EventEmitter().listen().subscribe(async (res) => {
+                
                 const event = res.type as EventType;
                 const data = res?.data || null;
 
@@ -177,9 +176,6 @@ const watcherLoader = (
                         break;
                     case 'NOTIFICATION':
                         await notification(data as INotificationPayload);
-                        break;
-                    case 'ORDER_STORE':
-                        await orderStore(data as IOrderStorePayload);
                         break;
                 };
 
