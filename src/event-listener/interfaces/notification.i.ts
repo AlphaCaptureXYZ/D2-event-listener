@@ -6,7 +6,7 @@ export interface INotificationPayload {
         nftId: string;
         blockNumber: number;
         data: any;
-        
+
         orderId?: string;
         docID?: string;
     }

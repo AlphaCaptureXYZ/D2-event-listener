@@ -12,7 +12,7 @@ import {
 
 import { INewIdeaNFT } from '../../../event-listener/interfaces/new-idea-nft.i';
 
-import { loop } from '../../../event-listener/helpers/helpers';
+import { isNullOrUndefined, loop } from '../../../event-listener/helpers/helpers';
 import { getBalance } from '../../../event-listener/utils/utils';
 
 import * as litActions from '../lit-actions';
@@ -111,9 +111,7 @@ const orderProcess = async (
 
             if (action === 'copy-trade') {
 
-                const temporalCheck =
-                    pricingProvider === 'Binance' &&
-                    data?.idea?.asset?.ticker === 'BTCUSDT';
+                const temporalCheck = pricingProvider === 'Binance';
 
                 if (temporalCheck) {
                     let litActionCode = null;
@@ -162,6 +160,7 @@ const orderProcess = async (
                                 nftId,
                                 credentialNftUUID,
                                 userWalletAddress: credentialOwner,
+                                environment,
                             },
                             request: litActionResult?.request,
                             response: litActionResult?.response,

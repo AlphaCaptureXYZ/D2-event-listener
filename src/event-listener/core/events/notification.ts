@@ -104,7 +104,7 @@ export const notification = async (
                                 },
                                 {
                                     title: 'OrderID',
-                                    value: orderId,
+                                    value: orderId || 'None (Order error, check the info via D2 (orders section)',
                                     short: false,
                                 },
                                 {
