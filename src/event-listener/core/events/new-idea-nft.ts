@@ -161,33 +161,12 @@ const orderProcess = async (
                             additionalInfo: {
                                 nftId,
                                 credentialNftUUID,
-                                userWalletAddress: credentialOwner
+                                userWalletAddress: credentialOwner,
+                                balanceInfo,
                             },
                             request: litActionResult?.request,
                             response: litActionResult?.response,
                         };
-
-                        const orderId = result?.response?.orderId || null;
-
-                        if (orderId) {
-
-                            console.log(`Order placed successfully. OrderID: ${orderId}`);
-
-                            // send notification (slack, email, sms, etc) - optional
-                            EventEmitter().emit<INotificationPayload>('NOTIFICATION', {
-                                type: 'NEW_ORDER',
-                                info: {
-                                    credentialNftUUID,
-                                    credentialOwner,
-                                    balanceInfo,
-                                    nftId: nftId.toString(),
-                                    blockNumber,
-                                    data,
-                                    orderId,
-                                },
-                            });
-
-                        }
 
                     } catch (err) {
                         console.log('orderProcess (error)', credentialNftUUID, err?.message);
@@ -206,10 +185,17 @@ const orderProcess = async (
         return result;
     }));
 
+    // save the order results (1 by 1 - weaveDB is not working with Promise.all)
     for (const orderResult of orderResults) {
         if (orderResult) {
 
             const userWalletAddress = orderResult?.additionalInfo?.userWalletAddress;
+
+            const credentialNftUUID = orderResult?.additionalInfo?.credentialNftUUID;
+            const credentialOwner = orderResult?.additionalInfo?.credentialOwner;
+            const balanceInfo = orderResult?.additionalInfo?.balanceInfo;
+
+            const orderId = orderResult?.response?.orderId || null;
 
             await WeaveDBModule.addData<any>(
                 network,
@@ -224,6 +210,19 @@ const orderProcess = async (
                 },
                 pkpAuthSig,
             );
+
+            EventEmitter().emit<INotificationPayload>('NOTIFICATION', {
+                type: 'NEW_ORDER',
+                info: {
+                    credentialNftUUID,
+                    credentialOwner,
+                    balanceInfo,
+                    nftId: nftId.toString(),
+                    blockNumber,
+                    data,
+                    orderId,
+                },
+            });
 
         }
     }
