@@ -208,7 +208,7 @@ const orderProcess = async (
                 pkpAuthSig,
             );
 
-            const docID = dataStored?.docId;
+            const docID = dataStored?.docID;
 
             EventEmitter().emit<INotificationPayload>('NOTIFICATION', {
                 type: 'NEW_ORDER',

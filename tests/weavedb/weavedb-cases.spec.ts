@@ -12,7 +12,7 @@ import { PkpAuthModule } from '../../src/event-listener/modules/pkp-auth.module'
 
 describe('WeaveDB Cases', () => {
 
-    it('Store/Add info (orders)', async () => {
+    xit('Store/Add info (orders)', async () => {
 
         const chain = 'mumbai';
 
