@@ -121,7 +121,7 @@ const orderProcess = async (
                         case 'Binance':
                             litActionCode = litActions.binance.placeOrder(environment as any);
 
-                            const kind = data?.idea?.kind.toUpperCase();
+                            const kind = data?.idea?.kind?.toUpperCase();
 
                             // this is SPOT and we can just buy or sell (this is not furture to use short orders, etc)
                             const directionByKind = {
