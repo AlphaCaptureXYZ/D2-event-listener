@@ -3,10 +3,11 @@ export interface INotificationPayload {
     info: {
         credentialNftUUID: string;
         credentialOwner: string;
-        balanceInfo: any;
         nftId: string;
         blockNumber: number;
         data: any;
-        orderId: string;
+        
+        orderId?: string;
+        docID?: string;
     }
 };

@@ -19,11 +19,11 @@ export const notification = async (
             const {
                 credentialNftUUID,
                 credentialOwner,
-                balanceInfo,
                 nftId,
                 blockNumber,
                 data,
                 orderId,
+                docID,
             } = info;
 
             // just to test (will be removed)
@@ -55,11 +55,6 @@ export const notification = async (
                                 {
                                     title: 'Credential Owner',
                                     value: credentialOwner,
-                                    short: false,
-                                },
-                                {
-                                    title: 'Balance of Credential Owner',
-                                    value: `${balanceInfo?.balance?.toFixed(4)} ${balanceInfo?.base}`,
                                     short: false,
                                 },
                                 {
@@ -110,6 +105,11 @@ export const notification = async (
                                 {
                                     title: 'OrderID',
                                     value: orderId,
+                                    short: false,
+                                },
+                                {
+                                    title: 'DocumentID (weavedb)',
+                                    value: docID,
                                     short: false,
                                 }
                             ],

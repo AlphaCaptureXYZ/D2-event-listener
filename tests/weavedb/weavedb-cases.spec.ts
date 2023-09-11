@@ -12,7 +12,7 @@ import { PkpAuthModule } from '../../src/event-listener/modules/pkp-auth.module'
 
 describe('WeaveDB Cases', () => {
 
-    xit('Store/Add info (orders)', async () => {
+    it('Store/Add info (orders)', async () => {
 
         const chain = 'mumbai';
 
@@ -119,7 +119,7 @@ describe('WeaveDB Cases', () => {
 
     }).timeout(50000);
 
-    xit('Delete info (order)', async () => {
+    xit('Delete info by document Id', async () => {
 
         const docID = 'acb81c9d9fc5d14e0909f19d22c552af';
 
@@ -127,6 +127,46 @@ describe('WeaveDB Cases', () => {
 
         expect(isNullOrUndefined(data)).to.be.false;
         expect(data?.success).to.be.true;
+
+    }).timeout(50000);
+
+    xit('Delete all the info (orders)', async () => {
+
+        const chain = 'mumbai';
+
+        const data = await WeaveDBModule.getAllData<any>(
+            chain,
+            {
+                type: 'order',
+                dataIsCompressed: true,
+                byUserWalletFilter: true,
+            }
+        );
+
+        console.log('Data to delete', data?.length);
+
+        for (const item of data) {
+            const docId = item.docId;
+            console.log('Deleting docId', docId);
+            await WeaveDBModule.deleteData(docId);
+            console.log('Deleted docId', docId);
+        }
+
+        const dataPostDelete = await WeaveDBModule.getAllData<any>(
+            chain,
+            {
+                type: 'order',
+                dataIsCompressed: true,
+                byUserWalletFilter: true,
+            }
+        );
+
+        console.log('Data post delete', dataPostDelete?.length);
+
+        expect(isNullOrUndefined(data)).to.be.false;
+        expect(data?.length > 0).to.be.true;
+        expect(isNullOrUndefined(dataPostDelete)).to.be.false;
+        expect(dataPostDelete?.length <= 0).to.be.true;
 
     }).timeout(50000);
 

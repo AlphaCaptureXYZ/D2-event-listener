@@ -102,10 +102,10 @@ const orderProcess = async (
 
             const credentialOwner = credentialInfo?.owner;
 
-            const balanceInfo = await getBalance({
-                network,
-                walletAddress: credentialOwner,
-            });
+            // const balanceInfo = await getBalance({
+            //     network,
+            //     walletAddress: credentialOwner,
+            // });
 
             const environment = credentialInfo.environment;
 
@@ -162,7 +162,6 @@ const orderProcess = async (
                                 nftId,
                                 credentialNftUUID,
                                 userWalletAddress: credentialOwner,
-                                balanceInfo,
                             },
                             request: litActionResult?.request,
                             response: litActionResult?.response,
@@ -193,11 +192,10 @@ const orderProcess = async (
 
             const credentialNftUUID = orderResult?.additionalInfo?.credentialNftUUID;
             const credentialOwner = orderResult?.additionalInfo?.credentialOwner;
-            const balanceInfo = orderResult?.additionalInfo?.balanceInfo;
 
             const orderId = orderResult?.response?.orderId || null;
 
-            await WeaveDBModule.addData<any>(
+            const dataStored = await WeaveDBModule.addData<any>(
                 network,
                 {
                     jsonData: {
@@ -211,16 +209,18 @@ const orderProcess = async (
                 pkpAuthSig,
             );
 
+            const docID = dataStored?.docId;
+
             EventEmitter().emit<INotificationPayload>('NOTIFICATION', {
                 type: 'NEW_ORDER',
                 info: {
                     credentialNftUUID,
                     credentialOwner,
-                    balanceInfo,
                     nftId: nftId.toString(),
                     blockNumber,
                     data,
                     orderId,
+                    docID,
                 },
             });
 
