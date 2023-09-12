@@ -243,6 +243,14 @@ const orderProcess = async (
 
             const docID = dataStored?.docID;
 
+            console.log('==================================================');
+            console.log('Order stored (weaver id):', docID);
+            console.log('Order stored (order id):', orderId);
+            console.log('User wallet address:', userWalletAddress);
+            console.log('Credential NFT UUID:', credentialNftUUID);
+            console.log('Asset:', orderResult?.additionalInfo?.asset);
+            console.log('==================================================');
+
             EventEmitter().emit<INotificationPayload>('NOTIFICATION', {
                 type: 'NEW_ORDER',
                 info: {
