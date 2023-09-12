@@ -146,7 +146,7 @@ const orderProcess = async (
                             const litActionCallQtyResponse = litActionCallQty?.response as any;
 
                             error = litActionCallQtyResponse?.error || null;
-                            const quantity = litActionCallQtyResponse?.quantity;
+                            const quantity = litActionCallQtyResponse?.quantity || 0;
 
                             litActionCode = litActions.binance.placeOrder(environment as any);
 
@@ -173,14 +173,14 @@ const orderProcess = async (
                     }
 
                     try {
-                        const litActionCall = error ? null : (await LitModule().runLitAction({
+                        const litActionCall = await LitModule().runLitAction({
                             chain: network,
                             litActionCode,
                             listActionCodeParams,
                             nodes: 1,
                             showLogs: false,
                             authSig: pkpAuthSig,
-                        }));
+                        });
 
                         const litActionResult = litActionCall?.response as any;
 

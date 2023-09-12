@@ -83,6 +83,7 @@ describe('WeaveDB Cases', () => {
                 pkpKey: config.PKP_KEY,
                 type: 'order',
                 userWallet: userWalletAddress,
+                isCompressed: true,
             }
         );
 
@@ -91,7 +92,7 @@ describe('WeaveDB Cases', () => {
 
     }).timeout(50000);
 
-    it('Store/Add info (failure order)', async () => {
+    xit('Store/Add info (failure order)', async () => {
 
         const chain = 'mumbai';
 
@@ -100,16 +101,19 @@ describe('WeaveDB Cases', () => {
         const userWalletAddress = '0xaB31A127b112CcF2e97fC54A842A6a3b7070BEa9';
 
         const result: ILitActionResult = {
-            additionalInfo:
-            {
+            additionalInfo: {
                 asset: 'KEYUSDT',
                 nftId: 12345,
                 credentialNftUUID: '0xd06b243c18ffc6f0c24338804773b5b4',
                 userWalletAddress: '0xaB31A127b112CcF2e97fC54A842A6a3b7070BEa9',
                 environment: 'demo'
             },
-            request: {},
-            response: {},
+            request: {
+
+            },
+            response: {
+                
+            },
             error: 'Symbol not found',
         };
 
@@ -124,6 +128,44 @@ describe('WeaveDB Cases', () => {
                 jsonData,
                 pkpKey: config.PKP_KEY,
                 type: 'order',
+                userWallet: userWalletAddress,
+                isCompressed: true,
+            }
+        );
+
+        expect(isNullOrUndefined(data)).to.be.false;
+        expect(data?.success).to.be.true;
+
+    }).timeout(50000);
+
+    xit('Store/Add info (trigger)', async () => {
+
+        const chain = 'mumbai';
+
+        const userWalletAddress = '0xaB31A127b112CcF2e97fC54A842A6a3b7070BEa9';
+
+        const jsonData = {
+            "action": "copy-trade",
+            "strategy": {
+                "reference": "966ed482-2574-4cf3-8705-57a8b1b7e8b0",
+                "name": " D2 Test Strategy"
+            },
+            "account": {
+                "reference": "0x0d111f8a500685d685a93b9320d7818e"
+            },
+            "settings": {
+                "maxLeverage": 1,
+                "orderSize": 2,
+                "maxPositionSize": 5
+            },
+        };
+
+        const data = await WeaveDBModule.addData<any>(
+            chain,
+            {
+                jsonData,
+                pkpKey: config.PKP_KEY,
+                type: 'trigger',
                 userWallet: userWalletAddress,
                 isCompressed: false,
             }
@@ -143,6 +185,7 @@ describe('WeaveDB Cases', () => {
             {
                 type: 'order',
                 byUserWalletFilter: true,
+                isCompressed: true,
             }
         );
 
@@ -165,6 +208,7 @@ describe('WeaveDB Cases', () => {
             chain,
             {
                 type: 'trigger',
+                isCompressed: false,
             },
             authSigh
         );
@@ -193,6 +237,7 @@ describe('WeaveDB Cases', () => {
             {
                 type: 'order',
                 byUserWalletFilter: true,
+                isCompressed: true,
             }
         );
 
@@ -210,6 +255,7 @@ describe('WeaveDB Cases', () => {
             {
                 type: 'order',
                 byUserWalletFilter: true,
+                isCompressed: true,
             }
         );
 

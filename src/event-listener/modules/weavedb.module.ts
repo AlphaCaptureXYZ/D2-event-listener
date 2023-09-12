@@ -209,6 +209,7 @@ const addData = async <T>(
     authSig: any = null,
 ) => {
 
+    let objEstimatedSize: any = null;
     let result: any = null;
 
     try {
@@ -268,11 +269,7 @@ const addData = async <T>(
             delete obj.pkpWalletAddress;
         }
 
-        console.log('[weavedb] addData (obj)', obj);
-
-        const objEstimatedSize = getStringSize(JSON.stringify(obj));
-
-        console.log('[weavedb] addData (estimated size)', objEstimatedSize);
+        objEstimatedSize = getStringSize(JSON.stringify(obj));
 
         const tx = await db.add(
             obj,
@@ -284,6 +281,7 @@ const addData = async <T>(
     } catch (err: any) {
         // todo: handle error
         console.log('[weavedb] addData (error)', err?.message);
+        console.log('[weavedb] addData (estimated size)', objEstimatedSize);
     }
 
     return result;
