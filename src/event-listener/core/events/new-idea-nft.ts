@@ -121,7 +121,10 @@ const orderProcess = async (
                         case 'Binance':
 
                             const asset = data?.idea?.asset?.ticker;
-                            const usdtAmount = 12; // 12 USDT (temporal)
+
+                            // 12 USDT (temporal)
+                            // so, the idea is get this usdt amount based on the balance of the user, etc (i.e. the order calc)
+                            const usdtAmount = 12;
 
                             const litActionQtyCode = litActions.binance.getQtyWithSymbolPrecision(
                                 environment as any,

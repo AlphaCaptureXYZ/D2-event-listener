@@ -111,3 +111,15 @@ export const loop = (
 export const rest = async (delay: number) => {
     await new Promise((resolve) => setTimeout(resolve, delay))
 }
+
+export const getStringSize = (str: string) => {
+    const bytes = new Blob([str]).size;;
+    const kilobytes = bytes / 1024;
+    const megabytes = kilobytes / 1024;
+
+    return {
+        bytes,
+        kilobytes,
+        megabytes,
+    }
+}
