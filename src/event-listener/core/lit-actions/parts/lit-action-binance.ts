@@ -1552,11 +1552,86 @@ const placeOrder = (
     return code;
 };
 
+const getQtyWithSymbolPrecision = (
+    env: EnvType,
+    symbol: string,
+    usdtAmount: number,
+) => {
+
+    const requestUrl = getApiUrl(env);
+
+    const code = `
+        const go = async () => {
+
+            let url = '${requestUrl}/v3/exchangeInfo?symbol=${symbol}';
+
+            let options = {
+                method: 'GET',
+                headers: {
+                'User-Agent': 'PostmanRuntime/7.29.2',
+                'Content-Type': 'application/json',
+                },
+            };
+
+            let response = await fetch(url, options);
+
+            let data = await response.json();
+
+            let quantityPrecision = 
+                data?.symbols
+                    ?.find((item) => item.symbol === '${symbol}')?.filters
+                    ?.find((item) => item.filterType === 'LOT_SIZE')?.stepSize;
+
+            quantityPrecision = Number(quantityPrecision);
+
+            const getDecimalCount = (num) => {
+                const numStr = String(num);
+                const decimalIndex = numStr.indexOf('.');
+                if (decimalIndex === -1) {
+                    return 0;
+                } else {
+                    return numStr.length - decimalIndex - 1;
+                }
+            };
+
+            const decimalPart = getDecimalCount(quantityPrecision);
+
+            url = '${requestUrl}/v3/ticker/price?symbol=${symbol}';
+
+            options = {
+                method: 'GET',
+                headers: {
+                'User-Agent': 'PostmanRuntime/7.29.2',
+                'Content-Type': 'application/json',
+                },
+            };
+
+            response = await fetch(url, options);
+
+            data = await response.json();
+
+            const price =  Number(data.price);
+
+            let amount = ${usdtAmount} / price;
+
+            let quantity = Number(amount.toFixed(decimalPart));
+
+            Lit.Actions.setResponse({response: JSON.stringify(quantity)});
+
+        };
+
+        go();
+    `;
+
+    return code;
+};
+
 export {
     getAccount,
     placeOrder,
     getPortfolioAccount,
     getAssetPrice,
+    getQtyWithSymbolPrecision,
     getExchangeInfo,
     getAssetInfo,
 };

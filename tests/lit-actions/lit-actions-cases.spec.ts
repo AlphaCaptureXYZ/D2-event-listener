@@ -66,6 +66,32 @@ describe('Lit Action Cases', () => {
         const credentialNftUUID = '0xd06b243c18ffc6f0c24338804773b5b4';
         const environment = 'demo';
 
+        const symbol = 'LTCUSDT';
+        const direction = 'BUY';
+        const usdtAmount = 12;
+
+        const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
+            chain,
+            config.PKP_KEY,
+        );
+
+        const litActionQtyCode = litActions.binance.getQtyWithSymbolPrecision(
+            environment as any,
+            symbol,
+            usdtAmount,
+        );
+
+        const litActionCallQty = await LitModule().runLitAction({
+            chain,
+            litActionCode: litActionQtyCode,
+            listActionCodeParams: {},
+            nodes: 1,
+            showLogs: false,
+            authSig: pkpAuthSig,
+        });
+
+        const quantity = litActionCallQty?.response as any;
+
         const litActionCode = litActions.binance.placeOrder(environment as any);
 
         const credentialInfo = await PkpCredentialNftModule.getFullCredential<{
@@ -84,16 +110,11 @@ describe('Lit Action Cases', () => {
         const listActionCodeParams = {
             credentials: credentialInfo.decryptedCredential,
             form: {
-                asset: 'MATICUSDT',
-                direction: 'BUY',
-                quantity: 0.00044, // 12 USDT
+                asset: symbol,
+                direction,
+                quantity,
             },
         };
-
-        const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
-            chain,
-            config.PKP_KEY,
-        );
 
         const litActionCall = await LitModule().runLitAction({
             chain,
@@ -116,6 +137,8 @@ describe('Lit Action Cases', () => {
             request: litActionResult?.request,
             response: litActionResult?.response,
         };
+
+        console.log('litActionResult', litActionResult);
 
         expect(isNullOrUndefined(result)).to.be.false;
         expect(result).to.be.an('object');

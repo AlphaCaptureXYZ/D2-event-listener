@@ -119,6 +119,27 @@ const orderProcess = async (
 
                     switch (pricingProvider) {
                         case 'Binance':
+
+                            const asset = data?.idea?.asset?.ticker;
+                            const usdtAmount = 12; // 12 USDT (temporal)
+
+                            const litActionQtyCode = litActions.binance.getQtyWithSymbolPrecision(
+                                environment as any,
+                                asset,
+                                usdtAmount,
+                            );
+
+                            const litActionCallQty = await LitModule().runLitAction({
+                                chain: network,
+                                litActionCode: litActionQtyCode,
+                                listActionCodeParams: {},
+                                nodes: 1,
+                                showLogs: false,
+                                authSig: pkpAuthSig,
+                            });
+
+                            const quantity = litActionCallQty?.response as any;
+
                             litActionCode = litActions.binance.placeOrder(environment as any);
 
                             const kind = data?.idea?.kind?.toUpperCase();
@@ -135,9 +156,9 @@ const orderProcess = async (
                             listActionCodeParams = {
                                 credentials: credentialInfo.decryptedCredential,
                                 form: {
-                                    asset: data?.idea?.asset?.ticker,
+                                    asset,
                                     direction,
-                                    quantity: 0.00044, // 12 USDT
+                                    quantity,
                                 },
                             };
                             break;
