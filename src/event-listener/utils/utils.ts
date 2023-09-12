@@ -6,7 +6,7 @@ export const getCurrentWalletAddress = () => {
     const privateKey = config.WALLET_PRIVATE_KEY;
     const wallet = new ethers.Wallet(privateKey);
     const address = wallet.address;
-    return address.toLowerCase();
+    return address?.toLowerCase();
 }
 
 export const getRpcUrlByNetwork = (network: string) => {

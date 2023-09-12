@@ -34,7 +34,7 @@ const init = async () => {
                 const address = getCurrentWalletAddress();
 
                 const config = {
-                    getAddressString: () => address.toLowerCase(),
+                    getAddressString: () => address?.toLowerCase(),
                     getPrivateKey: () => Buffer.from(privateKey, 'hex'),
                 };
 
@@ -64,7 +64,7 @@ const accessControlConditions = (
             ],
             returnValueTest: {
                 comparator: '=',
-                value: userWallet.toLowerCase(),
+                value: userWallet?.toLowerCase(),
             },
         },
     ];
@@ -218,7 +218,7 @@ const addData = async <T>(
             pkpKey,
         } = payload;
 
-        userWallet = userWallet.toLowerCase();
+        userWallet = userWallet?.toLowerCase();
 
         const pkpWalletAddress = ethers.utils.computeAddress(pkpKey);
 

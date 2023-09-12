@@ -151,7 +151,7 @@ const orderProcess = async (
                                 'close': 'SELL',
                             };
 
-                            const direction = directionByKind[kind.toLowerCase()];
+                            const direction = directionByKind[kind?.toLowerCase()];
 
                             listActionCodeParams = {
                                 credentials: credentialInfo.decryptedCredential,
