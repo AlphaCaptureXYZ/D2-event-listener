@@ -1577,6 +1577,11 @@ const getQtyWithSymbolPrecision = (
 
             let data = await response.json();
 
+            if(data?.symbols?.length <= 0 || !data?.symbols) {
+                Lit.Actions.setResponse({response: JSON.stringify({error: 'Symbol not found'})});
+                return;
+            };
+
             let quantityPrecision = 
                 data?.symbols
                     ?.find((item) => item.symbol === '${symbol}')?.filters
@@ -1616,7 +1621,9 @@ const getQtyWithSymbolPrecision = (
 
             let quantity = Number(amount.toFixed(decimalPart));
 
-            Lit.Actions.setResponse({response: JSON.stringify(quantity)});
+            Lit.Actions.setResponse({response: JSON.stringify({
+                quantity,
+            })});
 
         };
 

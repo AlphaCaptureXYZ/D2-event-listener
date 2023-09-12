@@ -113,13 +113,13 @@ export const rest = async (delay: number) => {
 }
 
 export const getStringSize = (str: string) => {
-    const bytes = new Blob([str]).size;;
+    const bytes = new Blob([str]).size;
     const kilobytes = bytes / 1024;
     const megabytes = kilobytes / 1024;
 
     return {
         bytes,
-        kilobytes,
-        megabytes,
+        kilobytes: Number(kilobytes.toFixed(4)),
+        megabytes: Number(megabytes.toFixed(4)),
     }
 }

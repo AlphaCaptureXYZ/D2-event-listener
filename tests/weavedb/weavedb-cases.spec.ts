@@ -4,7 +4,9 @@ import { expect } from 'chai';
 
 import * as config from '../../src/event-listener/config/config';
 
-import { isNullOrUndefined } from '../../src/event-listener/helpers/helpers';
+import { ILitActionResult } from '../../src/event-listener/interfaces/shared.i';
+
+import { isNullOrUndefined, getStringSize } from '../../src/event-listener/helpers/helpers';
 
 import { WeaveDBModule } from '../../src/event-listener/modules/weavedb.module';
 
@@ -12,7 +14,7 @@ import { PkpAuthModule } from '../../src/event-listener/modules/pkp-auth.module'
 
 describe('WeaveDB Cases', () => {
 
-    xit('Store/Add info (orders)', async () => {
+    xit('Store/Add info (success order)', async () => {
 
         const chain = 'mumbai';
 
@@ -56,21 +58,74 @@ describe('WeaveDB Cases', () => {
             selfTradePreventionMode: 'NONE'
         };
 
-        const result = {
-            request,
-            response,
+        const result: ILitActionResult = {
+            additionalInfo: {
+                asset: 'BTCUSDT',
+                nftId: 12345,
+                credentialNftUUID: 'xxx',
+                userWalletAddress,
+                environment: 'demo',
+            },
+            request: request || {},
+            response: response || {},
+            error: null,
+        };
+
+        const jsonData = {
+            provider,
+            result,
         };
 
         const data = await WeaveDBModule.addData<any>(
             chain,
             {
-                jsonData: {
-                    provider,
-                    result,
-                },
+                jsonData,
                 pkpKey: config.PKP_KEY,
                 type: 'order',
                 userWallet: userWalletAddress,
+            }
+        );
+
+        expect(isNullOrUndefined(data)).to.be.false;
+        expect(data?.success).to.be.true;
+
+    }).timeout(50000);
+
+    it('Store/Add info (failure order)', async () => {
+
+        const chain = 'mumbai';
+
+        const provider = 'Binance';
+
+        const userWalletAddress = '0xaB31A127b112CcF2e97fC54A842A6a3b7070BEa9';
+
+        const result: ILitActionResult = {
+            additionalInfo:
+            {
+                asset: 'KEYUSDT',
+                nftId: 12345,
+                credentialNftUUID: '0xd06b243c18ffc6f0c24338804773b5b4',
+                userWalletAddress: '0xaB31A127b112CcF2e97fC54A842A6a3b7070BEa9',
+                environment: 'demo'
+            },
+            request: {},
+            response: {},
+            error: 'Symbol not found',
+        };
+
+        const jsonData = {
+            provider,
+            result,
+        };
+
+        const data = await WeaveDBModule.addData<any>(
+            chain,
+            {
+                jsonData,
+                pkpKey: config.PKP_KEY,
+                type: 'order',
+                userWallet: userWalletAddress,
+                isCompressed: false,
             }
         );
 
@@ -87,7 +142,6 @@ describe('WeaveDB Cases', () => {
             chain,
             {
                 type: 'order',
-                dataIsCompressed: true,
                 byUserWalletFilter: true,
             }
         );
@@ -121,7 +175,7 @@ describe('WeaveDB Cases', () => {
 
     xit('Delete info by document Id', async () => {
 
-        const docID = 'acb81c9d9fc5d14e0909f19d22c552af';
+        const docID = 'ec050c7aca45b398c0db9b5043033a3b';
 
         const data = await WeaveDBModule.deleteData(docID);
 
@@ -138,7 +192,6 @@ describe('WeaveDB Cases', () => {
             chain,
             {
                 type: 'order',
-                dataIsCompressed: true,
                 byUserWalletFilter: true,
             }
         );
@@ -156,7 +209,6 @@ describe('WeaveDB Cases', () => {
             chain,
             {
                 type: 'order',
-                dataIsCompressed: true,
                 byUserWalletFilter: true,
             }
         );

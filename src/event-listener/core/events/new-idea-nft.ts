@@ -19,7 +19,8 @@ import * as litActions from '../lit-actions';
 
 import { PkpAuthModule } from '../../../event-listener/modules/pkp-auth.module';
 import { PkpCredentialNftModule } from '../../../event-listener/modules/pkp-credential-nft.module';
-import { INotificationPayload } from 'src/event-listener/interfaces/notification.i';
+import { INotificationPayload } from '../../../event-listener/interfaces/notification.i';
+import { ILitActionResult } from '../../../event-listener/interfaces/shared.i';
 
 export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
     let eventResult = [];
@@ -85,7 +86,7 @@ const orderProcess = async (
 
         const credentialNftUUID = triggerInfo?.account?.reference;
 
-        let result = null as any;
+        let result: ILitActionResult = null as any;
 
         try {
             const action = triggerInfo?.action;
@@ -107,6 +108,8 @@ const orderProcess = async (
             //     walletAddress: credentialOwner,
             // });
 
+            const asset = data?.idea?.asset?.ticker;
+
             const environment = credentialInfo.environment;
 
             if (action === 'copy-trade') {
@@ -116,11 +119,10 @@ const orderProcess = async (
                 if (temporalCheck) {
                     let litActionCode = null;
                     let listActionCodeParams = null;
+                    let error = null;
 
                     switch (pricingProvider) {
                         case 'Binance':
-
-                            const asset = data?.idea?.asset?.ticker;
 
                             // 12 USDT (temporal)
                             // so, the idea is get this usdt amount based on the balance of the user, etc (i.e. the order calc)
@@ -141,7 +143,10 @@ const orderProcess = async (
                                 authSig: pkpAuthSig,
                             });
 
-                            const quantity = litActionCallQty?.response as any;
+                            const litActionCallQtyResponse = litActionCallQty?.response as any;
+
+                            error = litActionCallQtyResponse?.error || null;
+                            const quantity = litActionCallQtyResponse?.quantity;
 
                             litActionCode = litActions.binance.placeOrder(environment as any);
 
@@ -168,26 +173,28 @@ const orderProcess = async (
                     }
 
                     try {
-                        const litActionCall = await LitModule().runLitAction({
+                        const litActionCall = error ? null : (await LitModule().runLitAction({
                             chain: network,
                             litActionCode,
                             listActionCodeParams,
                             nodes: 1,
                             showLogs: false,
                             authSig: pkpAuthSig,
-                        });
+                        }));
 
                         const litActionResult = litActionCall?.response as any;
 
                         result = {
                             additionalInfo: {
+                                asset,
                                 nftId,
                                 credentialNftUUID,
                                 userWalletAddress: credentialOwner,
                                 environment,
                             },
-                            request: litActionResult?.request,
-                            response: litActionResult?.response,
+                            request: litActionResult?.request || null,
+                            response: litActionResult?.response || null,
+                            error,
                         };
 
                     } catch (err) {
@@ -229,6 +236,7 @@ const orderProcess = async (
                     pkpKey: config.PKP_KEY,
                     type: 'order',
                     userWallet: userWalletAddress,
+                    isCompressed: true,
                 },
                 pkpAuthSig,
             );
@@ -412,7 +420,10 @@ const getTriggersByStrategy = async (
     strategyReference: string,
 ) => {
     const triggers =
-        await WeaveDBModule.getAllData<any>(network, { type: 'trigger' }, pkpAuthSig);
+        await WeaveDBModule.getAllData<any>(network, {
+            type: 'trigger',
+            isCompressed: false,
+        }, pkpAuthSig);
 
     const triggersFiltered = triggers?.filter((item) => {
         return item?.strategy?.reference === strategyReference;

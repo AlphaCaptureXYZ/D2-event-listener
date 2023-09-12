@@ -10,6 +10,8 @@ import { LitModule } from '../../src/event-listener/modules/lit.module';
 import * as litActions from '../../src/event-listener/core/lit-actions';
 import { PkpAuthModule } from '../../src/event-listener/modules/pkp-auth.module';
 
+import { ILitActionResult } from '../../src/event-listener/interfaces/shared.i';
+
 describe('Lit Action Cases', () => {
 
     xit('Credential NFT smart contract request using PKP key to check the access', async () => {
@@ -66,7 +68,7 @@ describe('Lit Action Cases', () => {
         const credentialNftUUID = '0xd06b243c18ffc6f0c24338804773b5b4';
         const environment = 'demo';
 
-        const symbol = 'LTCUSDT';
+        const symbol = 'XRPUSDT';
         const direction = 'BUY';
         const usdtAmount = 12;
 
@@ -90,7 +92,11 @@ describe('Lit Action Cases', () => {
             authSig: pkpAuthSig,
         });
 
-        const quantity = litActionCallQty?.response as any;
+        const litActionCallQtyResponse = litActionCallQty?.response as any;
+
+        const error = litActionCallQtyResponse?.error as any;
+
+        const quantity = litActionCallQtyResponse?.quantity as any;
 
         const litActionCode = litActions.binance.placeOrder(environment as any);
 
@@ -116,29 +122,29 @@ describe('Lit Action Cases', () => {
             },
         };
 
-        const litActionCall = await LitModule().runLitAction({
+        const litActionCall = error ? null : (await LitModule().runLitAction({
             chain,
             litActionCode,
             listActionCodeParams,
             nodes: 1,
             showLogs: false,
             authSig: pkpAuthSig,
-        });
+        }));
 
         const litActionResult = litActionCall?.response as any;
 
-        const result = {
+        const result: ILitActionResult = {
             additionalInfo: {
+                asset: symbol,
                 nftId: 12345,
                 credentialNftUUID,
                 userWalletAddress: credentialInfo?.owner,
                 environment,
             },
-            request: litActionResult?.request,
-            response: litActionResult?.response,
+            request: litActionResult?.request || null,
+            response: litActionResult?.response || null,
+            error,
         };
-
-        console.log('litActionResult', litActionResult);
 
         expect(isNullOrUndefined(result)).to.be.false;
         expect(result).to.be.an('object');

@@ -7,13 +7,13 @@ import { ethers } from "ethers";
 
 import * as WeaveDB from 'weavedb-sdk-node';
 
-import { isNullOrUndefined } from '../helpers/helpers';
+import { getStringSize, isNullOrUndefined } from '../helpers/helpers';
 
 import { blobToBase64String } from '@lit-protocol/lit-node-client-nodejs';
 import { getCurrentWalletAddress } from "../utils/utils";
 
 const COLLECTION_NAME = 'D2-data';
-const contractTxId = 'zIcSGRZ47XDF8LVWTLG-ffBuVB28dvXIvfPZfa-baeI';
+const contractTxId = 'uItgIC0zhIGUM3uK0DPb__1TVb-2F5Q1awI2mVMICbk';
 
 let db: any = null;
 
@@ -94,7 +94,7 @@ const getAllData = async <T>(
     chain: string,
     payload: {
         type: string,
-        dataIsCompressed?: boolean,
+        isCompressed: boolean,
         byUserWalletFilter?: boolean,
     },
     authSig: any = null,
@@ -131,11 +131,13 @@ const getAllData = async <T>(
                 const userWallet = info?.userAddress;
                 const pkpWalletAddress = info?.pkpWalletAddress || null;
 
+                const dataIsCompressed = info?.isCompressed || false;
+
                 const acConditions = accessControlConditions(chain, userWallet, pkpWalletAddress);
 
                 let doc = null as any;
 
-                if (payload?.dataIsCompressed) {
+                if (dataIsCompressed) {
                     doc = await CompressorModule.decompressData(info?.data);
                     info.data = doc;
                 };
@@ -201,6 +203,8 @@ const addData = async <T>(
         type: string,
         // pkp key to store data for enable external access
         pkpKey: string,
+        // if data is compressed
+        isCompressed: boolean,
     },
     authSig: any = null,
 ) => {
@@ -215,6 +219,7 @@ const addData = async <T>(
             userWallet,
             type,
             pkpKey,
+            isCompressed,
         } = payload;
 
         userWallet = userWallet?.toLowerCase();
@@ -244,7 +249,10 @@ const addData = async <T>(
         };
 
         let data = Buffer.from(JSON.stringify(info)).toString('base64');
-        data = await CompressorModule.compressData(data);
+
+        if (payload?.isCompressed) {
+            data = await CompressorModule.compressData(data);
+        }
 
         const obj = {
             id,
@@ -253,11 +261,18 @@ const addData = async <T>(
             type,
             userAddress: userWallet,
             pkpWalletAddress,
+            isCompressed: isCompressed || false,
         };
 
         if (isNullOrUndefined(pkpWalletAddress)) {
             delete obj.pkpWalletAddress;
         }
+
+        console.log('[weavedb] addData (obj)', obj);
+
+        const objEstimatedSize = getStringSize(JSON.stringify(obj));
+
+        console.log('[weavedb] addData (estimated size)', objEstimatedSize);
 
         const tx = await db.add(
             obj,

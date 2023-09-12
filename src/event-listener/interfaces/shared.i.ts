@@ -6,3 +6,10 @@ export interface ID2EventListenerPayload {
         blockNumber: number;
     }
 };
+
+export interface ILitActionResult {
+    additionalInfo: any;
+    request: any;
+    response: any;
+    error: any;
+}
