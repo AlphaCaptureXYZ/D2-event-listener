@@ -214,7 +214,7 @@ const orderProcess = async (
             const userWalletAddress = orderResult?.additionalInfo?.userWalletAddress;
 
             const credentialNftUUID = orderResult?.additionalInfo?.credentialNftUUID;
-            const credentialOwner = orderResult?.additionalInfo?.credentialOwner;
+            const credentialOwner = orderResult?.additionalInfo?.userWalletAddress;
 
             const orderId = orderResult?.response?.orderId || null;
             const error = orderResult?.response?.error || null;
@@ -425,9 +425,9 @@ const getJsonContent = async (
     url: string,
 ): Promise<string> => {
 
-    const inflateStr = async <T>(dt: T): Promise<T> => {
+    const decompressDataStr = async <T>(dt: T): Promise<T> => {
         if (typeof dt !== 'string') return dt;
-        return CompressorModule.inflate(dt) as T;
+        return CompressorModule.decompressData(dt) as T;
     }
 
     let result: any = null;
@@ -456,7 +456,7 @@ const getJsonContent = async (
                     isPassed = false;
                 }
 
-                return inflateStr(isPassed);
+                return decompressDataStr(isPassed);
             },
             {
                 loopTimeInMs: 10000,
@@ -469,5 +469,5 @@ const getJsonContent = async (
 
     }
 
-    return inflateStr(result);
+    return decompressDataStr(result);
 }

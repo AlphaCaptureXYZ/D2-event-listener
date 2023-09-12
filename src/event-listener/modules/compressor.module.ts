@@ -1,19 +1,17 @@
 //@ts-ignore
 import * as pako from 'pako';
 
-const deflate = async (uncompressed: string): Promise<string> => {
-	// compressing data
+const compressData = async (uncompressed: string): Promise<string> => {
 	const data = pako.deflate(uncompressed, { to: 'string' });
 	return Buffer.from(data).toString('hex');
 }
 
-const inflate = async (compressed: string): Promise<string> => {
-	// decompressing data
+const decompressData = async (compressed: string): Promise<string> => {
 	const input = Buffer.from(compressed, 'hex');
 	return pako.inflate(input, { to: 'string' });
 }
 
 export const CompressorModule = {
-	inflate,
-	deflate,
+	compressData,
+	decompressData,
 };

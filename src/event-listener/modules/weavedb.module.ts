@@ -13,7 +13,6 @@ import { blobToBase64String } from '@lit-protocol/lit-node-client-nodejs';
 import { getCurrentWalletAddress } from "../utils/utils";
 
 const COLLECTION_NAME = 'D2-data';
-
 const contractTxId = 'zIcSGRZ47XDF8LVWTLG-ffBuVB28dvXIvfPZfa-baeI';
 
 let db: any = null;
@@ -137,7 +136,7 @@ const getAllData = async <T>(
                 let doc = null as any;
 
                 if (payload?.dataIsCompressed) {
-                    doc = await CompressorModule.inflate(info?.data);
+                    doc = await CompressorModule.decompressData(info?.data);
                     info.data = doc;
                 };
 
@@ -245,7 +244,7 @@ const addData = async <T>(
         };
 
         let data = Buffer.from(JSON.stringify(info)).toString('base64');
-        data = await CompressorModule.deflate(data);
+        data = await CompressorModule.compressData(data);
 
         const obj = {
             id,
