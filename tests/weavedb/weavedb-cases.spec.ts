@@ -185,7 +185,6 @@ describe('WeaveDB Cases', () => {
             {
                 type: 'order',
                 byUserWalletFilter: true,
-                isCompressed: true,
             }
         );
 
@@ -208,7 +207,6 @@ describe('WeaveDB Cases', () => {
             chain,
             {
                 type: 'trigger',
-                isCompressed: false,
             },
             authSigh
         );
@@ -237,7 +235,6 @@ describe('WeaveDB Cases', () => {
             {
                 type: 'order',
                 byUserWalletFilter: true,
-                isCompressed: true,
             }
         );
 
@@ -255,7 +252,6 @@ describe('WeaveDB Cases', () => {
             {
                 type: 'order',
                 byUserWalletFilter: true,
-                isCompressed: true,
             }
         );
 

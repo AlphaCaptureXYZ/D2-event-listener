@@ -94,7 +94,6 @@ const getAllData = async <T>(
     chain: string,
     payload: {
         type: string,
-        isCompressed: boolean,
         byUserWalletFilter?: boolean,
     },
     authSig: any = null,

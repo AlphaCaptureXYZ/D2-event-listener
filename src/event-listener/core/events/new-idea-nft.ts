@@ -430,7 +430,6 @@ const getTriggersByStrategy = async (
     const triggers =
         await WeaveDBModule.getAllData<any>(network, {
             type: 'trigger',
-            isCompressed: false,
         }, pkpAuthSig);
 
     const triggersFiltered = triggers?.filter((item) => {
