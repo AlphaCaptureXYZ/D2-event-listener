@@ -241,7 +241,7 @@ const orderProcess = async (
             const credentialOwner = orderResult?.additionalInfo?.userWalletAddress;
 
             const orderId = orderResult?.response?.orderId || null;
-            const error = orderResult?.response?.error || null;
+            const error = orderResult?.error || orderResult?.response?.error || null;
 
             const dataStored = await WeaveDBModule.addData<any>(
                 network,
