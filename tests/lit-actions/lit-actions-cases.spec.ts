@@ -71,7 +71,7 @@ describe('Lit Action Cases', () => {
 
         const symbol = 'XRPUSDT';
         const direction = 'BUY';
-        const usdtAmount = 12;
+        const usdtAmount = 11;
 
         const credentialInfo = await PkpCredentialNftModule.getFullCredential<{
             apiKey: string;
@@ -91,27 +91,6 @@ describe('Lit Action Cases', () => {
             config.PKP_KEY,
         );
 
-        const litActionQtyCode = litActions.binance.getQtyWithSymbolPrecision(
-            environment as any,
-            symbol,
-            usdtAmount,
-        );
-
-        const litActionCallQty = await LitModule().runLitAction({
-            chain,
-            litActionCode: litActionQtyCode,
-            listActionCodeParams: {},
-            nodes: 1,
-            showLogs: false,
-            authSig: pkpAuthSig,
-        });
-
-        const litActionCallQtyResponse = litActionCallQty?.response as any;
-
-        const error = litActionCallQtyResponse?.error as any;
-
-        const quantity = litActionCallQtyResponse?.quantity as any;
-
         const userSetting = await WeaveDBModule.getAllData<any>(
             chain,
             {
@@ -125,6 +104,27 @@ describe('Lit Action Cases', () => {
         const proxyUrl =
             userSetting?.find(res => res)?.proxy_url ||
             'https://ixily.io/api/proxy';
+
+        const litActionQtyCode = litActions.binance.getQtyWithSymbolPrecision(
+            environment as any,
+            symbol,
+            usdtAmount,
+            proxyUrl,
+        );
+
+        const litActionCallQty = await LitModule().runLitAction({
+            chain,
+            litActionCode: litActionQtyCode,
+            listActionCodeParams: {},
+            nodes: 1,
+            showLogs: true,
+            authSig: pkpAuthSig,
+        });
+
+        const litActionCallQtyResponse = litActionCallQty?.response as any;
+
+        const error = litActionCallQtyResponse?.error;
+        const quantity = litActionCallQtyResponse?.quantity;
 
         const litActionCode = litActions.binance.placeOrder(environment as any, proxyUrl);
 
@@ -142,7 +142,7 @@ describe('Lit Action Cases', () => {
             litActionCode,
             listActionCodeParams,
             nodes: 1,
-            showLogs: false,
+            showLogs: true,
             authSig: pkpAuthSig,
         }));
 
@@ -158,11 +158,13 @@ describe('Lit Action Cases', () => {
             },
             request: litActionResult?.request || null,
             response: litActionResult?.response || null,
-            error,
+            error: error || litActionResult?.response?.error || null,
         };
 
-        expect(isNullOrUndefined(result)).to.be.false;
         expect(result).to.be.an('object');
+        expect(isNullOrUndefined(result.request)).to.be.false;
+        expect(isNullOrUndefined(result.response)).to.be.false;
+        expect(isNullOrUndefined(result.error)).to.be.true;
         expect(binanceCredentials.apiKey?.trim()?.length > 0).to.be.true;
         expect(binanceCredentials.apiSecret?.trim()?.length > 0).to.be.true;
 

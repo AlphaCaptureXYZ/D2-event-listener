@@ -1557,6 +1557,7 @@ const getQtyWithSymbolPrecision = (
     env: EnvType,
     symbol: string,
     usdtAmount: number,
+    proxyUrl: string,
 ) => {
 
     const requestUrl = getApiUrl(env);
@@ -1564,22 +1565,30 @@ const getQtyWithSymbolPrecision = (
     const code = `
         const go = async () => {
 
-            let url = '${requestUrl}/v3/exchangeInfo?symbol=${symbol}';
+            const proxyUrl = '${proxyUrl}';
 
-            let options = {
-                method: 'GET',
+            let proxyOptions = {
+                method: 'POST',
+                body: JSON.stringify({
+                    url: '${requestUrl}/v3/exchangeInfo?symbol=${symbol}',
+                    method: 'GET',
+                    headers: {
+                        'User-Agent': 'PostmanRuntime/7.29.2',
+                        'Content-Type': 'application/json',
+                    },
+                }),
                 headers: {
-                'User-Agent': 'PostmanRuntime/7.29.2',
-                'Content-Type': 'application/json',
-                },
+                    'Content-Type': 'application/json',
+                }
             };
-
-            let response = await fetch(url, options);
-
+    
+            let response = await fetch(proxyUrl, proxyOptions);
             let data = await response.json();
 
             if(data?.symbols?.length <= 0 || !data?.symbols) {
-                Lit.Actions.setResponse({response: JSON.stringify({error: 'Symbol not found'})});
+                Lit.Actions.setResponse({response: JSON.stringify({
+                    error: data?.msg || 'No data found'
+                })});
                 return;
             };
 
@@ -1602,18 +1611,22 @@ const getQtyWithSymbolPrecision = (
 
             const decimalPart = getDecimalCount(quantityPrecision);
 
-            url = '${requestUrl}/v3/ticker/price?symbol=${symbol}';
-
-            options = {
-                method: 'GET',
+            proxyOptions = {
+                method: 'POST',
+                body: JSON.stringify({
+                    url:  '${requestUrl}/v3/ticker/price?symbol=${symbol}',
+                    method: 'GET',
+                    headers: {
+                        'User-Agent': 'PostmanRuntime/7.29.2',
+                        'Content-Type': 'application/json',
+                    },
+                }),
                 headers: {
-                'User-Agent': 'PostmanRuntime/7.29.2',
-                'Content-Type': 'application/json',
-                },
+                    'Content-Type': 'application/json',
+                }
             };
-
-            response = await fetch(url, options);
-
+    
+            response = await fetch(proxyUrl, proxyOptions);
             data = await response.json();
 
             const price =  Number(data.price);

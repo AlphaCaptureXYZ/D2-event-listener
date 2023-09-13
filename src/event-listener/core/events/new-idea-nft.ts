@@ -124,14 +124,28 @@ const orderProcess = async (
                     switch (pricingProvider) {
                         case 'Binance':
 
-                            // 12 USDT (temporal)
+                            // 11 USDT (temporal)
                             // so, the idea is get this usdt amount based on the balance of the user, etc (i.e. the order calc)
-                            const usdtAmount = 12;
+                            const usdtAmount = 11;
+
+                            const userSetting = await WeaveDBModule.getAllData<any>(
+                                network,
+                                {
+                                    type: 'setting',
+                                    byUserWalletFilter: true,
+                                    wallet: credentialOwner,
+                                }
+                            );
+
+                            const proxyUrl =
+                                userSetting?.find(res => res)?.proxy_url ||
+                                'https://ixily.io/api/proxy';
 
                             const litActionQtyCode = litActions.binance.getQtyWithSymbolPrecision(
                                 environment as any,
                                 asset,
                                 usdtAmount,
+                                proxyUrl,
                             );
 
                             const litActionCallQty = await LitModule().runLitAction({
@@ -147,19 +161,6 @@ const orderProcess = async (
 
                             error = litActionCallQtyResponse?.error || null;
                             const quantity = litActionCallQtyResponse?.quantity || 0;
-
-                            const userSetting = await WeaveDBModule.getAllData<any>(
-                                network,
-                                {
-                                    type: 'setting',
-                                    byUserWalletFilter: true,
-                                    wallet: credentialOwner,
-                                }
-                            );
-
-                            const proxyUrl =
-                                userSetting?.find(res => res)?.proxy_url ||
-                                'https://ixily.io/api/proxy';
 
                             litActionCode = litActions.binance.placeOrder(
                                 environment as any,
@@ -189,14 +190,14 @@ const orderProcess = async (
                     }
 
                     try {
-                        const litActionCall = await LitModule().runLitAction({
+                        const litActionCall = error ? null : (await LitModule().runLitAction({
                             chain: network,
                             litActionCode,
                             listActionCodeParams,
                             nodes: 1,
                             showLogs: false,
                             authSig: pkpAuthSig,
-                        });
+                        }));
 
                         const litActionResult = litActionCall?.response as any;
 
@@ -210,7 +211,7 @@ const orderProcess = async (
                             },
                             request: litActionResult?.request || null,
                             response: litActionResult?.response || null,
-                            error,
+                            error: error || litActionResult?.response?.error || null,
                         };
 
                     } catch (err) {

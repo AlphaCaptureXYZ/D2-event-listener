@@ -235,7 +235,7 @@ class Lit {
 
         const litNodeClient = new LitJsSdk.LitNodeClientNodeJs({
             litNetwork: 'serrano',
-            debug: false,
+            debug: showLogs,
         });
 
         await litNodeClient.connect();
@@ -259,10 +259,10 @@ class Lit {
             authSig,
             jsParams: {
                 ...listActionCodeParams,
-                debug: false,
+                debug: showLogs,
             },
             targetNodeRange: nodes,
-            debug: false,
+            debug: showLogs,
         });
 
         if (showLogs) {
