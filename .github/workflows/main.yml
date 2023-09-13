@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: CI/CD Settings (DII)
+name: CI/CD Settings (D2)
 
 on:
   push:
@@ -26,13 +26,13 @@ jobs:
           script: |
             sudo docker system prune --force
 
-            sudo rm -rf DII-event-listener
+            sudo rm -rf D2-event-listener
 
-            sudo git clone https://${{ secrets.REPO_TOKEN  }}@github.com/IXily/DII-event-listener.git
+            sudo git clone https://${{ secrets.REPO_TOKEN  }}@github.com/IXily/D2-event-listener.git
 
-            sudo chown -R ${{ secrets.USERNAME  }} ./DII-event-listener
+            sudo chown -R ${{ secrets.USERNAME  }} ./D2-event-listener
 
-            cd DII-event-listener
+            cd D2-event-listener
 
             sudo git checkout deploy-production
             
