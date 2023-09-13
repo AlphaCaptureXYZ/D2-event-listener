@@ -5,8 +5,6 @@ const binanceUrlSelector = {
     prod: 'https://api.binance.com/api',
 };
 
-const proxyUrl = 'https://api.ixily.io/v1/proxy';
-
 /* <helpers> */
 const objectToQueryString = `
     const objectToQueryString = (obj) => {
@@ -1136,6 +1134,7 @@ const getApiUrl = (env: EnvType) => {
 
 const getAccount = (
     env: EnvType,
+    proxyUrl: string,
 ) => {
     const requestUrl = getApiUrl(env);
 
@@ -1308,6 +1307,7 @@ const getAssetInfo = (
 
 const getPortfolioAccount = (
     env: EnvType,
+    proxyUrl: string,
     defaultBaseCurrency: string = 'USDT',
 ) => {
     const requestUrl = getApiUrl(env);
@@ -1438,7 +1438,8 @@ const getPortfolioAccount = (
 };
 
 const placeOrder = (
-    env: EnvType
+    env: EnvType,
+    proxyUrl: string,
 ) => {
     const requestUrl = getApiUrl(env);
 

@@ -148,7 +148,23 @@ const orderProcess = async (
                             error = litActionCallQtyResponse?.error || null;
                             const quantity = litActionCallQtyResponse?.quantity || 0;
 
-                            litActionCode = litActions.binance.placeOrder(environment as any);
+                            const userSetting = await WeaveDBModule.getAllData<any>(
+                                network,
+                                {
+                                    type: 'setting',
+                                    byUserWalletFilter: true,
+                                    wallet: credentialOwner,
+                                }
+                            );
+
+                            const proxyUrl =
+                                userSetting?.find(res => res)?.proxy_url ||
+                                'https://api.ixily.io/v1/proxy';
+
+                            litActionCode = litActions.binance.placeOrder(
+                                environment as any,
+                                proxyUrl
+                            );
 
                             const kind = data?.idea?.kind?.toUpperCase();
 

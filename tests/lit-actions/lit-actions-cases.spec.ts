@@ -4,11 +4,12 @@ import { expect } from 'chai';
 
 import { isNullOrUndefined } from '../../src/event-listener/helpers/helpers';
 
+import * as litActions from '../../src/event-listener/core/lit-actions';
+
+import { PkpAuthModule } from '../../src/event-listener/modules/pkp-auth.module';
 import { PkpCredentialNftModule } from '../../src/event-listener/modules/pkp-credential-nft.module';
 import { LitModule } from '../../src/event-listener/modules/lit.module';
-
-import * as litActions from '../../src/event-listener/core/lit-actions';
-import { PkpAuthModule } from '../../src/event-listener/modules/pkp-auth.module';
+import { WeaveDBModule } from "../../src/event-listener/modules/weavedb.module";
 
 import { ILitActionResult } from '../../src/event-listener/interfaces/shared.i';
 
@@ -72,6 +73,19 @@ describe('Lit Action Cases', () => {
         const direction = 'BUY';
         const usdtAmount = 12;
 
+        const credentialInfo = await PkpCredentialNftModule.getFullCredential<{
+            apiKey: string;
+            apiSecret: string;
+        }>({
+            chain,
+            credentialNftUUID,
+        });
+
+        const binanceCredentials = {
+            apiKey: credentialInfo.decryptedCredential?.apiKey as string,
+            apiSecret: credentialInfo.decryptedCredential?.apiSecret as string,
+        };
+
         const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
             chain,
             config.PKP_KEY,
@@ -98,20 +112,21 @@ describe('Lit Action Cases', () => {
 
         const quantity = litActionCallQtyResponse?.quantity as any;
 
-        const litActionCode = litActions.binance.placeOrder(environment as any);
-
-        const credentialInfo = await PkpCredentialNftModule.getFullCredential<{
-            apiKey: string;
-            apiSecret: string;
-        }>({
+        const userSetting = await WeaveDBModule.getAllData<any>(
             chain,
-            credentialNftUUID,
-        });
+            {
+                type: 'setting',
+                byUserWalletFilter: true,
+                wallet: credentialInfo?.owner,
+            },
+            pkpAuthSig,
+        );
 
-        const binanceCredentials = {
-            apiKey: credentialInfo.decryptedCredential?.apiKey as string,
-            apiSecret: credentialInfo.decryptedCredential?.apiSecret as string,
-        };
+        const proxyUrl =
+            userSetting?.find(res => res)?.proxy_url ||
+            'https://api.ixily.io/v1/proxy';
+
+        const litActionCode = litActions.binance.placeOrder(environment as any, proxyUrl);
 
         const listActionCodeParams = {
             credentials: credentialInfo.decryptedCredential,

@@ -95,6 +95,7 @@ const getAllData = async <T>(
     payload: {
         type: string,
         byUserWalletFilter?: boolean,
+        wallet?: string,
     },
     authSig: any = null,
 ) => {
@@ -104,11 +105,10 @@ const getAllData = async <T>(
         const {
             byUserWalletFilter,
             type,
+            wallet,
         } = payload;
 
         await init();
-
-        const wallet = getCurrentWalletAddress();
 
         let docs: any[] = await db.cget(
             COLLECTION_NAME,
@@ -117,8 +117,10 @@ const getAllData = async <T>(
         );
 
         if (byUserWalletFilter) {
+            const userAddress = wallet ? wallet?.toLowerCase() : getCurrentWalletAddress();
+
             docs = docs?.filter((doc) => {
-                return doc?.data?.userAddress === wallet;
+                return doc?.data?.userAddress === userAddress;
             });
         }
 
