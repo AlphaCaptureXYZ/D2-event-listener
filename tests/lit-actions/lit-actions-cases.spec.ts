@@ -124,7 +124,7 @@ describe('Lit Action Cases', () => {
 
         const proxyUrl =
             userSetting?.find(res => res)?.proxy_url ||
-            'https://api.ixily.io/v1/proxy';
+            'https://ixily.io/api/proxy';
 
         const litActionCode = litActions.binance.placeOrder(environment as any, proxyUrl);
 

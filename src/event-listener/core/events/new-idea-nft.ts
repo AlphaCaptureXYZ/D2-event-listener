@@ -159,7 +159,7 @@ const orderProcess = async (
 
                             const proxyUrl =
                                 userSetting?.find(res => res)?.proxy_url ||
-                                'https://api.ixily.io/v1/proxy';
+                                'https://ixily.io/api/proxy';
 
                             litActionCode = litActions.binance.placeOrder(
                                 environment as any,
