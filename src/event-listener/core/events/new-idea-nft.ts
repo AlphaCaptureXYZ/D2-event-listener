@@ -124,7 +124,7 @@ const orderProcess = async (
                     switch (pricingProvider) {
                         case 'Binance':
 
-                            // 11 USDT (temporal)
+                            // 10 USDT (temporal)
                             // so, the idea is get this usdt amount based on the balance of the user, etc (i.e. the order calc)
                             const usdtAmount = 11;
 

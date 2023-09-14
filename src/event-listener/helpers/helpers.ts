@@ -1,5 +1,3 @@
-import { ethers } from 'ethers';
-
 export const isNullOrUndefined = (value: any) => {
     const checkValue = [
         undefined,
@@ -108,9 +106,30 @@ export const loop = (
         }
     });
 
-export const rest = async (delay: number) => {
-    await new Promise((resolve) => setTimeout(resolve, delay))
-}
+export const wait = (
+    time: number,
+    type: 'milliseconds' | 'seconds' | 'minutes' | 'hours',
+): Promise<void> =>
+    new Promise<void>((resolve) => {
+        try {
+            const timeMilisecondsConvertedObj = {
+                milliseconds: time,
+                seconds: time * 1000,
+                minutes: time * 60000,
+                hours: time * 3600000,
+            };
+
+            const timeConverted = timeMilisecondsConvertedObj[type];
+
+            const interval = setInterval(() => {
+                clearInterval(interval);
+                resolve();
+            }, timeConverted);
+
+        } catch (err) {
+            resolve();
+        }
+    });
 
 export const getStringSize = (str: string) => {
     const bytes = new Blob([str]).size;
@@ -121,5 +140,67 @@ export const getStringSize = (str: string) => {
         bytes,
         kilobytes: Number(kilobytes.toFixed(4)),
         megabytes: Number(megabytes.toFixed(4)),
+    }
+}
+
+export const retryFunctionHelper = async <T>(payload: {
+    maxRetries: number,
+    retryCallback: (retryIndex: number) => Promise<any>,
+    notificationCallback?: (errMsg: string, retryCount: number) => Promise<any>,
+    rejectOnMaxRetries?: boolean,
+}) => {
+
+    let retryCount = 1;
+
+    // this is the function that will be called to notify the caller of the error
+    // using slack or email or whatever instead of throwing an error
+    const notify = async (errMsg: string, retryCount: number) => {
+        try {
+            if (payload?.notificationCallback) {
+                await payload.notificationCallback(errMsg, retryCount);
+            }
+        } catch (err) {
+            console.log('retryFunctionHelper [Error notifying]', `${err?.message}. Retry #${retryCount}`);
+        }
+    }
+
+    try {
+        const { maxRetries, retryCallback } = payload;
+
+        while (retryCount <= maxRetries) {
+            try {
+                const data = await retryCallback(retryCount);
+
+                if (data) {
+                    return data as T;
+                } else {
+                    await notify('No data returned', retryCount);
+                }
+
+            } catch (err) {
+                await notify(err?.message || 'Unknown error', retryCount);
+
+                // optionally reject on max retries
+                if (payload?.rejectOnMaxRetries && retryCount === payload.maxRetries) {
+                    throw new Error(err?.message || 'Unknown error');
+                }
+            }
+
+            if (retryCount < maxRetries) {
+                await wait(5, 'seconds');
+            }
+
+            retryCount++;
+        }
+
+        return null;
+
+    } catch (err) {
+        await notify(err?.message || 'Unknown error', retryCount);
+
+        // optionally reject on max retries
+        if (payload?.rejectOnMaxRetries && retryCount === payload.maxRetries) {
+            throw new Error(err?.message || 'Unknown error');
+        }
     }
 }

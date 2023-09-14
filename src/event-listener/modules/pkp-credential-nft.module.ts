@@ -10,7 +10,7 @@ import { ethers } from 'ethers';
 
 import * as Siwe from 'siwe';
 
-import { isNullOrUndefined } from '../helpers/helpers';
+import { isNullOrUndefined, retryFunctionHelper } from '../helpers/helpers';
 import { getRpcUrlByNetwork } from '../utils/utils';
 
 export const contractAddress = '0x8f58fd7f9eE19eC25a3F9dd035140E4d218c4178';
@@ -401,30 +401,37 @@ const getFullCredential = async <T>(
         authSig?: any,
     }
 ): Promise<ICredentialNft<T>> => {
+    return retryFunctionHelper<ICredentialNft<T>>({
+        maxRetries: 5,
+        retryCallback: async () => {
 
-    let credentialInfo: ICredentialNft<T> = null as any;
+            const {
+                chain,
+                authSig,
+            } = payload;
 
-    try {
+            const credentialEncrypted = await getCredentialNftEncrypted(payload);
 
-        const {
-            chain,
-            authSig,
-        } = payload;
+            const credentialNftDecrypted = await decryptCredentialNft({
+                chain,
+                credentialInfo: credentialEncrypted,
+                authSig,
+            });
 
-        const credentialEncrypted = await getCredentialNftEncrypted(payload);
+            const credentialInfo = credentialNftDecrypted;
 
-        const credentialNftDecrypted = await decryptCredentialNft({
-            chain,
-            credentialInfo: credentialEncrypted,
-            authSig,
-        });
+            if (isNullOrUndefined(credentialInfo?.decryptedCredential)) {
+                throw new Error('Credential not found');
+            }
 
-        credentialInfo = credentialNftDecrypted;
+            return credentialInfo;
 
-    } catch (err: any) {
-        console.log('PKP CREDENTIAL NFT (getFullCredential) ERROR', err?.message);
-    }
-    return credentialInfo;
+        },
+        notificationCallback: async (error: string, retryIndex: number) => {
+            console.log(`PKP CREDENTIAL NFT (getFullCredential) ERROR (retry #${retryIndex})`, error);
+        },
+        rejectOnMaxRetries: false,
+    });
 }
 
 export const PkpCredentialNftModule = {
@@ -432,6 +439,6 @@ export const PkpCredentialNftModule = {
     decryptCredentialNft,
     getFullCredential,
 
-    // Deprecated (not used anymore)
+    // Deprecated
     getCredentialNftEncryptedDeprecated,
 }

@@ -12,7 +12,7 @@ import { newIdeaNFTEvent } from "./events/new-idea-nft";
 import { notification } from "./events/notification";
 
 /* helpers */
-import { rest } from "../helpers/helpers";
+import { wait } from "../helpers/helpers";
 
 /* utils */
 import { getRpcUrlByNetwork } from "../utils/utils";
@@ -91,7 +91,7 @@ export const D2EventListener = async (
         }
 
         if (isAUnitTest) {
-            await rest(1000);
+            await wait(1, 'seconds');
 
             EventEmitter().emit<INewIdeaNFT>(
                 'NEW_IDEA_NFT',
@@ -162,7 +162,7 @@ const watcherLoader = (
     try {
         if (!watcherLoaded) {
             EventEmitter().listen().subscribe(async (res) => {
-                
+
                 const event = res.type as EventType;
                 const data = res?.data || null;
 
