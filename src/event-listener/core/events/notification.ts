@@ -25,6 +25,7 @@ export const notification = async (
                 orderId,
                 docID,
                 error,
+                environment,
             } = info;
 
             const fields = [
@@ -91,6 +92,11 @@ export const notification = async (
                 {
                     title: 'Provider',
                     value: data?.pricing?.provider,
+                    short: false,
+                },
+                {
+                    title: 'Environment',
+                    value:  environment,
                     short: false,
                 },
             ];

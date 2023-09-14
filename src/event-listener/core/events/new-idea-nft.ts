@@ -236,9 +236,9 @@ const orderProcess = async (
         if (orderResult) {
 
             const userWalletAddress = orderResult?.additionalInfo?.userWalletAddress;
-
             const credentialNftUUID = orderResult?.additionalInfo?.credentialNftUUID;
             const credentialOwner = orderResult?.additionalInfo?.userWalletAddress;
+            const environment = orderResult?.additionalInfo?.environment;
 
             const orderId = orderResult?.response?.orderId || null;
             const error = orderResult?.error || orderResult?.response?.error || null;
@@ -279,6 +279,7 @@ const orderProcess = async (
                     orderId,
                     docID,
                     error,
+                    environment,
                 },
             });
 
