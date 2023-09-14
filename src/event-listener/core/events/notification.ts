@@ -119,22 +119,42 @@ export const notification = async (
                 });
             }
 
-            // just to test (will be removed)
-            await NotificatorModule.sendNotification({
-                url: process.env.SLACK_WEBHOOK_URL,
-                payload: {
-                    username: 'D2 Event Listener (Order)',
-                    text: `A new order has been placed. Check the details to know more about it.`,
-                    icon_emoji: ':page_with_curl:',
-                    attachments: [
-                        {
-                            color: '#71BFF0',
-                            fields,
-                            actions: []
-                        }
-                    ],
-                }
-            });
+            if (data?.idea?.asset?.ticker && orderId && !error) {
+                await NotificatorModule.sendNotification({
+                    url: process.env.SLACK_WEBHOOK_URL,
+                    payload: {
+                        username: 'D2 Event Listener (Order)',
+                        text: `A new order has been placed. Check the details to know more about it.`,
+                        icon_emoji: ':page_with_curl:',
+                        attachments: [
+                            {
+                                color: '#71BFF0',
+                                fields,
+                                actions: []
+                            }
+                        ],
+                    }
+                });
+            }
+
+            if (error) {
+                await NotificatorModule.sendNotification({
+                    url: process.env.SLACK_WEBHOOK_URL,
+                    payload: {
+                        username: 'D2 Event Listener (Order)',
+                        text: `An error occurred while processing the order. Check the details to know more about it.`,
+                        icon_emoji: ':page_with_curl:',
+                        attachments: [
+                            {
+                                color: '#71BFF0',
+                                fields,
+                                actions: []
+                            }
+                        ],
+                    }
+                });
+            }
+
         }
 
     } catch (err) {

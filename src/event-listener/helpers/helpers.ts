@@ -145,7 +145,7 @@ export const getStringSize = (str: string) => {
 
 export const retryFunctionHelper = async <T>(payload: {
     maxRetries: number,
-    retryCallback: (retryIndex: number) => Promise<any>,
+    retryCallback: (retryIndex: number) => Promise<T>,
     notificationCallback?: (errMsg: string, retryCount: number) => Promise<any>,
     rejectOnMaxRetries?: boolean,
 }) => {

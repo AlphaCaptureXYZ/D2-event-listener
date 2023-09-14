@@ -12,7 +12,7 @@ import {
 
 import { INewIdeaNFT } from '../../../event-listener/interfaces/new-idea-nft.i';
 
-import { isNullOrUndefined, loop } from '../../../event-listener/helpers/helpers';
+import { isNullOrUndefined, loop, retryFunctionHelper } from '../../../event-listener/helpers/helpers';
 import { getBalance } from '../../../event-listener/utils/utils';
 
 import * as litActions from '../lit-actions';
@@ -32,7 +32,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
             network,
             data,
             nftId,
-        } = await getIdeaNFTInfo(payload);
+        } = await getIdeaNFTInfoWithRetry(payload);
 
         const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
             network,
@@ -286,6 +286,29 @@ const orderProcess = async (
     }
 
     return orderResults;
+}
+
+const getIdeaNFTInfoWithRetry = async (
+    payload: INewIdeaNFT
+) => {
+    return retryFunctionHelper({
+        maxRetries: 3,
+        retryCallback: async () => {
+
+            const data = await getIdeaNFTInfo(payload);
+
+            // if we can't decrypt the idea (access denied) we will retry
+            // there are 2 cases: 
+            // 1. we haven't access to decrypt the idea then is expected
+            // 2. we have access but the decrypt process failed then we need to retry
+            if (!data?.withAccess) {
+                throw new Error('We can\'t decrypt the idea (access denied)');
+            }
+
+            return data;
+        },
+        rejectOnMaxRetries: false,
+    });
 }
 
 const getIdeaNFTInfo = async (
