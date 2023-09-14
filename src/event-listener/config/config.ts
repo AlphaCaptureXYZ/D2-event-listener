@@ -5,6 +5,8 @@ const MAX_LIT_ENC_DEC_ATTEMPTS = 5 as number;
 const APP_ENV: 'development' | 'production' =
     (process.env.APP_ENV as any) || 'development';
 
+const WEAVEDB_CONTRACT_TX_ID = 'uItgIC0zhIGUM3uK0DPb__1TVb-2F5Q1awI2mVMICbk';
+
 const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY as string;
 
 const PKP_KEY = process.env.PKP_KEY as string;
@@ -55,4 +57,5 @@ export {
     PKP_KEY,
     IDEA_NFT_CONFIG,
     MAX_LIT_ENC_DEC_ATTEMPTS,
+    WEAVEDB_CONTRACT_TX_ID,
 };

@@ -8,7 +8,8 @@
     "build": "rimraf dist && tsc --project ./tsconfig.json",
     "start": "cross-env APP_ENV=production node dist/app.js",
     "deploy": "git push origin main:deploy-production",
-    "test": "rimraf dist && mocha --config unit-mocharc.js --exit"
+    "test": "rimraf dist && mocha --config unit-mocharc.js --exit",
+    "weavedb": "nodemon ./__backup/database/weavedb.ts --exec ts-node"
   },
   "repository": {
     "type": "git",

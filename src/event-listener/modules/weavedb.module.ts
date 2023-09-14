@@ -13,7 +13,7 @@ import { blobToBase64String } from '@lit-protocol/lit-node-client-nodejs';
 import { getCurrentWalletAddress } from "../utils/utils";
 
 const COLLECTION_NAME = 'D2-data';
-const contractTxId = 'uItgIC0zhIGUM3uK0DPb__1TVb-2F5Q1awI2mVMICbk';
+const contractTxId = config.WEAVEDB_CONTRACT_TX_ID;
 
 let db: any = null;
 
