@@ -1,3 +1,6 @@
+import { FetcherSource } from "src/event-listener/interfaces/shared.i";
+import { LitModule } from "../../../modules/lit.module";
+
 type EnvType = 'demo' | 'prod';
 
 const binanceUrlSelector = {
@@ -1132,10 +1135,27 @@ const getApiUrl = (env: EnvType) => {
     return binanceUrlSelector[env] || binanceUrlSelector['demo'];
 };
 
-const getAccount = (
-    env: EnvType,
-    proxyUrl: string,
+const getAccount = async (
+    network: string,
+    pkpAuthSig: any,
+    params: {
+        env: EnvType,
+        source: FetcherSource,
+        proxyUrl: string,
+        payload: {
+            credentials: {
+                apiKey: string,
+                apiSecret: string,
+            },
+        },
+    },
 ) => {
+    const {
+        env,
+        proxyUrl,
+        payload,
+    } = params;
+
     const requestUrl = getApiUrl(env);
 
     const code = `
@@ -1196,13 +1216,34 @@ const getAccount = (
         go();
     `;
 
-    return code;
+    const litActionCall = await LitModule().runLitAction({
+        chain: network,
+        litActionCode: code,
+        listActionCodeParams: payload,
+        nodes: 1,
+        showLogs: false,
+        authSig: pkpAuthSig,
+    });
+
+    const response = litActionCall?.response as any;
+
+    return response;
 };
 
-const getAssetPrice = (
-    env: EnvType,
-    symbol: string,
+const getAssetPrice = async (
+    network: string,
+    pkpAuthSig: any,
+    params: {
+        env: EnvType,
+        source: FetcherSource,
+        symbol: string,
+    }
 ) => {
+    const {
+        env,
+        symbol,
+    } = params;
+
     const requestUrl = getApiUrl(env);
 
     const code = `
@@ -1235,47 +1276,34 @@ const getAssetPrice = (
         go();
     `;
 
-    return code;
+    const litActionCall = await LitModule().runLitAction({
+        chain: network,
+        litActionCode: code,
+        listActionCodeParams: {
+            symbol,
+        },
+        nodes: 1,
+        showLogs: false,
+        authSig: pkpAuthSig,
+    });
+
+    const response = litActionCall?.response as any;
+
+    return response;
 };
 
-const getExchangeInfo = (
-    env: EnvType,
-    symbol: string,
+const getAssetInfo = async (
+    network: string,
+    pkpAuthSig: any,
+    params: {
+        source: FetcherSource,
+        symbol: string,
+    }
 ) => {
-    const requestUrl = getApiUrl(env);
+    const {
+        symbol,
+    } = params;
 
-    const code = `
-
-        const go = async () => {
-
-        const url =
-            '${requestUrl}/v3/ticker/exchangeInfo?symbol=${symbol}';
-
-        const options = {
-            method: 'GET',
-            headers: {
-            'User-Agent': 'PostmanRuntime/7.29.2',
-            'Content-Type': 'application/json',
-            },
-        }
-
-        const response = await fetch(url, options);
-
-        const data = await response.json();
-
-        Lit.Actions.setResponse({response: JSON.stringify(data)});
-
-        };
-
-        go();
-    `;
-
-    return code;
-};
-
-const getAssetInfo = (
-    symbol: string,
-) => {
     const code = `
 
         const go = async () => {
@@ -1302,145 +1330,50 @@ const getAssetInfo = (
         go();
     `;
 
-    return code;
+    const litActionCall = await LitModule().runLitAction({
+        chain: network,
+        litActionCode: code,
+        listActionCodeParams: {
+            symbol,
+        },
+        nodes: 1,
+        showLogs: false,
+        authSig: pkpAuthSig,
+    });
+
+    const response = litActionCall?.response as any;
+
+    return response;
+
 };
 
-const getPortfolioAccount = (
-    env: EnvType,
-    proxyUrl: string,
-    defaultBaseCurrency: string = 'USDT',
+const placeOrder = async (
+    network: string,
+    pkpAuthSig: any,
+    params: {
+        env: EnvType,
+        source: FetcherSource,
+        proxyUrl: string,
+        payload: {
+            credentials: {
+                apiKey: string,
+                apiSecret: string,
+            },
+            form: {
+                asset,
+                direction,
+                quantity,
+            },
+        }
+    }
 ) => {
-    const requestUrl = getApiUrl(env);
 
-    const code = `
-        ${JHash}
+    const {
+        env,
+        proxyUrl,
+        payload,
+    } = params;
 
-        const go = async () => {
-
-        const apiKey = credentials.apiKey;
-        const apiSecret = credentials.apiSecret;
-
-        ${objectToQueryString}
-
-        const payload = {
-            timestamp: Date.now(),
-            recvWindow: 60000,
-        };
-
-        const queryString = objectToQueryString(payload);
-        const signature = JHash.hex_hmac_sha256(apiSecret, queryString);
-
-        const proxyUrl = '${proxyUrl}';
-
-        const proxyOptions = {
-            method: 'POST',
-            body: JSON.stringify({
-                url: '${requestUrl}/v3/account' + '?' + queryString + '&signature=' + signature,
-                method: 'GET',
-                headers: {
-                    'User-Agent': 'PostmanRuntime/7.29.2',
-                    'X-MBX-APIKEY': apiKey,
-                    'Content-Type': 'application/json',
-                },
-            }),
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        };
-
-        const response = await fetch(proxyUrl, proxyOptions);
-
-        const data = await response.json();
-
-        if (data?.balances?.length > 0) {
-            data.balances = data?.balances?.filter((item) => {
-                const free = Number(item.free);
-                return free > 0
-            });
-
-            data.balances = data?.balances?.map((item) => {
-                const free = Number(item.free);
-                const locked = Number(item.locked);
-                item.free = free;
-                item.locked = locked;
-                return item;
-            });
-
-            let baseCurrencyBalance = 0;
-            
-            // to handle cases with USDT, BUSD, etc.
-            if('${defaultBaseCurrency}'.includes('USD')) {
-                baseCurrencyBalance =
-                    data?.balances?.filter((item) => item.asset.includes('USD'))?.reduce((acc, item) => {
-                        return acc + Number(item.free);
-                    }, 0) || 0;
-            } else {
-                baseCurrencyBalance = 
-                    data?.balances?.find((item) => item.asset === '${defaultBaseCurrency}')?.free || 0;
-                baseCurrencyBalance = Number(baseCurrencyBalance);
-            };
-
-            const assets = data?.balances?.map((item) => item.asset + '${defaultBaseCurrency}');
-
-            const getCurrentAssetPrice = await Promise.all(
-                assets.map(async (symbol) => {
-                    const url = '${requestUrl}/v3/ticker/price?symbol=' + symbol;
-                    const options = {
-                        method: 'GET',
-                        headers: {
-                            'User-Agent': 'PostmanRuntime/7.29.2',
-                            'Content-Type': 'application/json'
-                        }
-                    };
-                    const request = await fetch(url, options); 
-                    const response = await request.json();
-                    return response;
-                })
-            );
-
-            const assetsWithPrice = data?.balances?.map((item) => {
-                const symbol = item.asset + '${defaultBaseCurrency}';
-                const assetPrice = getCurrentAssetPrice.find((item) => item.symbol === symbol);
-                const price = Number(assetPrice?.price) || 0;
-                item.baseCurrencyPrice = price;
-                item.baseCurrencyFree = price * item.free;
-                item.baseCurrencyLocked = price * item.locked;
-                return item;
-            });
-
-            const totalBaseCurrency = assetsWithPrice.reduce((acc, item) => {
-                return acc + item.baseCurrencyFree;
-            }, 0);
-
-            data.baseCurrencyTotal = totalBaseCurrency + baseCurrencyBalance;
-            data.baseCurrency = '${defaultBaseCurrency}';
-            
-            data.portfolio = data.balances;
-            delete data.balances;
-
-            data.portfolio = data.portfolio.map((item) => {
-                const baseCurrencyFree = Number(item.baseCurrencyFree || item.free);
-                const baseCurrencyLocked = Number(item.baseCurrencyLocked || item.locked);
-                item.baseCurrencyFree = baseCurrencyFree;
-                item.baseCurrencyLocked = baseCurrencyLocked;
-                return item;
-            });
-        };  
-
-        Lit.Actions.setResponse({response: JSON.stringify(data)});
-
-        };
-
-        go();
-    `;
-
-    return code;
-};
-
-const placeOrder = (
-    env: EnvType,
-    proxyUrl: string,
-) => {
     const requestUrl = getApiUrl(env);
 
     const code = `
@@ -1550,15 +1483,38 @@ const placeOrder = (
         go();
     `
 
-    return code;
+    const litActionCall = await LitModule().runLitAction({
+        chain: network,
+        litActionCode: code,
+        listActionCodeParams: payload,
+        nodes: 1,
+        showLogs: false,
+        authSig: pkpAuthSig,
+    });
+
+    const response = litActionCall?.response as any;
+
+    return response;
+
 };
 
-const getQtyWithSymbolPrecision = (
-    env: EnvType,
-    symbol: string,
-    usdtAmount: number,
-    proxyUrl: string,
+const getQtyWithSymbolPrecision = async (
+    network: string,
+    pkpAuthSig: any,
+    params: {
+        env: EnvType,
+        source: FetcherSource,
+        symbol: string,
+        usdtAmount: number,
+        proxyUrl: string,
+    }
 ) => {
+    const {
+        env,
+        symbol,
+        usdtAmount,
+        proxyUrl,
+    } = params;
 
     const requestUrl = getApiUrl(env);
 
@@ -1644,15 +1600,24 @@ const getQtyWithSymbolPrecision = (
         go();
     `;
 
-    return code;
+    const litActionCall = await LitModule().runLitAction({
+        chain: network,
+        litActionCode: code,
+        listActionCodeParams: {},
+        nodes: 1,
+        showLogs: false,
+        authSig: pkpAuthSig,
+    });
+
+    const response = litActionCall?.response as any;
+
+    return response;
 };
 
 export {
     getAccount,
     placeOrder,
-    getPortfolioAccount,
     getAssetPrice,
     getQtyWithSymbolPrecision,
-    getExchangeInfo,
     getAssetInfo,
 };

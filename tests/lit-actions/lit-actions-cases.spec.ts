@@ -4,7 +4,7 @@ import { expect } from 'chai';
 
 import { isNullOrUndefined } from '../../src/event-listener/helpers/helpers';
 
-import * as litActions from '../../src/event-listener/core/lit-actions';
+import * as fetcher from '../../src/event-listener/core/fetcher';
 
 import { PkpAuthModule } from '../../src/event-listener/modules/pkp-auth.module';
 import { PkpCredentialNftModule } from '../../src/event-listener/modules/pkp-credential-nft.module';
@@ -105,48 +105,40 @@ describe('Lit Action Cases', () => {
             userSetting?.find(res => res)?.proxy_url ||
             'https://ixily.io/api/proxy';
 
-        const litActionQtyCode = litActions.binance.getQtyWithSymbolPrecision(
-            environment as any,
-            symbol,
-            usdtAmount,
-            proxyUrl,
-        );
+        const qtyWithSymbolPrecisionResult =
+            await fetcher.binance.getQtyWithSymbolPrecision(
+                chain,
+                pkpAuthSig,
+                {
+                    env: environment as any,
+                    source: 'lit-action',
+                    symbol,
+                    usdtAmount,
+                    proxyUrl,
+                },
+            );
 
-        const litActionCallQty = await LitModule().runLitAction({
-            chain,
-            litActionCode: litActionQtyCode,
-            listActionCodeParams: {},
-            nodes: 1,
-            showLogs: true,
-            authSig: pkpAuthSig,
-        });
+        const error = qtyWithSymbolPrecisionResult?.error || null;
+        const quantity = qtyWithSymbolPrecisionResult?.quantity || 0;
 
-        const litActionCallQtyResponse = litActionCallQty?.response as any;
-
-        const error = litActionCallQtyResponse?.error;
-        const quantity = litActionCallQtyResponse?.quantity;
-
-        const litActionCode = litActions.binance.placeOrder(environment as any, proxyUrl);
-
-        const listActionCodeParams = {
-            credentials: credentialInfo.decryptedCredential,
-            form: {
-                asset: symbol,
-                direction,
-                quantity,
-            },
-        };
-
-        const litActionCall = error ? null : (await LitModule().runLitAction({
-            chain,
-            litActionCode,
-            listActionCodeParams,
-            nodes: 1,
-            showLogs: true,
-            authSig: pkpAuthSig,
-        }));
-
-        const litActionResult = litActionCall?.response as any;
+        const litActionResult =
+            await fetcher.binance.placeOrder(
+                chain,
+                pkpAuthSig,
+                {
+                    env: environment as any,
+                    source: 'lit-action',
+                    proxyUrl,
+                    payload: {
+                        credentials: binanceCredentials,
+                        form: {
+                            asset: symbol,
+                            direction,
+                            quantity,
+                        },
+                    }
+                },
+            );
 
         const result: ILitActionResult = {
             additionalInfo: {
@@ -165,6 +157,65 @@ describe('Lit Action Cases', () => {
         expect(isNullOrUndefined(result.request)).to.be.false;
         expect(isNullOrUndefined(result.response)).to.be.false;
         expect(isNullOrUndefined(result.error)).to.be.true;
+        expect(binanceCredentials.apiKey?.trim()?.length > 0).to.be.true;
+        expect(binanceCredentials.apiSecret?.trim()?.length > 0).to.be.true;
+
+    }).timeout(50000);
+
+    xit('Random lit action', async () => {
+
+        const chain = 'mumbai';
+        const credentialNftUUID = '0xd06b243c18ffc6f0c24338804773b5b4';
+        const environment = 'demo';
+
+        const credentialInfo = await PkpCredentialNftModule.getFullCredential<{
+            apiKey: string;
+            apiSecret: string;
+        }>({
+            chain,
+            credentialNftUUID,
+        });
+
+        const binanceCredentials = {
+            apiKey: credentialInfo.decryptedCredential?.apiKey as string,
+            apiSecret: credentialInfo.decryptedCredential?.apiSecret as string,
+        };
+
+        const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
+            chain,
+            config.PKP_KEY,
+        );
+
+        const userSetting = await WeaveDBModule.getAllData<any>(
+            chain,
+            {
+                type: 'setting',
+                byUserWalletFilter: true,
+                wallet: credentialInfo?.owner,
+            },
+            pkpAuthSig,
+        );
+
+        const proxyUrl =
+            userSetting?.find(res => res)?.proxy_url ||
+            'https://ixily.io/api/proxy';
+
+        const result =
+            await fetcher.binance.getAccount(
+                chain,
+                pkpAuthSig,
+                {
+                    proxyUrl,
+                    env: environment as any,
+                    source: 'lit-action',
+                    payload: {
+                        credentials: binanceCredentials,
+                    }
+                },
+            );
+
+        expect(result).to.be.an('object');
+        expect(isNullOrUndefined(result)).to.be.false;
         expect(binanceCredentials.apiKey?.trim()?.length > 0).to.be.true;
         expect(binanceCredentials.apiSecret?.trim()?.length > 0).to.be.true;
 

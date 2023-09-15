@@ -15,7 +15,7 @@ import { INewIdeaNFT } from '../../../event-listener/interfaces/new-idea-nft.i';
 import { isNullOrUndefined, loop, retryFunctionHelper } from '../../../event-listener/helpers/helpers';
 import { getBalance } from '../../../event-listener/utils/utils';
 
-import * as litActions from '../lit-actions';
+import * as fetcher from '../fetcher';
 
 import { PkpAuthModule } from '../../../event-listener/modules/pkp-auth.module';
 import { PkpCredentialNftModule } from '../../../event-listener/modules/pkp-credential-nft.module';
@@ -91,9 +91,6 @@ const orderProcess = async (
         try {
             const action = triggerInfo?.action;
 
-            // settings to apply the calc order 
-            const settings = triggerInfo?.settings || null;
-
             const credentialInfo =
                 await PkpCredentialNftModule.getFullCredential<any>({
                     chain: network,
@@ -117,15 +114,17 @@ const orderProcess = async (
                 const temporalCheck = pricingProvider === 'Binance';
 
                 if (temporalCheck) {
-                    let litActionCode = null;
-                    let listActionCodeParams = null;
                     let error = null;
+                    let litActionResult = null;
 
                     switch (pricingProvider) {
                         case 'Binance':
 
                             // 10 USDT (temporal)
                             // so, the idea is get this usdt amount based on the balance of the user, etc (i.e. the order calc)
+                            // settings to apply the calc order 
+                            const settings = triggerInfo?.settings || null;
+
                             const usdtAmount = 11;
 
                             const userSetting = await WeaveDBModule.getAllData<any>(
@@ -141,31 +140,21 @@ const orderProcess = async (
                                 userSetting?.find(res => res)?.proxy_url ||
                                 'https://ixily.io/api/proxy';
 
-                            const litActionQtyCode = litActions.binance.getQtyWithSymbolPrecision(
-                                environment as any,
-                                asset,
-                                usdtAmount,
-                                proxyUrl,
-                            );
+                            const qtyWithSymbolPrecisionResult =
+                                await fetcher.binance.getQtyWithSymbolPrecision(
+                                    network,
+                                    pkpAuthSig,
+                                    {
+                                        env: environment as any,
+                                        source: 'lit-action',
+                                        symbol: asset,
+                                        usdtAmount,
+                                        proxyUrl,
+                                    }
+                                );
 
-                            const litActionCallQty = await LitModule().runLitAction({
-                                chain: network,
-                                litActionCode: litActionQtyCode,
-                                listActionCodeParams: {},
-                                nodes: 1,
-                                showLogs: false,
-                                authSig: pkpAuthSig,
-                            });
-
-                            const litActionCallQtyResponse = litActionCallQty?.response as any;
-
-                            error = litActionCallQtyResponse?.error || null;
-                            const quantity = litActionCallQtyResponse?.quantity || 0;
-
-                            litActionCode = litActions.binance.placeOrder(
-                                environment as any,
-                                proxyUrl
-                            );
+                            error = qtyWithSymbolPrecisionResult?.error || null;
+                            const quantity = qtyWithSymbolPrecisionResult?.quantity || 0;
 
                             const kind = data?.idea?.kind?.toUpperCase();
 
@@ -178,45 +167,42 @@ const orderProcess = async (
 
                             const direction = directionByKind[kind?.toLowerCase()];
 
-                            listActionCodeParams = {
-                                credentials: credentialInfo.decryptedCredential,
-                                form: {
-                                    asset,
-                                    direction,
-                                    quantity,
-                                },
-                            };
+                            if (isNullOrUndefined(error)) {
+                                litActionResult =
+                                    await fetcher.binance.placeOrder(
+                                        network,
+                                        pkpAuthSig,
+                                        {
+                                            env: environment as any,
+                                            source: 'lit-action',
+                                            proxyUrl,
+                                            payload: {
+                                                credentials: credentialInfo.decryptedCredential,
+                                                form: {
+                                                    asset,
+                                                    direction,
+                                                    quantity,
+                                                },
+                                            }
+                                        }
+                                    );
+                            }
                             break;
                     }
 
-                    try {
-                        const litActionCall = error ? null : (await LitModule().runLitAction({
-                            chain: network,
-                            litActionCode,
-                            listActionCodeParams,
-                            nodes: 1,
-                            showLogs: false,
-                            authSig: pkpAuthSig,
-                        }));
+                    result = {
+                        additionalInfo: {
+                            asset,
+                            nftId,
+                            credentialNftUUID,
+                            userWalletAddress: credentialOwner,
+                            environment,
+                        },
+                        request: litActionResult?.request || null,
+                        response: litActionResult?.response || null,
+                        error: error || litActionResult?.response?.error || null,
+                    };
 
-                        const litActionResult = litActionCall?.response as any;
-
-                        result = {
-                            additionalInfo: {
-                                asset,
-                                nftId,
-                                credentialNftUUID,
-                                userWalletAddress: credentialOwner,
-                                environment,
-                            },
-                            request: litActionResult?.request || null,
-                            response: litActionResult?.response || null,
-                            error: error || litActionResult?.response?.error || null,
-                        };
-
-                    } catch (err) {
-                        console.log('orderProcess (error)', credentialNftUUID, err?.message);
-                    }
                 }
 
             }

@@ -1,3 +1,5 @@
+export type FetcherSource = 'fetch' | 'lit-action';
+
 export interface ID2EventListenerPayload {
     privateKey: string;
     network: string;
