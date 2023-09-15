@@ -146,7 +146,7 @@ const orderProcess = async (
                                     pkpAuthSig,
                                     {
                                         env: environment as any,
-                                        source: 'lit-action',
+                                        source: 'fetch',
                                         symbol: asset,
                                         usdtAmount,
                                         proxyUrl,
@@ -174,7 +174,7 @@ const orderProcess = async (
                                         pkpAuthSig,
                                         {
                                             env: environment as any,
-                                            source: 'lit-action',
+                                            source: 'fetch',
                                             proxyUrl,
                                             payload: {
                                                 credentials: credentialInfo.decryptedCredential,

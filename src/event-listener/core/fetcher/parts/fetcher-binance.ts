@@ -1,3 +1,5 @@
+import 'isomorphic-fetch';
+
 import { FetcherSource } from "src/event-listener/interfaces/shared.i";
 import { LitModule } from "../../../modules/lit.module";
 
@@ -2278,6 +2280,51 @@ const getAccount = async (
 
     let response = null as any;
 
+    if (source === 'fetch') {
+
+        const apiKey = payload.credentials?.apiKey
+        const apiSecret = payload?.credentials.apiSecret;
+
+        const queryString = objectToQueryString({
+            timestamp: Date.now(),
+            recvWindow: 60000,
+        });
+
+        const signature = JHash.hex_hmac_sha256(apiSecret, queryString);
+
+        const proxyOptions = {
+            method: 'POST',
+            body: JSON.stringify({
+                url: `${requestUrl}/v3/account` + '?' + queryString + '&signature=' + signature,
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'PostmanRuntime/7.29.2',
+                    'X-MBX-APIKEY': apiKey,
+                    'Content-Type': 'application/json',
+                },
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        };
+
+        const res = await fetch(proxyUrl, proxyOptions);
+        const data = await res.json();
+
+        if (data?.balances?.length > 0) {
+            data.balances = data?.balances?.filter((item) => {
+                const free = Number(item.free);
+                return free > 0
+            });
+        };
+
+        const assets = data?.balances?.map((item) => item.asset);
+
+        data.assets = assets;
+
+        response = data;
+    }
+
     if (source === 'lit-action') {
         const code = `
         ${JHashTemplate}
@@ -2289,12 +2336,11 @@ const getAccount = async (
 
             ${objectToQueryStringTemplate}
 
-            const payload = {
+            const queryString = objectToQueryString({
                 timestamp: Date.now(),
                 recvWindow: 60000,
-            };
+            });
 
-            const queryString = objectToQueryString(payload);
             const signature = JHash.hex_hmac_sha256(apiSecret, queryString);
 
             const proxyUrl = '${proxyUrl}';
@@ -2371,6 +2417,27 @@ const getAssetPrice = async (
 
     let response = null as any;
 
+    if (source === 'fetch') {
+        const url = `${requestUrl}/v3/ticker/price?symbol=${symbol}`;
+
+        const options = {
+            method: 'GET',
+            headers: {
+                'User-Agent': 'PostmanRuntime/7.29.2',
+                'Content-Type': 'application/json',
+            },
+        }
+
+        const res = await fetch(url, options);
+        const data = await res.json();
+
+        if (data?.symbol === symbol) {
+            data.price = Number(data.price);
+        }
+
+        response = data;
+    }
+
     if (source === 'lit-action') {
         const code = `
 
@@ -2433,6 +2500,25 @@ const getAssetInfo = async (
     } = params;
 
     let response = null as any;
+
+    if (source === 'fetch') {
+
+        const url =
+            `https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-product-by-symbol?symbol=${symbol}`;
+
+        const options = {
+            method: 'GET',
+            headers: {
+                'User-Agent': 'PostmanRuntime/7.29.2',
+                'Content-Type': 'application/json',
+            },
+        }
+
+        const res = await fetch(url, options);
+        const data = await res.json();
+
+        response = data;
+    }
 
     if (source === 'lit-action') {
 
@@ -2504,13 +2590,105 @@ const placeOrder = async (
     const {
         env,
         proxyUrl,
-        payload,
         source,
     } = params;
 
     const requestUrl = getApiUrl(env);
 
     let response = null as any;
+
+    if (source === 'fetch') {
+
+        const apiKey = params?.payload?.credentials?.apiKey;
+        const apiSecret = params?.payload?.credentials?.apiSecret;
+
+        const side = params?.payload?.form?.direction?.toUpperCase();
+        const symbol = params?.payload?.form?.asset?.toString();
+        let quantity = params?.payload?.form?.quantity?.toString();
+
+        let payload: any = {
+            timestamp: Date.now(),
+            recvWindow: 60000,
+        };
+
+        let queryString = objectToQueryString(payload);
+        let signature = JHash.hex_hmac_sha256(apiSecret, queryString);
+
+        if (side === 'SELL') {
+
+            const accountInfoRequest = await fetch(proxyUrl, {
+                method: 'POST',
+                body: JSON.stringify({
+                    url: `${requestUrl}/v3/account` + '?' + queryString + '&signature=' + signature,
+                    method: 'GET',
+                    headers: {
+                        'User-Agent': 'PostmanRuntime/7.29.2',
+                        'X-MBX-APIKEY': apiKey,
+                        'Content-Type': 'application/json',
+                    },
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const accountInfo = await accountInfoRequest.json();
+
+            accountInfo.balances = accountInfo?.balances?.filter((item) => {
+                const free = Number(item.free);
+                return free > 0
+            });
+
+            accountInfo.balances = accountInfo?.balances?.map((item) => {
+                const free = Number(item.free);
+                const locked = Number(item.locked);
+                item.free = free;
+                item.locked = locked;
+                return item;
+            });
+
+            const assetInfoToSell =
+                accountInfo?.balances?.find(res => symbol.startsWith(res.asset));
+
+            quantity = assetInfoToSell.free.toString();
+        }
+
+        payload = {
+            symbol,
+            side,
+            quantity,
+            type: 'MARKET',
+            timestamp: Date.now(),
+            recvWindow: 60000,
+        };
+
+        queryString = objectToQueryString(payload);
+        signature = JHash.hex_hmac_sha256(apiSecret, queryString);
+
+        const proxyOptions = {
+            method: 'POST',
+            body: JSON.stringify({
+                url: `${requestUrl}/v3/order` + '?' + queryString + '&signature=' + signature,
+                method: 'POST',
+                headers: {
+                    'User-Agent': 'PostmanRuntime/7.29.2',
+                    'X-MBX-APIKEY': apiKey,
+                    'Content-Type': 'application/json',
+                },
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        };
+
+        const res = await fetch(proxyUrl, proxyOptions);
+        const data = await res.json();
+
+        response = {
+            request: payload,
+            response: data,
+        };
+    }
 
     if (source === 'lit-action') {
 
@@ -2624,7 +2802,7 @@ const placeOrder = async (
         const litActionCall = await LitModule().runLitAction({
             chain: network,
             litActionCode: code,
-            listActionCodeParams: payload,
+            listActionCodeParams: params?.payload,
             nodes: 1,
             showLogs: false,
             authSig: pkpAuthSig,
@@ -2660,88 +2838,164 @@ const getQtyWithSymbolPrecision = async (
 
     let response = null as any;
 
-    if (source === 'lit-action') {
-        const code = `
-        const go = async () => {
+    if (source === 'fetch') {
 
-            const proxyUrl = '${proxyUrl}';
-
-            let proxyOptions = {
-                method: 'POST',
-                body: JSON.stringify({
-                    url: '${requestUrl}/v3/exchangeInfo?symbol=${symbol}',
-                    method: 'GET',
-                    headers: {
-                        'User-Agent': 'PostmanRuntime/7.29.2',
-                        'Content-Type': 'application/json',
-                    },
-                }),
+        let proxyOptions = {
+            method: 'POST',
+            body: JSON.stringify({
+                url: `${requestUrl}/v3/exchangeInfo?symbol=${symbol}`,
+                method: 'GET',
                 headers: {
+                    'User-Agent': 'PostmanRuntime/7.29.2',
                     'Content-Type': 'application/json',
-                }
-            };
-    
-            let response = await fetch(proxyUrl, proxyOptions);
-            let data = await response.json();
-
-            if(data?.symbols?.length <= 0 || !data?.symbols) {
-                Lit.Actions.setResponse({response: JSON.stringify({
-                    error: data?.msg || 'No data found'
-                })});
-                return;
-            };
-
-            let quantityPrecision = 
-                data?.symbols
-                    ?.find((item) => item.symbol === '${symbol}')?.filters
-                    ?.find((item) => item.filterType === 'LOT_SIZE')?.stepSize;
-
-            quantityPrecision = Number(quantityPrecision);
-
-            const getDecimalCount = (num) => {
-                const numStr = String(num);
-                const decimalIndex = numStr.indexOf('.');
-                if (decimalIndex === -1) {
-                    return 0;
-                } else {
-                    return numStr.length - decimalIndex - 1;
-                }
-            };
-
-            const decimalPart = getDecimalCount(quantityPrecision);
-
-            proxyOptions = {
-                method: 'POST',
-                body: JSON.stringify({
-                    url:  '${requestUrl}/v3/ticker/price?symbol=${symbol}',
-                    method: 'GET',
-                    headers: {
-                        'User-Agent': 'PostmanRuntime/7.29.2',
-                        'Content-Type': 'application/json',
-                    },
-                }),
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            };
-    
-            response = await fetch(proxyUrl, proxyOptions);
-            data = await response.json();
-
-            const price =  Number(data.price);
-
-            let amount = ${usdtAmount} / price;
-
-            let quantity = Number(amount.toFixed(decimalPart));
-
-            Lit.Actions.setResponse({response: JSON.stringify({
-                quantity,
-            })});
-
+                },
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            }
         };
 
-        go();
-    `;
+        let res = await fetch(proxyUrl, proxyOptions);
+        let data = await res.json();
+
+        if (data?.symbols?.length <= 0 || !data?.symbols) {
+            response = {
+                error: data?.msg || 'No data found'
+            };
+            return response;
+        };
+
+        let quantityPrecision =
+            data?.symbols
+                ?.find((item) => item.symbol === '${symbol}')?.filters
+                ?.find((item) => item.filterType === 'LOT_SIZE')?.stepSize;
+
+        quantityPrecision = Number(quantityPrecision);
+
+        const getDecimalCount = (num) => {
+            const numStr = String(num);
+            const decimalIndex = numStr.indexOf('.');
+            if (decimalIndex === -1) {
+                return 0;
+            } else {
+                return numStr.length - decimalIndex - 1;
+            }
+        };
+
+        const decimalPart = getDecimalCount(quantityPrecision);
+
+        proxyOptions = {
+            method: 'POST',
+            body: JSON.stringify({
+                url: `${requestUrl}/v3/ticker/price?symbol=${symbol}`,
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'PostmanRuntime/7.29.2',
+                    'Content-Type': 'application/json',
+                },
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        };
+
+        response = await fetch(proxyUrl, proxyOptions);
+        data = await response.json();
+
+        const price = Number(data.price);
+
+        let amount = usdtAmount / price;
+
+        let quantity = Number(amount.toFixed(decimalPart));
+
+        response = {
+            quantity,
+        };
+
+    }
+
+    if (source === 'lit-action') {
+        const code = `
+            const go = async () => {
+
+                const proxyUrl = '${proxyUrl}';
+
+                let proxyOptions = {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        url: '${requestUrl}/v3/exchangeInfo?symbol=${symbol}',
+                        method: 'GET',
+                        headers: {
+                            'User-Agent': 'PostmanRuntime/7.29.2',
+                            'Content-Type': 'application/json',
+                        },
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+        
+                let response = await fetch(proxyUrl, proxyOptions);
+                let data = await response.json();
+
+                if(data?.symbols?.length <= 0 || !data?.symbols) {
+                    Lit.Actions.setResponse({response: JSON.stringify({
+                        error: data?.msg || 'No data found'
+                    })});
+                    return;
+                };
+
+                let quantityPrecision = 
+                    data?.symbols
+                        ?.find((item) => item.symbol === '${symbol}')?.filters
+                        ?.find((item) => item.filterType === 'LOT_SIZE')?.stepSize;
+
+                quantityPrecision = Number(quantityPrecision);
+
+                const getDecimalCount = (num) => {
+                    const numStr = String(num);
+                    const decimalIndex = numStr.indexOf('.');
+                    if (decimalIndex === -1) {
+                        return 0;
+                    } else {
+                        return numStr.length - decimalIndex - 1;
+                    }
+                };
+
+                const decimalPart = getDecimalCount(quantityPrecision);
+
+                proxyOptions = {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        url:  '${requestUrl}/v3/ticker/price?symbol=${symbol}',
+                        method: 'GET',
+                        headers: {
+                            'User-Agent': 'PostmanRuntime/7.29.2',
+                            'Content-Type': 'application/json',
+                        },
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+        
+                response = await fetch(proxyUrl, proxyOptions);
+                data = await response.json();
+
+                const price =  Number(data.price);
+
+                let amount = ${usdtAmount} / price;
+
+                let quantity = Number(amount.toFixed(decimalPart));
+
+                Lit.Actions.setResponse({response: JSON.stringify({
+                    quantity,
+                })});
+
+            };
+
+            go();
+        `;
 
         const litActionCall = await LitModule().runLitAction({
             chain: network,

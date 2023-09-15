@@ -65,6 +65,7 @@ describe('Lit Action Cases', () => {
 
     xit('Binance order test', async () => {
 
+        const source = 'fetch';
         const chain = 'mumbai';
         const credentialNftUUID = '0xd06b243c18ffc6f0c24338804773b5b4';
         const environment = 'demo';
@@ -111,7 +112,7 @@ describe('Lit Action Cases', () => {
                 pkpAuthSig,
                 {
                     env: environment as any,
-                    source: 'lit-action',
+                    source,
                     symbol,
                     usdtAmount,
                     proxyUrl,
@@ -127,7 +128,7 @@ describe('Lit Action Cases', () => {
                 pkpAuthSig,
                 {
                     env: environment as any,
-                    source: 'lit-action',
+                    source,
                     proxyUrl,
                     payload: {
                         credentials: binanceCredentials,
