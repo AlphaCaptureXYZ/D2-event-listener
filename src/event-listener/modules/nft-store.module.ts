@@ -28,7 +28,7 @@ const add = async (
 }
 
 const retrieve = async (
-    payload?: {
+    payload: {
         cid: string,
         proxy?: boolean,
     },
