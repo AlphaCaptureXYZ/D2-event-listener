@@ -138,8 +138,8 @@ export const getStringSize = (str: string) => {
 
     return {
         bytes,
-        kilobytes: Number(kilobytes.toFixed(4)),
-        megabytes: Number(megabytes.toFixed(4)),
+        kilobytes: Number(kilobytes.toFixed(5)),
+        megabytes: Number(megabytes.toFixed(5)),
     }
 }
 

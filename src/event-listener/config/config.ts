@@ -7,6 +7,8 @@ const APP_ENV: 'development' | 'production' =
 
 const WEAVEDB_CONTRACT_TX_ID = 'uItgIC0zhIGUM3uK0DPb__1TVb-2F5Q1awI2mVMICbk';
 
+const NFT_STORAGE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDg4QWQ0MDgwODIxMTIyOTRGQjU5MDM3NDk2Y0ZDMjk0Yzg2QjNGQzkiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY5NTEzODUyMjcwMiwibmFtZSI6ImQyLW9yZGVyLXN0b3JlIn0.Dm2J9JxCuBnxRk6Q9nrrUGkhmwWAJ5rvBfsdtU4sR38';
+
 const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY as string;
 
 const PKP_KEY = process.env.PKP_KEY as string;
@@ -58,4 +60,5 @@ export {
     IDEA_NFT_CONFIG,
     MAX_LIT_ENC_DEC_ATTEMPTS,
     WEAVEDB_CONTRACT_TX_ID,
+    NFT_STORAGE_API_KEY,
 };

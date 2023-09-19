@@ -87,6 +87,8 @@ describe('WeaveDB Cases', () => {
             }
         );
 
+        console.log('Test result (data)', data);
+
         expect(isNullOrUndefined(data)).to.be.false;
         expect(data?.success).to.be.true;
 
@@ -112,7 +114,7 @@ describe('WeaveDB Cases', () => {
 
             },
             response: {
-                
+
             },
             error: 'Symbol not found',
         };
@@ -188,9 +190,8 @@ describe('WeaveDB Cases', () => {
             }
         );
 
-        console.log(data);
-
         expect(isNullOrUndefined(data)).to.be.false;
+        expect(data?.length > 0).to.be.true;
 
     }).timeout(50000);
 
@@ -217,7 +218,7 @@ describe('WeaveDB Cases', () => {
 
     xit('Delete info by document Id', async () => {
 
-        const docID = 'ec050c7aca45b398c0db9b5043033a3b';
+        const docID = '3ee4ce83966d4105e404b3278e8690f6';
 
         const data = await WeaveDBModule.deleteData(docID);
 

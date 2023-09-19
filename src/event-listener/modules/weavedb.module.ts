@@ -2,6 +2,7 @@ import * as config from "../config/config";
 
 import { LitModule } from './lit.module';
 import { CompressorModule } from './compressor.module';
+import { NftStorageModule } from './nft-store.module';
 
 import { ethers } from "ethers";
 
@@ -129,6 +130,18 @@ const getAllData = async <T>(
                 const docId = res?.id;
                 const info: any = res?.data;
 
+                if ([
+                    'order',
+                ].includes(type)) {
+                    const cid = info?.data;
+
+                    const nftStorageResult = await NftStorageModule.retrieve({
+                        cid,
+                    });
+
+                    info.data = nftStorageResult;
+                }
+
                 const userWallet = info?.userAddress;
                 const pkpWalletAddress = info?.pkpWalletAddress || null;
 
@@ -205,7 +218,9 @@ const addData = async <T>(
         // pkp key to store data for enable external access
         pkpKey: string,
         // if data is compressed
-        isCompressed: boolean,
+        isCompressed?: boolean,
+        // to store data via IPFS (data with big size)
+        // viaIPFS?: boolean,
     },
     authSig: any = null,
 ) => {
@@ -254,6 +269,13 @@ const addData = async <T>(
 
         if (payload?.isCompressed) {
             data = await CompressorModule.compressData(data);
+        }
+
+        if ([
+            'order',
+        ].includes(type)) {
+            const { cid } = await NftStorageModule.add(data);
+            data = cid;
         }
 
         const obj = {
