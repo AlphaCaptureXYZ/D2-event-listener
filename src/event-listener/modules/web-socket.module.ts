@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 import * as http from "http";
 import * as https from "https";
 
@@ -11,7 +9,6 @@ import {
 } from '../modules/event-emitter.module';
 
 const initialize = (server: https.Server | http.Server): void => {
-
   let walletAddress = null;
 
   const wss = new WebSocketServer({
@@ -22,7 +19,7 @@ const initialize = (server: https.Server | http.Server): void => {
       const queryParams = new URLSearchParams(qs);
 
       walletAddress = queryParams?.get("walletAddress");
-
+      
       done(true);
     },
   });

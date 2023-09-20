@@ -10,7 +10,6 @@ import {
 
 import {
     EventEmitterModule as EventEmitter,
-    EventType
 } from './event-listener/modules/event-emitter.module';
 
 import * as http from "http";
