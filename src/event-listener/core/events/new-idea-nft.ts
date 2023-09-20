@@ -466,7 +466,7 @@ const getIdeaNFTInfo = async (
 
         wsLogger({
             type: 'info',
-            message: `New idea NFT event received! (nftID: ${nftId}, BlockNumber: ${blockNumber},Ticker: ${info?.data?.idea?.asset?.ticker} Direction: ${info?.data?.idea?.trade?.direction} Kind: ${info?.data?.idea?.kind} Provider: ${info?.data?.pricing?.provider}, Strategy: ${info?.data?.strategy?.name} (${info?.data?.strategy?.reference}))`,
+            message: `New idea NFT event received! (nftID: ${nftId}, BlockNumber: ${blockNumber}, Ticker: ${info?.data?.idea?.asset?.ticker}, Direction: ${info?.data?.idea?.trade?.direction}, Kind: ${info?.data?.idea?.kind}, Provider: ${info?.data?.pricing?.provider}, Strategy: ${info?.data?.strategy?.name} (${info?.data?.strategy?.reference}))`,
             data: {
                 network,
                 nftId,
