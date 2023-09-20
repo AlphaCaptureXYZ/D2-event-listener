@@ -13,6 +13,8 @@ import * as express from 'express';
 import * as cors from 'cors';
 import * as bodyParser from 'body-parser';
 
+import { wsLogger } from './event-listener/utils/utils';
+
 const app = express();
 
 app.use(cors());
@@ -23,6 +25,12 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: false }));
 const PORT = process.env.PORT || 3006;
 
 app.get('/', (req, res) => {
+
+    wsLogger({
+        type: 'info',
+        message: 'Ping'
+    });
+
     res.status(200).json({
         message: 'D2 Event Listener API running...',
         status: 'success',

@@ -222,11 +222,12 @@ const orderProcess = async (
     for (const orderResult of orderResults) {
         if (orderResult) {
 
+            const ticker =  orderResult?.additionalInfo?.asset;
             const userWalletAddress = orderResult?.additionalInfo?.userWalletAddress;
             const credentialNftUUID = orderResult?.additionalInfo?.credentialNftUUID;
             const credentialOwner = orderResult?.additionalInfo?.userWalletAddress;
             const environment = orderResult?.additionalInfo?.environment;
-
+        
             const orderId = orderResult?.response?.orderId || null;
             const error = orderResult?.error || orderResult?.response?.error || null;
 
@@ -258,7 +259,7 @@ const orderProcess = async (
             if (isNullOrUndefined(docID) || isNullOrUndefined(orderId)) {
                 wsLogger({
                     type: 'error',
-                    message: `Order stored error`,
+                    message: `Order stored error (${JSON.stringify(error) || 'unknown'})})`,
                     data: {
                         docID,
                         orderId,
@@ -272,7 +273,7 @@ const orderProcess = async (
             if (!isNullOrUndefined(docID) && !isNullOrUndefined(orderId)) {
                 wsLogger({
                     type: 'success',
-                    message: `Order stored success`,
+                    message: `Order stored success (OrderID: ${orderId}, WeaverID: ${docID}, NftId: ${nftId}, Ticker: ${ticker}, UserWallet: ${userWalletAddress}, CredentialNFTUUID: ${credentialNftUUID}, Env: ${environment})`,
                     data: {
                         docID,
                         orderId,
@@ -465,7 +466,7 @@ const getIdeaNFTInfo = async (
 
         wsLogger({
             type: 'info',
-            message: `New idea NFT event received!`,
+            message: `New idea NFT event received! (nftID: ${nftId}, BlockNumber: ${blockNumber},Ticker: ${info?.data?.idea?.asset?.ticker} Direction: ${info?.data?.idea?.trade?.direction} Kind: ${info?.data?.idea?.kind} Provider: ${info?.data?.pricing?.provider}, Strategy: ${info?.data?.strategy?.name} (${info?.data?.strategy?.reference}))`,
             data: {
                 network,
                 nftId,
