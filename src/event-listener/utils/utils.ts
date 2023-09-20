@@ -1,6 +1,19 @@
+import {
+    EventEmitterModule as EventEmitter,
+} from '../modules/event-emitter.module';
+
 import { ethers } from 'ethers';
 
 import * as config from '../config/config';
+
+export const wsLogger = (payload: {
+    message: string;
+    type: 'error' | 'info' | 'success' | 'warning';
+    data?: any;
+}) => {
+    (payload as any).createdAt = Date.now();
+    EventEmitter().emit('WS_LOG', payload);
+}
 
 export const getCurrentWalletAddress = () => {
     const privateKey = config.WALLET_PRIVATE_KEY;

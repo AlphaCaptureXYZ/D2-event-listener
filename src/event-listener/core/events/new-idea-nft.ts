@@ -13,7 +13,8 @@ import {
 import { INewIdeaNFT } from '../../../event-listener/interfaces/new-idea-nft.i';
 
 import { isNullOrUndefined, loop, retryFunctionHelper } from '../../../event-listener/helpers/helpers';
-import { getBalance } from '../../../event-listener/utils/utils';
+
+import { getBalance, wsLogger } from '../../../event-listener/utils/utils';
 
 import * as fetcher from '../fetcher';
 
@@ -254,6 +255,34 @@ const orderProcess = async (
             console.log('Asset:', orderResult?.additionalInfo?.asset);
             console.log('==================================================');
 
+            if (isNullOrUndefined(docID) || isNullOrUndefined(orderId)) {
+                wsLogger({
+                    type: 'error',
+                    message: `Order stored error`,
+                    data: {
+                        docID,
+                        orderId,
+                        userWalletAddress,
+                        credentialNftUUID,
+                        orderResult,
+                    }
+                });
+            }
+
+            if (!isNullOrUndefined(docID) && !isNullOrUndefined(orderId)) {
+                wsLogger({
+                    type: 'success',
+                    message: `Order stored success`,
+                    data: {
+                        docID,
+                        orderId,
+                        userWalletAddress,
+                        credentialNftUUID,
+                        orderResult,
+                    }
+                });
+            }
+
             EventEmitter().emit<INotificationPayload>('NOTIFICATION', {
                 type: 'NEW_ORDER',
                 info: {
@@ -416,17 +445,6 @@ const getIdeaNFTInfo = async (
         },
     );
 
-    if (!withAccess) {
-        console.log('');
-        console.log('=================================================================');
-        console.log(`New idea NFT event received!`);
-        console.log(`network: ${network}`);
-        console.log(`blockNumber: ${blockNumber}`);
-        console.log(`We can't decrypt the idea (access denied)`);
-        console.log('=================================================================');
-        console.log('');
-    };
-
     if (withAccess) {
         console.log('');
         console.log('=================================================================');
@@ -444,6 +462,30 @@ const getIdeaNFTInfo = async (
         console.log(`Strategy: ${info?.data?.strategy?.name} (${info?.data?.strategy?.reference})`);
         console.log('=================================================================');
         console.log('');
+
+        wsLogger({
+            type: 'info',
+            message: `New idea NFT event received!`,
+            data: {
+                network,
+                nftId,
+                blockNumber,
+                provider: info?.data?.pricing?.provider,
+                ticker: info?.data?.idea?.asset?.ticker,
+                kind: info?.data?.idea?.kind,
+                direction: info?.data?.idea?.trade?.direction,
+                price: info?.data?.idea?.priceInfo?.price?.globalPrice,
+                creator: {
+                    name: info?.data?.creator?.name,
+                    walletAddress: info?.data?.creator?.walletAddress,
+                },
+                company: info?.data?.creator?.company,
+                strategy: {
+                    reference: info?.data?.strategy?.reference,
+                    name: info?.data?.strategy?.name,
+                },
+            }
+        });
     };
 
     return info;

@@ -8,10 +8,6 @@ import {
     WebSocketModule
 } from "./event-listener/modules/web-socket.module";
 
-import {
-    EventEmitterModule as EventEmitter,
-} from './event-listener/modules/event-emitter.module';
-
 import * as http from "http";
 import * as express from 'express';
 import * as cors from 'cors';
@@ -27,7 +23,6 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: false }));
 const PORT = process.env.PORT || 3006;
 
 app.get('/', (req, res) => {
-    EventEmitter().emit('WS_LOG', { ping: true });
     res.status(200).json({
         message: 'D2 Event Listener API running...',
         status: 'success',
