@@ -2867,7 +2867,7 @@ const getQtyWithSymbolPrecision = async (
 
         let quantityPrecision =
             data?.symbols
-                ?.find((item) => item.symbol === '${symbol}')?.filters
+                ?.find((item) => item.symbol === symbol)?.filters
                 ?.find((item) => item.filterType === 'LOT_SIZE')?.stepSize;
 
         quantityPrecision = Number(quantityPrecision);
