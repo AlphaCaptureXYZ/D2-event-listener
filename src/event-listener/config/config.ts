@@ -1,5 +1,8 @@
 import 'dotenv/config';
 
+import { IPkpInfo } from '../interfaces/shared.i';
+import { WeaveDBModule } from '../modules/weavedb.module';
+
 const MAX_LIT_ENC_DEC_ATTEMPTS = 5 as number;
 
 const APP_ENV: 'development' | 'production' =
@@ -11,7 +14,18 @@ const NFT_STORAGE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaW
 
 const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY as string;
 
-const PKP_KEY = process.env.PKP_KEY as string;
+const getPKPInfo = async (network: string): Promise<IPkpInfo> => {
+    const data = await WeaveDBModule.getAllData<any>(network, {
+        type: 'pkp-info',
+        byUserWalletFilter: true,
+    });
+    
+    const pkpInfo = data?.find(res => res) || null;
+
+    if (!pkpInfo) throw new Error('PKP Info not found, please generate one using the D2 site');
+
+    return pkpInfo;
+}
 
 const IDEA_NFT_CONFIG = {
     gateContractAddress: '0x571A9207816bb926B21665567D370f3DC1A4dfa4',
@@ -54,9 +68,10 @@ const IDEA_NFT_CONFIG = {
 };
 
 export {
+    getPKPInfo,
+
     APP_ENV,
     WALLET_PRIVATE_KEY,
-    PKP_KEY,
     IDEA_NFT_CONFIG,
     MAX_LIT_ENC_DEC_ATTEMPTS,
     WEAVEDB_CONTRACT_TX_ID,

@@ -41,7 +41,7 @@ const getPkpAuthSig = async (
         listActionCodeParams,
         nodes: 10,
         showLogs: false,
-        pkpKey: config.PKP_KEY,
+        pkpKey,
         sigName: 'pkpAuthSig',
     });
 

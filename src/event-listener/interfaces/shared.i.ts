@@ -15,3 +15,12 @@ export interface ILitActionResult {
     response: any;
     error: any;
 }
+
+export interface IPkpInfo {
+    docId: string;
+    tokenId: string;
+    pkpPublicKey: string;
+    pkpWalletAddress: string;
+    wallets?: string[];
+    tx?: any;
+}

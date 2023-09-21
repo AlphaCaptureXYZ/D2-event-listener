@@ -8,19 +8,20 @@ import { ethers } from "ethers";
 
 import * as WeaveDB from 'weavedb-sdk-node';
 
-import { getStringSize, isNullOrUndefined } from '../helpers/helpers';
+import { getStringSize, isNullOrUndefined, wait } from '../helpers/helpers';
 
 import { blobToBase64String } from '@lit-protocol/lit-node-client-nodejs';
 import { getCurrentWalletAddress } from "../utils/utils";
 
 const COLLECTION_NAME = 'D2-data';
-const contractTxId = config.WEAVEDB_CONTRACT_TX_ID;
 
 let db: any = null;
 
 const init = async () => {
     if (isNullOrUndefined(db)) {
         try {
+            const contractTxId = config.WEAVEDB_CONTRACT_TX_ID;
+
             db = new WeaveDB({
                 contractTxId,
                 nocache: true,
@@ -110,7 +111,7 @@ const getAllData = async <T>(
         } = payload;
 
         await init();
-
+        
         let docs: any[] = await db.cget(
             COLLECTION_NAME,
             ['type'],

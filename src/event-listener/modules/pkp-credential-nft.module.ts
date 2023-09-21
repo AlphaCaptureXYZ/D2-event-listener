@@ -44,8 +44,9 @@ export const abi = [
 
 const getCredentialNftEncryptedDeprecated = async (
     payload: {
-        chain: string
-        credentialNftUUID: string
+        chain: string;
+        credentialNftUUID: string;
+        pkpKey: string;
     }
 ): Promise<ICredentialNft<any>> => {
 
@@ -56,6 +57,7 @@ const getCredentialNftEncryptedDeprecated = async (
         const {
             credentialNftUUID,
             chain,
+            pkpKey,
         } = payload;
 
         const rpcUrl = getRpcUrlByNetwork(chain);
@@ -147,7 +149,7 @@ const getCredentialNftEncryptedDeprecated = async (
             listActionCodeParams: listActionSignCodeParams,
             nodes: 10,
             showLogs: false,
-            pkpKey: config.PKP_KEY,
+            pkpKey,
         });
 
         const litActionGetCredentialCode = `
@@ -233,7 +235,7 @@ const getCredentialNftEncryptedDeprecated = async (
             listActionCodeParams: listActionGetCredentialCodeParams,
             nodes: 1,
             showLogs: false,
-            pkpKey: config.PKP_KEY,
+            pkpKey,
         });
 
         response = (getCredential?.response as any)?.credential as ICredentialNft<any>;
@@ -247,8 +249,9 @@ const getCredentialNftEncryptedDeprecated = async (
 
 const getCredentialNftEncrypted = async (
     payload: {
-        chain: string
-        credentialNftUUID: string
+        chain: string;
+        credentialNftUUID: string;
+        pkpKey: string;
     }
 ): Promise<ICredentialNft<any>> => {
 
@@ -259,6 +262,7 @@ const getCredentialNftEncrypted = async (
         const {
             credentialNftUUID,
             chain,
+            pkpKey,
         } = payload;
 
         const rpcUrl = getRpcUrlByNetwork(chain);
@@ -325,7 +329,7 @@ const getCredentialNftEncrypted = async (
             listActionCodeParams: listActionGetCredentialCodeParams,
             nodes: 1,
             showLogs: false,
-            pkpKey: config.PKP_KEY,
+            pkpKey,
         });
 
         response = (getCredential?.response as any)?.credential as ICredentialNft<any>;
@@ -339,9 +343,10 @@ const getCredentialNftEncrypted = async (
 
 const decryptCredentialNft = async <T>(
     payload: {
-        chain: string
-        credentialInfo: ICredentialNft<T>,
-        authSig?: any,
+        chain: string;
+        credentialInfo: ICredentialNft<T>;
+        pkpKey: string;
+        authSig?: any;
     }
 ): Promise<ICredentialNft<T>> => {
 
@@ -349,6 +354,7 @@ const decryptCredentialNft = async <T>(
         chain,
         credentialInfo,
         authSig,
+        pkpKey
     } = payload;
 
     try {
@@ -356,7 +362,7 @@ const decryptCredentialNft = async <T>(
         if (isNullOrUndefined(authSig)) {
             authSig = await PkpAuthModule.getPkpAuthSig(
                 chain,
-                config.PKP_KEY as string,
+                pkpKey
             );
         };
 
@@ -396,9 +402,10 @@ const decryptCredentialNft = async <T>(
 
 const getFullCredential = async <T>(
     payload: {
-        chain: string
-        credentialNftUUID: string,
-        authSig?: any,
+        chain: string;
+        credentialNftUUID: string;
+        pkpKey: string;
+        authSig?: any;
     }
 ): Promise<ICredentialNft<T>> => {
     return retryFunctionHelper<ICredentialNft<T>>({
@@ -408,6 +415,7 @@ const getFullCredential = async <T>(
             const {
                 chain,
                 authSig,
+                pkpKey,
             } = payload;
 
             const credentialEncrypted = await getCredentialNftEncrypted(payload);
@@ -416,6 +424,7 @@ const getFullCredential = async <T>(
                 chain,
                 credentialInfo: credentialEncrypted,
                 authSig,
+                pkpKey,
             });
 
             const credentialInfo = credentialNftDecrypted;

@@ -17,9 +17,13 @@ describe('Lit Action Cases', () => {
 
     xit('Credential NFT smart contract request using PKP key to check the access', async () => {
 
+        const chain = 'mumbai';
+        const pkpInfo = await config.getPKPInfo(chain);
+
         const result = await PkpCredentialNftModule.getCredentialNftEncrypted({
-            chain: 'mumbai',
+            chain,
             credentialNftUUID: '0xd06b243c18ffc6f0c24338804773b5b4',
+            pkpKey: pkpInfo?.pkpPublicKey,
         });
 
         expect(isNullOrUndefined(result)).to.be.false;
@@ -37,12 +41,16 @@ describe('Lit Action Cases', () => {
 
     xit('Retrieve Full credential pkp access', async () => {
 
+        const chain = 'mumbai';
+        const pkpInfo = await config.getPKPInfo(chain);
+
         const result = await PkpCredentialNftModule.getFullCredential<{
             apiKey: string;
             apiSecret: string;
         }>({
-            chain: 'mumbai',
+            chain,
             credentialNftUUID: '0xd06b243c18ffc6f0c24338804773b5b4',
+            pkpKey: pkpInfo?.pkpPublicKey,
         });
 
         const binanceCredentials = {
@@ -74,12 +82,15 @@ describe('Lit Action Cases', () => {
         const direction = 'BUY';
         const usdtAmount = 11;
 
+        const pkpInfo = await config.getPKPInfo(chain);
+
         const credentialInfo = await PkpCredentialNftModule.getFullCredential<{
             apiKey: string;
             apiSecret: string;
         }>({
             chain,
             credentialNftUUID,
+            pkpKey: pkpInfo?.pkpPublicKey,
         });
 
         const binanceCredentials = {
@@ -89,7 +100,7 @@ describe('Lit Action Cases', () => {
 
         const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
             chain,
-            config.PKP_KEY,
+            pkpInfo?.pkpPublicKey,
         );
 
         const userSetting = await WeaveDBModule.getAllData<any>(
@@ -169,12 +180,15 @@ describe('Lit Action Cases', () => {
         const credentialNftUUID = '0xd06b243c18ffc6f0c24338804773b5b4';
         const environment = 'demo';
 
+        const pkpInfo = await config.getPKPInfo(chain);
+
         const credentialInfo = await PkpCredentialNftModule.getFullCredential<{
             apiKey: string;
             apiSecret: string;
         }>({
             chain,
             credentialNftUUID,
+            pkpKey: pkpInfo?.pkpPublicKey,
         });
 
         const binanceCredentials = {
@@ -184,7 +198,7 @@ describe('Lit Action Cases', () => {
 
         const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
             chain,
-            config.PKP_KEY,
+            pkpInfo?.pkpPublicKey,
         );
 
         const userSetting = await WeaveDBModule.getAllData<any>(

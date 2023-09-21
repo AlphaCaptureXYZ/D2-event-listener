@@ -26,6 +26,7 @@ export const notification = async (
                 docID,
                 error,
                 environment,
+                pkpInfo,
             } = info;
 
             const fields = [
@@ -36,7 +37,7 @@ export const notification = async (
                 },
                 {
                     title: 'Pkp Key',
-                    value: config.PKP_KEY,
+                    value: pkpInfo?.pkpPublicKey,
                     short: false
                 },
                 {
@@ -96,7 +97,7 @@ export const notification = async (
                 },
                 {
                     title: 'Environment',
-                    value:  environment,
+                    value: environment,
                     short: false,
                 },
             ];

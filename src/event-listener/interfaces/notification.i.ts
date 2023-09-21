@@ -1,3 +1,5 @@
+import { IPkpInfo } from "./shared.i";
+
 export interface INotificationPayload {
     type: string,
     info: {
@@ -11,5 +13,6 @@ export interface INotificationPayload {
         error?: string;
         orderId?: string;
         docID?: string;
+        pkpInfo: IPkpInfo;
     }
 };

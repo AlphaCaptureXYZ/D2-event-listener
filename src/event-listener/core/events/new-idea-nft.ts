@@ -21,7 +21,7 @@ import * as fetcher from '../fetcher';
 import { PkpAuthModule } from '../../../event-listener/modules/pkp-auth.module';
 import { PkpCredentialNftModule } from '../../../event-listener/modules/pkp-credential-nft.module';
 import { INotificationPayload } from '../../../event-listener/interfaces/notification.i';
-import { ILitActionResult } from '../../../event-listener/interfaces/shared.i';
+import { ILitActionResult, IPkpInfo } from '../../../event-listener/interfaces/shared.i';
 
 export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
     let eventResult = [];
@@ -35,9 +35,11 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
             nftId,
         } = await getIdeaNFTInfoWithRetry(payload);
 
+        const pkpInfo = await config.getPKPInfo(network);
+
         const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
             network,
-            config.PKP_KEY,
+            pkpInfo.pkpPublicKey,
         );
 
         const triggers = await getTriggersByStrategy(
@@ -53,6 +55,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
             data,
             nftId,
             blockNumber,
+            pkpInfo,
         });
 
     } catch (err) {
@@ -70,6 +73,7 @@ const orderProcess = async (
         data: any,
         nftId: number,
         blockNumber: number,
+        pkpInfo: IPkpInfo,
     }
 ) => {
     const {
@@ -79,6 +83,7 @@ const orderProcess = async (
         data,
         nftId,
         blockNumber,
+        pkpInfo,
     } = payload;
 
     const pricingProvider = data?.pricing?.provider;
@@ -97,6 +102,7 @@ const orderProcess = async (
                     chain: network,
                     credentialNftUUID,
                     authSig: pkpAuthSig,
+                    pkpKey: pkpInfo.pkpPublicKey,
                 });
 
             const credentialOwner = credentialInfo?.owner;
@@ -222,12 +228,12 @@ const orderProcess = async (
     for (const orderResult of orderResults) {
         if (orderResult) {
 
-            const ticker =  orderResult?.additionalInfo?.asset;
+            const ticker = orderResult?.additionalInfo?.asset;
             const userWalletAddress = orderResult?.additionalInfo?.userWalletAddress;
             const credentialNftUUID = orderResult?.additionalInfo?.credentialNftUUID;
             const credentialOwner = orderResult?.additionalInfo?.userWalletAddress;
             const environment = orderResult?.additionalInfo?.environment;
-        
+
             const orderId = orderResult?.response?.orderId || null;
             const error = orderResult?.error || orderResult?.response?.error || null;
 
@@ -238,7 +244,7 @@ const orderProcess = async (
                         provider: pricingProvider,
                         result: orderResult,
                     },
-                    pkpKey: config.PKP_KEY,
+                    pkpKey: pkpInfo.pkpPublicKey,
                     type: 'order',
                     userWallet: userWalletAddress,
                     isCompressed: true,
@@ -296,6 +302,7 @@ const orderProcess = async (
                     docID,
                     error,
                     environment,
+                    pkpInfo,
                 },
             });
 

@@ -76,11 +76,13 @@ describe('WeaveDB Cases', () => {
             result,
         };
 
+        const pkpInfo = await config.getPKPInfo(chain);
+
         const data = await WeaveDBModule.addData<any>(
             chain,
             {
                 jsonData,
-                pkpKey: config.PKP_KEY,
+                pkpKey: pkpInfo.pkpPublicKey,
                 type: 'order',
                 userWallet: userWalletAddress,
                 isCompressed: true,
@@ -124,11 +126,13 @@ describe('WeaveDB Cases', () => {
             result,
         };
 
+        const pkpInfo = await config.getPKPInfo(chain);
+
         const data = await WeaveDBModule.addData<any>(
             chain,
             {
                 jsonData,
-                pkpKey: config.PKP_KEY,
+                pkpKey: pkpInfo.pkpPublicKey,
                 type: 'order',
                 userWallet: userWalletAddress,
                 isCompressed: true,
@@ -162,11 +166,13 @@ describe('WeaveDB Cases', () => {
             },
         };
 
+        const pkpInfo = await config.getPKPInfo(chain);
+
         const data = await WeaveDBModule.addData<any>(
             chain,
             {
                 jsonData,
-                pkpKey: config.PKP_KEY,
+                pkpKey: pkpInfo.pkpPublicKey,
                 type: 'trigger',
                 userWallet: userWalletAddress,
                 isCompressed: false,
@@ -199,9 +205,11 @@ describe('WeaveDB Cases', () => {
 
         const chain = 'mumbai';
 
+        const pkpInfo = await config.getPKPInfo(chain);
+
         const authSigh = await PkpAuthModule.getPkpAuthSig(
             chain,
-            config.PKP_KEY,
+            pkpInfo.pkpPublicKey,
         );
 
         const data = await WeaveDBModule.getAllData<any>(

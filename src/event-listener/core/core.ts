@@ -45,10 +45,12 @@ export const D2EventListener = async (
 ) => new Promise<any>(async (resolve, reject) => {
     try {
 
+        const { privateKey, network } = payload;
+
+        const pkpInfo = await config.getPKPInfo(network);
+
         // watch and process events
         watcherLoader(payload, resolve);
-
-        const { privateKey, network } = payload;
 
         const {
             contract,
@@ -59,7 +61,9 @@ export const D2EventListener = async (
             network,
         });
 
-        log(`Private key detected (${privateKey})`);
+        log(`Network: ${network}`);
+        log(`Private key detected: ${privateKey}`);
+        log(`PKP detected: ${pkpInfo?.pkpPublicKey}`);
         log(`Address: ${wallet.address}`);
 
         log(`Listening the events flow...`);
@@ -69,6 +73,7 @@ export const D2EventListener = async (
         log('');
 
         const isAUnitTest = payload?.test?.enabled;
+
 
         if (!isAUnitTest) {
             events?.map((key) => {
@@ -202,6 +207,7 @@ const getEventFiltered = (contract: ethers.Contract) => {
     });
 
     if (events?.length > 0) {
+        log('');
         log(`Events to listen: ${events.join(', ')}`);
     }
 

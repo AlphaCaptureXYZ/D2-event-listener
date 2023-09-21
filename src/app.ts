@@ -67,10 +67,12 @@ WebSocketModule.initialize(server);
 
 (async function main() {
     try {
+
         await D2EventListener({
             network: 'mumbai',
             privateKey: process.env.WALLET_PRIVATE_KEY,
         });
+        
     } catch (err: any) {
         console.log('Main Error: ', err?.message);
     }
