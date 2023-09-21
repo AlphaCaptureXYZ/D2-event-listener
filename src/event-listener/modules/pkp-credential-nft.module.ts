@@ -1,19 +1,13 @@
-import * as config from '../config/config';
-
 import { ICredentialNft } from '../interfaces/credential-nft.i';
 
 import { LitModule } from './lit.module';
 
 import { PkpAuthModule } from './pkp-auth.module';
 
-import { ethers } from 'ethers';
-
-import * as Siwe from 'siwe';
-
 import { isNullOrUndefined, retryFunctionHelper } from '../helpers/helpers';
 import { getRpcUrlByNetwork } from '../utils/utils';
 
-export const contractAddress = '0x8f58fd7f9eE19eC25a3F9dd035140E4d218c4178';
+export const contractAddress = '0x1F4b87e36478EE89b6a6d32B3B0da75EBf57A602';
 
 export const abi = [
     "constructor()",

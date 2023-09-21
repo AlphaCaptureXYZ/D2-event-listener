@@ -1,5 +1,3 @@
-import * as config from '../config/config';
-
 import { LitModule } from './lit.module';
 
 import { ethers } from 'ethers';

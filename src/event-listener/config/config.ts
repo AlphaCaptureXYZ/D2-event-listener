@@ -19,7 +19,7 @@ const getPKPInfo = async (network: string): Promise<IPkpInfo> => {
         type: 'pkp-info',
         byUserWalletFilter: true,
     });
-    
+
     const pkpInfo = data?.find(res => res) || null;
 
     if (!pkpInfo) throw new Error('PKP Info not found, please generate one using the D2 site');
@@ -28,8 +28,8 @@ const getPKPInfo = async (network: string): Promise<IPkpInfo> => {
 }
 
 const IDEA_NFT_CONFIG = {
-    gateContractAddress: '0x571A9207816bb926B21665567D370f3DC1A4dfa4',
-    coreContractAddress: '0x5FcaffB996C5D241F2CF344FFE742993Df764e05',
+    gateContractAddress: '0x3454dc9AC9e22db36708Df5C8A71A11cfedFe5C0',
+    coreContractAddress: '0x7293e5DC2C6ced964a20389cC248F5f69543bf39',
     gateAbi: [
         'event IdeaCreated(address,uint256,string,uint256,uint256,uint256)',
         'event Initialized(uint8)',
