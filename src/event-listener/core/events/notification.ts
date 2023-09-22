@@ -1,5 +1,3 @@
-import * as config from '../../config/config';
-
 import { INotificationPayload } from '../../../event-listener/interfaces/notification.i';
 
 import { NotificatorModule } from '../../modules/notificator.module';
@@ -128,7 +126,6 @@ export const notification = async (
 
             if (data?.idea?.asset?.ticker && orderId && !error) {
                 await NotificatorModule.sendNotification({
-                    url: process.env.SLACK_WEBHOOK_URL,
                     payload: {
                         username: 'D2 Event Listener (Order)',
                         text: `A new order has been placed. Check the details to know more about it.`,
@@ -146,7 +143,6 @@ export const notification = async (
 
             if (error) {
                 await NotificatorModule.sendNotification({
-                    url: process.env.SLACK_WEBHOOK_URL,
                     payload: {
                         username: 'D2 Event Listener (Order)',
                         text: `An error occurred while processing the order. Check the details to know more about it.`,

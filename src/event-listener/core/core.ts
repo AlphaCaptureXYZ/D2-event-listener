@@ -47,7 +47,8 @@ export const D2EventListener = async (
 
         const { privateKey, network } = payload;
 
-        const pkpInfo = await config.getPKPInfo(network);
+        // pkp check/loader
+        await config.getPKPInfo(network);
 
         // watch and process events
         watcherLoader(payload, resolve);
@@ -63,7 +64,6 @@ export const D2EventListener = async (
 
         log(`Network: ${network}`);
         log(`Private key detected: ${privateKey}`);
-        log(`PKP detected: ${pkpInfo?.pkpPublicKey}`);
         log(`Address: ${wallet.address}`);
 
         log(`Listening the events flow...`);

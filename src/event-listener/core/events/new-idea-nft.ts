@@ -46,6 +46,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
             network,
             pkpAuthSig,
             data?.strategy?.reference,
+            pkpInfo,
         );
 
         eventResult = await orderProcess({
@@ -503,17 +504,27 @@ const getTriggersByStrategy = async (
     network: string,
     pkpAuthSig: any,
     strategyReference: string,
+    pkpInfo: IPkpInfo,
 ) => {
-    const triggers =
+    let triggers =
         await WeaveDBModule.getAllData<any>(network, {
             type: 'trigger',
         }, pkpAuthSig);
 
-    const triggersFiltered = triggers?.filter((item) => {
+    const pkpWalletAddress = pkpInfo?.pkpWalletAddress;
+
+    // triggers linked to the pkp
+    triggers = triggers?.filter((trigger) => {
+        const check = trigger?.pkpWalletAddress?.toLowerCase() === pkpWalletAddress?.toLowerCase();
+        return check;
+    });
+
+    // triggers linked to the strategy
+    triggers = triggers?.filter((item) => {
         return item?.strategy?.reference === strategyReference;
     });
 
-    return triggersFiltered;
+    return triggers;
 }
 
 const getJsonContent = async (

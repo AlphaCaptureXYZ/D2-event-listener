@@ -5,7 +5,6 @@ import * as rp from 'request-promise-native';
 // quick test to notify the results of the event listener
 const sendNotification = async <T>(
     params: {
-        url: string,
         payload: {
             username: string;
             text: string;
@@ -29,7 +28,6 @@ const sendNotification = async <T>(
     try {
 
         const {
-            url,
             payload
         } = params;
 
@@ -39,7 +37,7 @@ const sendNotification = async <T>(
                 'User-Agent': 'Request-Promise',
             },
             method: 'POST',
-            uri: url,
+            uri:  process.env.SLACK_WEBHOOK_URL,
             json: true,
             body: payload
         };
