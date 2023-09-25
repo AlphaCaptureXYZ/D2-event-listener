@@ -37,9 +37,11 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
 
         const pkpInfo = await config.getPKPInfo(network);
 
+        const pkpKey = pkpInfo?.pkpPublicKey;
+
         const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
             network,
-            pkpInfo.pkpPublicKey,
+            pkpKey,
         );
 
         const triggers = await getTriggersByStrategy(

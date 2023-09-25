@@ -2313,7 +2313,7 @@ const getAccount = async (
 
         if (data?.balances?.length > 0) {
             data.balances = data?.balances?.filter((item) => {
-                const free = Number(item.free);
+                const free = Number(item?.free);
                 return free > 0
             });
         };
@@ -2367,7 +2367,7 @@ const getAccount = async (
 
             if (data?.balances?.length > 0) {
                 data.balances = data?.balances?.filter((item) => {
-                    const free = Number(item.free);
+                    const free = Number(item?.free);
                     return free > 0
                 });
             };
@@ -2635,13 +2635,13 @@ const placeOrder = async (
             const accountInfo = await accountInfoRequest.json();
 
             accountInfo.balances = accountInfo?.balances?.filter((item) => {
-                const free = Number(item.free);
+                const free = Number(item?.free);
                 return free > 0
             });
 
             accountInfo.balances = accountInfo?.balances?.map((item) => {
-                const free = Number(item.free);
-                const locked = Number(item.locked);
+                const free = Number(item?.free);
+                const locked = Number(item?.locked);
                 item.free = free;
                 item.locked = locked;
                 return item;
@@ -2650,7 +2650,7 @@ const placeOrder = async (
             const assetInfoToSell =
                 accountInfo?.balances?.find(res => symbol.startsWith(res.asset));
 
-            quantity = assetInfoToSell.free.toString();
+            quantity = assetInfoToSell?.free?.toString();
         }
 
         payload = {
@@ -2737,13 +2737,13 @@ const placeOrder = async (
                 const accountInfo = await accountInfoRequest.json();
 
                 accountInfo.balances = accountInfo?.balances?.filter((item) => {
-                    const free = Number(item.free);
+                    const free = Number(item?.free);
                     return free > 0
                 });
     
                 accountInfo.balances = accountInfo?.balances?.map((item) => {
-                    const free = Number(item.free);
-                    const locked = Number(item.locked);
+                    const free = Number(item?.free);
+                    const locked = Number(item?.locked);
                     item.free = free;
                     item.locked = locked;
                     return item;
@@ -2752,7 +2752,7 @@ const placeOrder = async (
                 const assetInfoToSell =
                   accountInfo?.balances?.find(res => symbol.startsWith(res.asset));
 
-                quantity = assetInfoToSell.free.toString();
+                quantity = assetInfoToSell.free?.toString();
             }
 
             payload = {

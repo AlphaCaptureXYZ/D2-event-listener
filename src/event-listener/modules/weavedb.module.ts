@@ -189,6 +189,7 @@ const getAllData = async <T>(
 
                 if (decryptedString) {
                     decryptedString.docId = docId;
+                    decryptedString.pkpWalletAddress = pkpWalletAddress;
                 }
 
                 return decryptedString;
