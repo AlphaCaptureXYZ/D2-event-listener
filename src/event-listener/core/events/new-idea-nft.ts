@@ -177,6 +177,8 @@ const orderProcess = async (
 
                             const direction = directionByKind[kind?.toLowerCase()];
 
+                            console.log('orderProcess (direction)', direction);
+
                             if (isNullOrUndefined(error)) {
                                 litActionResult =
                                     await fetcher.binance.placeOrder(
@@ -204,6 +206,7 @@ const orderProcess = async (
                         additionalInfo: {
                             asset,
                             nftId,
+                            blockNumber,
                             credentialNftUUID,
                             userWalletAddress: credentialOwner,
                             environment,

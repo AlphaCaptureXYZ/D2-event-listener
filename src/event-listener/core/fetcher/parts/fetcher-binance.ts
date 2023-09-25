@@ -2650,7 +2650,7 @@ const placeOrder = async (
             const assetInfoToSell =
                 accountInfo?.balances?.find(res => symbol.startsWith(res.asset));
 
-            quantity = assetInfoToSell?.free?.toString();
+            quantity = assetInfoToSell?.free?.toString() || quantity;
         }
 
         payload = {
@@ -2752,7 +2752,7 @@ const placeOrder = async (
                 const assetInfoToSell =
                   accountInfo?.balances?.find(res => symbol.startsWith(res.asset));
 
-                quantity = assetInfoToSell.free?.toString();
+                quantity = assetInfoToSell.free?.toString() || quantity;
             }
 
             payload = {
