@@ -265,13 +265,13 @@ const orderProcess = async (
             console.log('Order stored (order id):', orderId);
             console.log('User wallet address:', userWalletAddress);
             console.log('Credential NFT UUID:', credentialNftUUID);
-            console.log('Asset:', orderResult?.additionalInfo?.asset);
+            console.log('Asset:', ticker);
             console.log('==================================================');
 
             if (isNullOrUndefined(docID) || isNullOrUndefined(orderId)) {
                 wsLogger({
                     type: 'error',
-                    message: `Order stored error (${JSON.stringify(error) || 'unknown'})})`,
+                    message: `Order stored error "${JSON.stringify(error) || 'unknown'}" BlockNumber: ${blockNumber}, NftId: ${nftId}, Ticker: ${ticker}, UserWallet: ${userWalletAddress}, CredentialNFTUUID: ${credentialNftUUID}, Env: ${environment})`,
                     data: {
                         docID,
                         orderId,
