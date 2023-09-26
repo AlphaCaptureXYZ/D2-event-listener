@@ -18,9 +18,9 @@ jobs:
       - name: SSH Connection
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST  }}
-          username: ${{ secrets.USERNAME  }}
-          key: ${{ secrets.SSH_RSA_PRIVATE_KEY  }}
+          host: ${{secrets.HOST}}
+          username: ${{secrets.USERNAME}}
+          key: ${{secrets.SSH_RSA_PRIVATE_KEY}}
           port: 22
           command_timeout: 500m
           script: |
@@ -28,14 +28,14 @@ jobs:
 
             sudo rm -rf D2-event-listener
 
-            sudo git clone https://${{ secrets.REPO_TOKEN  }}@github.com/IXily/D2-event-listener.git
+            sudo git clone https://github.com/IXily/D2-event-listener.git
 
-            sudo chown -R ${{ secrets.USERNAME  }} ./D2-event-listener
+            sudo chown -R ${{secrets.USERNAME}} ./D2-event-listener
 
             cd D2-event-listener
 
             sudo git checkout deploy-production
-            
+
             sudo su -c 'echo "WALLET_PRIVATE_KEY=\"${{secrets.WALLET_PRIVATE_KEY}}\"" > .env && echo "SLACK_WEBHOOK_URL=\"${{secrets.SLACK_WEBHOOK_URL}}\"" >> .env'
 
             sudo sh ./scripts/pull_spinup-live.sh
