@@ -2860,7 +2860,7 @@ const getQtyWithSymbolPrecision = async (
 
         if (data?.symbols?.length <= 0 || !data?.symbols) {
             response = {
-                error: data?.msg || 'No data found'
+                error: data?.msg || 'Symbol not found'
             };
             return response;
         };
@@ -2940,7 +2940,7 @@ const getQtyWithSymbolPrecision = async (
 
                 if(data?.symbols?.length <= 0 || !data?.symbols) {
                     Lit.Actions.setResponse({response: JSON.stringify({
-                        error: data?.msg || 'No data found'
+                        error: data?.msg || 'Symbol not found'
                     })});
                     return;
                 };

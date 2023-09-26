@@ -271,7 +271,7 @@ const orderProcess = async (
             if (isNullOrUndefined(docID) || isNullOrUndefined(orderId)) {
                 wsLogger({
                     type: 'error',
-                    message: `Order stored error "${JSON.stringify(error) || 'unknown'}" BlockNumber: ${blockNumber}, NftId: ${nftId}, Ticker: ${ticker}, UserWallet: ${userWalletAddress}, CredentialNFTUUID: ${credentialNftUUID}, Env: ${environment})`,
+                    message: `Order stored error [${JSON.stringify(error) || 'unknown'}] | (BlockNumber: ${blockNumber}, NftId: ${nftId}, Ticker: ${ticker}, UserWallet: ${userWalletAddress}, CredentialNFTUUID: ${credentialNftUUID}, Env: ${environment})`,
                     data: {
                         docID,
                         orderId,
