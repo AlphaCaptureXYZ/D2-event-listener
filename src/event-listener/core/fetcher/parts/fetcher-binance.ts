@@ -2398,6 +2398,282 @@ const getAccount = async (
     return response;
 };
 
+const getPortfolioAccount = async (
+    network: string,
+    pkpAuthSig: any,
+    params: {
+        env: EnvType,
+        source: FetcherSource,
+        proxyUrl: string,
+        payload: {
+            credentials: {
+                apiKey: string,
+                apiSecret: string,
+            },
+            defaultBaseCurrency: string,
+        },
+    },
+) => {
+    const {
+        env,
+        proxyUrl,
+        payload,
+        source,
+    } = params;
+
+    const requestUrl = getApiUrl(env);
+
+    let response = null as any;
+
+    const defaultBaseCurrency = payload?.defaultBaseCurrency || 'USDT';
+
+    if (source === 'fetch') {
+
+        const apiKey = payload.credentials?.apiKey
+        const apiSecret = payload?.credentials.apiSecret;
+
+        const queryString = objectToQueryString({
+            timestamp: Date.now(),
+            recvWindow: 60000,
+        });
+
+        const signature = JHash.hex_hmac_sha256(apiSecret, queryString);
+
+        const proxyOptions = {
+            method: 'POST',
+            body: JSON.stringify({
+                url: `${requestUrl}/v3/account` + '?' + queryString + '&signature=' + signature,
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'PostmanRuntime/7.29.2',
+                    'X-MBX-APIKEY': apiKey,
+                    'Content-Type': 'application/json',
+                },
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        };
+
+        const res = await fetch(proxyUrl, proxyOptions);
+        const data = await res.json();
+
+        if (data?.balances?.length > 0) {
+            data.balances = data?.balances?.filter((item) => {
+                const free = Number(item.free);
+                return free > 0
+            });
+
+            data.balances = data?.balances?.map((item) => {
+                const free = Number(item.free);
+                const locked = Number(item.locked);
+                item.free = free;
+                item.locked = locked;
+                return item;
+            });
+
+            let baseCurrencyBalance = 0;
+
+            // to handle cases with USDT, BUSD, etc.
+            if (defaultBaseCurrency.includes('USD')) {
+                baseCurrencyBalance =
+                    data?.balances?.filter((item) => item.asset.includes('USD'))?.reduce((acc, item) => {
+                        return acc + Number(item.free);
+                    }, 0) || 0;
+            } else {
+                baseCurrencyBalance =
+                    data?.balances?.find((item) => item.asset === defaultBaseCurrency)?.free || 0;
+                baseCurrencyBalance = Number(baseCurrencyBalance);
+            };
+
+            const assets = data?.balances?.map((item) => item.asset + defaultBaseCurrency);
+
+            const getCurrentAssetPrice = await Promise.all(
+                assets.map(async (symbol) => {
+                    const url = `${requestUrl}/v3/ticker/price?symbol=` + symbol;
+                    const options = {
+                        method: 'GET',
+                        headers: {
+                            'User-Agent': 'PostmanRuntime/7.29.2',
+                            'Content-Type': 'application/json'
+                        }
+                    };
+                    const request = await fetch(url, options);
+                    const response = await request.json();
+                    return response;
+                })
+            );
+
+            const assetsWithPrice = data?.balances?.map((item) => {
+                const symbol = item.asset + defaultBaseCurrency;
+                const assetPrice = getCurrentAssetPrice.find((item) => item.symbol === symbol);
+                const price = Number(assetPrice?.price) || 0;
+                item.baseCurrencyPrice = price;
+                item.baseCurrencyFree = price * item.free;
+                item.baseCurrencyLocked = price * item.locked;
+                return item;
+            });
+
+            const totalBaseCurrency = assetsWithPrice.reduce((acc, item) => {
+                return acc + item.baseCurrencyFree;
+            }, 0);
+
+            data.baseCurrencyTotal = totalBaseCurrency + baseCurrencyBalance;
+            data.baseCurrency = defaultBaseCurrency;
+
+            data.portfolio = data.balances;
+            delete data.balances;
+
+            data.portfolio = data.portfolio.map((item) => {
+                const baseCurrencyFree = Number(item.baseCurrencyFree || item.free);
+                const baseCurrencyLocked = Number(item.baseCurrencyLocked || item.locked);
+                item.baseCurrencyFree = baseCurrencyFree;
+                item.baseCurrencyLocked = baseCurrencyLocked;
+                return item;
+            });
+        };
+
+        response = data;
+    }
+
+    if (source === 'lit-action') {
+        const code = `
+        ${JHashTemplate}
+
+        const go = async () => {
+
+        const apiKey = credentials.apiKey;
+        const apiSecret = credentials.apiSecret;
+
+        ${objectToQueryStringTemplate}
+
+        const payload = {
+            timestamp: Date.now(),
+            recvWindow: 60000,
+        };
+
+        const queryString = objectToQueryString(payload);
+        const signature = JHash.hex_hmac_sha256(apiSecret, queryString);
+
+        const proxyUrl = '${proxyUrl}';
+
+        const proxyOptions = {
+            method: 'POST',
+            body: JSON.stringify({
+                url: '${requestUrl}/v3/account' + '?' + queryString + '&signature=' + signature,
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'PostmanRuntime/7.29.2',
+                    'X-MBX-APIKEY': apiKey,
+                    'Content-Type': 'application/json',
+                },
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        };
+
+        const response = await fetch(proxyUrl, proxyOptions);
+
+        const data = await response.json();
+
+        if (data?.balances?.length > 0) {
+            data.balances = data?.balances?.filter((item) => {
+                const free = Number(item.free);
+                return free > 0
+            });
+
+            data.balances = data?.balances?.map((item) => {
+                const free = Number(item.free);
+                const locked = Number(item.locked);
+                item.free = free;
+                item.locked = locked;
+                return item;
+            });
+
+            let baseCurrencyBalance = 0;
+            
+            // to handle cases with USDT, BUSD, etc.
+            if('${defaultBaseCurrency}'.includes('USD')) {
+                baseCurrencyBalance =
+                    data?.balances?.filter((item) => item.asset.includes('USD'))?.reduce((acc, item) => {
+                        return acc + Number(item.free);
+                    }, 0) || 0;
+            } else {
+                baseCurrencyBalance = 
+                    data?.balances?.find((item) => item.asset === '${defaultBaseCurrency}')?.free || 0;
+                baseCurrencyBalance = Number(baseCurrencyBalance);
+            };
+
+            const assets = data?.balances?.map((item) => item.asset + '${defaultBaseCurrency}');
+
+            const getCurrentAssetPrice = await Promise.all(
+                assets.map(async (symbol) => {
+                    const url = '${requestUrl}/v3/ticker/price?symbol=' + symbol;
+                    const options = {
+                        method: 'GET',
+                        headers: {
+                            'User-Agent': 'PostmanRuntime/7.29.2',
+                            'Content-Type': 'application/json'
+                        }
+                    };
+                    const request = await fetch(url, options); 
+                    const response = await request.json();
+                    return response;
+                })
+            );
+
+            const assetsWithPrice = data?.balances?.map((item) => {
+                const symbol = item.asset + '${defaultBaseCurrency}';
+                const assetPrice = getCurrentAssetPrice.find((item) => item.symbol === symbol);
+                const price = Number(assetPrice?.price) || 0;
+                item.baseCurrencyPrice = price;
+                item.baseCurrencyFree = price * item.free;
+                item.baseCurrencyLocked = price * item.locked;
+                return item;
+            });
+
+            const totalBaseCurrency = assetsWithPrice.reduce((acc, item) => {
+                return acc + item.baseCurrencyFree;
+            }, 0);
+
+            data.baseCurrencyTotal = totalBaseCurrency + baseCurrencyBalance;
+            data.baseCurrency = '${defaultBaseCurrency}';
+            
+            data.portfolio = data.balances;
+            delete data.balances;
+
+            data.portfolio = data.portfolio.map((item) => {
+                const baseCurrencyFree = Number(item.baseCurrencyFree || item.free);
+                const baseCurrencyLocked = Number(item.baseCurrencyLocked || item.locked);
+                item.baseCurrencyFree = baseCurrencyFree;
+                item.baseCurrencyLocked = baseCurrencyLocked;
+                return item;
+            });
+        };  
+
+            Lit.Actions.setResponse({response: JSON.stringify(data)});
+
+        };
+
+        go();
+    `;
+
+        const litActionCall = await LitModule().runLitAction({
+            chain: network,
+            litActionCode: code,
+            listActionCodeParams: payload,
+            nodes: 1,
+            showLogs: false,
+            authSig: pkpAuthSig,
+        });
+
+        response = litActionCall?.response as any;
+    }
+
+    return response;
+};
+
 const getAssetPrice = async (
     network: string,
     pkpAuthSig: any,
@@ -3014,6 +3290,7 @@ const getQtyWithSymbolPrecision = async (
 
 export {
     getAccount,
+    getPortfolioAccount,
     placeOrder,
     getAssetPrice,
     getQtyWithSymbolPrecision,

@@ -177,10 +177,11 @@ describe('Lit Action Cases', () => {
     xit('Random lit action', async () => {
 
         const chain = 'mumbai';
-        const credentialNftUUID = '0xd06b243c18ffc6f0c24338804773b5b4';
+        const credentialNftUUID = '0x1eaab1abda66a15d421cd4eb20a62371';
         const environment = 'demo';
 
         const pkpInfo = await config.getPKPInfo(chain);
+        const pkpKey = pkpInfo?.pkpPublicKey;
 
         const credentialInfo = await PkpCredentialNftModule.getFullCredential<{
             apiKey: string;
@@ -198,7 +199,7 @@ describe('Lit Action Cases', () => {
 
         const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
             chain,
-            pkpInfo?.pkpPublicKey,
+            pkpKey,
         );
 
         const userSetting = await WeaveDBModule.getAllData<any>(
@@ -216,15 +217,16 @@ describe('Lit Action Cases', () => {
             'https://ixily.io/api/proxy';
 
         const result =
-            await fetcher.binance.getAccount(
+            await fetcher.binance.getPortfolioAccount(
                 chain,
                 pkpAuthSig,
                 {
                     proxyUrl,
                     env: environment as any,
-                    source: 'lit-action',
+                    source: 'fetch',
                     payload: {
                         credentials: binanceCredentials,
+                        defaultBaseCurrency: 'USDT',
                     }
                 },
             );

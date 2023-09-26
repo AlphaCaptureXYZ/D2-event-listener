@@ -135,20 +135,36 @@ const orderProcess = async (
                             // settings to apply the calc order 
                             const settings = triggerInfo?.settings || null;
 
-                            const usdtAmount = 11;
-
-                            const userSetting = await WeaveDBModule.getAllData<any>(
+                            const userSetting = await getUserSettings(
                                 network,
-                                {
-                                    type: 'setting',
-                                    byUserWalletFilter: true,
-                                    wallet: credentialOwner,
-                                }
+                                credentialOwner,
+                                pkpInfo,
                             );
 
                             const proxyUrl =
-                                userSetting?.find(res => res)?.proxy_url ||
+                                userSetting?.proxy_url ||
                                 'https://ixily.io/api/proxy';
+
+                            const portfolioAccount =
+                                await fetcher.binance.getPortfolioAccount(
+                                    network,
+                                    pkpAuthSig,
+                                    {
+                                        proxyUrl,
+                                        env: environment as any,
+                                        source: 'fetch',
+                                        payload: {
+                                            credentials: credentialInfo.decryptedCredential,
+                                            defaultBaseCurrency: 'USDT',
+                                        }
+                                    },
+                                );
+
+                            const userTotalBalance = portfolioAccount?.baseCurrencyTotal || 0;
+
+                            const orderSize = settings?.orderSize || 0;
+
+                            const usdtAmount = userTotalBalance * (orderSize / 100);
 
                             const qtyWithSymbolPrecisionResult =
                                 await fetcher.binance.getQtyWithSymbolPrecision(
@@ -530,6 +546,40 @@ const getTriggersByStrategy = async (
     });
 
     return triggers;
+}
+
+const getUserSettings = async (
+    network: string,
+    userWalletAddress: string,
+    pkpInfo: IPkpInfo,
+) => {
+    let response = null;
+    try {
+        let userSetting = await WeaveDBModule.getAllData<any>(
+            network,
+            {
+                type: 'setting',
+                byUserWalletFilter: true,
+                wallet: userWalletAddress,
+            }
+        );
+
+        const pkpWalletAddress = pkpInfo?.pkpWalletAddress;
+
+        // triggers linked to the pkp
+        userSetting = userSetting?.filter((trigger) => {
+            const check = trigger?.pkpWalletAddress?.toLowerCase() === pkpWalletAddress?.toLowerCase();
+            return check;
+        });
+
+        response = userSetting?.find(res => res) || null;
+
+    } catch (err) {
+        console.log('getUserSettings (error)', err?.message);
+        console.log('getUserSettings... using default settings');
+    }
+
+    return response;
 }
 
 const getJsonContent = async (
