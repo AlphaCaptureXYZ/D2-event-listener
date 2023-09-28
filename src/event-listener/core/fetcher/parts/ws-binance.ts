@@ -87,28 +87,30 @@ const keepAliveDataStream = async (params: {
     env: EnvType,
 }
 ) => {
+    try {
+        const {
+            apiKey,
+            listenKey,
+            env,
+        } = params;
 
-    const {
-        apiKey,
-        listenKey,
-        env,
-    } = params;
+        const options = {
+            method: 'PUT',
+            headers: {
+                'User-Agent': 'PostmanRuntime/7.29.2',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': '*/*',
+                'X-MBX-APIKEY': apiKey,
+            },
+        };
 
-    const options = {
-        method: 'PUT',
-        headers: {
-            'User-Agent': 'PostmanRuntime/7.29.2',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': '*/*',
-            'X-MBX-APIKEY': apiKey,
-        },
-    };
-
-    const urlPrefix = getApiUrl(env);
-    const url = `https://${urlPrefix}/api/v3/userDataStream?listenKey=${listenKey}`;
-    const res = await fetch(url, options);
-    const data = await res.json();
-    return data?.listenKey || null;
+        const urlPrefix = getApiUrl(env);
+        const url = `https://${urlPrefix}/api/v3/userDataStream?listenKey=${listenKey}`;
+        const res = await fetch(url, options);
+        await res.json();
+    } catch (err) {
+        console.log('[ws binance] keepAliveDataStream error', err?.message);
+    }
 };
 
 const responseParser = (response: any) => {
@@ -185,7 +187,6 @@ export const connect = async (params: {
         setInterval(async () => {
             await keepAliveDataStream(listenKey);
         }, (1000 * 60) * 25);
-
 
         connection.onopen = () => {
             connectionCheck[id] = true;
