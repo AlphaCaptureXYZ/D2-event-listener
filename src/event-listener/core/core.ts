@@ -61,7 +61,7 @@ export const D2EventListener = async (
         watcherLoader(payload, resolve);
 
         // websocket related to the users orders/trades
-        await wsTradesLoader({
+        await wsTradeLoader({
             network,
             pkpInfo,
         });
@@ -232,7 +232,7 @@ const getEventFiltered = (contract: ethers.Contract) => {
 };
 
 // just to test initially
-const wsTradesLoader = async (payload: {
+const wsTradeLoader = async (payload: {
     network: string,
     pkpInfo: IPkpInfo,
 }) => {
