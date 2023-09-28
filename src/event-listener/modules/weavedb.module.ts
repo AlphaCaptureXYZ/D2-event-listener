@@ -195,7 +195,7 @@ const getAllData = async <T>(
                 return decryptedString;
 
             } catch (err: any) {
-                console.log('ERROR', err?.message);
+                // console.log('[weavedb] getAllData (error)', err?.message);
             }
         }))) || [];
 

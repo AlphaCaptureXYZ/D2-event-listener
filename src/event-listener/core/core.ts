@@ -2,10 +2,15 @@ import { ethers } from "ethers";
 
 import * as config from "../config/config";
 
+/* modules */
 import {
     EventEmitterModule as EventEmitter,
     EventType
 } from '../modules/event-emitter.module';
+
+import { WeaveDBModule } from "../modules/weavedb.module";
+import { PkpAuthModule } from "../modules/pkp-auth.module";
+import { PkpCredentialNftModule } from "../modules/pkp-credential-nft.module";
 
 /* events */
 import { newIdeaNFTEvent } from "./events/new-idea-nft";
@@ -19,8 +24,10 @@ import { getRpcUrlByNetwork } from "../utils/utils";
 
 /* interfaces */
 import { INewIdeaNFT } from '../interfaces/new-idea-nft.i';
-import { ID2EventListenerPayload } from "../interfaces/shared.i";
+import { ID2EventListenerPayload, IPkpInfo } from "../interfaces/shared.i";
 import { INotificationPayload } from "../interfaces/notification.i";
+
+import * as fetcher from './fetcher';
 
 let watcherLoaded = false;
 
@@ -48,10 +55,16 @@ export const D2EventListener = async (
         const { privateKey, network } = payload;
 
         // pkp check/loader
-        await config.getPKPInfo(network);
+        const pkpInfo = await config.getPKPInfo(network);
 
         // watch and process events
         watcherLoader(payload, resolve);
+
+        // websocket related to the users orders/trades
+        await wsTradesLoader({
+            network,
+            pkpInfo,
+        });
 
         const {
             contract,
@@ -217,3 +230,62 @@ const getEventFiltered = (contract: ethers.Contract) => {
 
     return events;
 };
+
+// just to test initially
+const wsTradesLoader = async (payload: {
+    network: string,
+    pkpInfo: IPkpInfo,
+}) => {
+    try {
+        const {
+            network,
+            pkpInfo,
+        } = payload;
+
+        const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
+            network,
+            pkpInfo?.pkpPublicKey,
+        );
+
+        let triggers =
+            await WeaveDBModule.getAllData<any>(network, {
+                type: 'trigger',
+            }, pkpAuthSig);
+
+        const pkpWalletAddress = pkpInfo?.pkpWalletAddress;
+
+        // triggers linked to the pkp
+        triggers = triggers?.filter((trigger) => {
+            const check = trigger?.pkpWalletAddress?.toLowerCase() === pkpWalletAddress?.toLowerCase();
+            return check;
+        });
+
+        for (const trigger of triggers) {
+            if (trigger) {
+
+                const credentialNftUUID = trigger?.account?.reference;
+
+                const credentialInfo =
+                    await PkpCredentialNftModule.getFullCredential<any>({
+                        chain: network,
+                        credentialNftUUID,
+                        authSig: pkpAuthSig,
+                        pkpKey: pkpInfo.pkpPublicKey,
+                    });
+
+                if (credentialInfo.provider === 'Binance') {
+                    await fetcher.binance.ws.connect({
+                        id: credentialNftUUID,
+                        apiKey: credentialInfo?.decryptedCredential?.apiKey,
+                        apiSecret: credentialInfo?.decryptedCredential?.apiSecret,
+                        env: credentialInfo?.environment as any,
+                    });
+                }
+
+            }
+        }
+
+    } catch (err) {
+        console.log('wsTradesLoader error', err?.message);
+    }
+}

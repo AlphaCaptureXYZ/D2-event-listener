@@ -109,6 +109,6 @@ const initCollection = async (db: any) => {
         // check --> https://console.weavedb.dev
 
     } catch (err: any) {
-        console.log('ERROR', err.message);
+        console.log('WEAVEDB ERROR', err.message);
     }
 })();

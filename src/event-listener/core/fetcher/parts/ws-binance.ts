@@ -173,7 +173,7 @@ export const connect = async (params: {
         env,
     } = params;
 
-    if (getBoolean(connectionCheck[id])) {
+    if (!getBoolean(connectionCheck[id])) {
 
         const listenKey = await getListenKey(apiKey, env);
         const urlPrefix = getWSUrl(env);
@@ -186,8 +186,11 @@ export const connect = async (params: {
             await keepAliveDataStream(listenKey);
         }, (1000 * 60) * 25);
 
+
         connection.onopen = () => {
-            console.log('Connection opened', '\n');
+            connectionCheck[id] = true;
+
+            console.log(`The Binance WS connection has been established using this id credential "${id}"`);
         };
 
         connection.onerror = (error) => {
@@ -199,6 +202,6 @@ export const connect = async (params: {
             responseParser(info);
         };
 
-        connectionCheck[id] = true;
+
     }
 }
