@@ -108,6 +108,13 @@ const orderProcess = async (
                     pkpKey: pkpInfo.pkpPublicKey,
                 });
 
+            await fetcher.binance.ws.connect({
+                id: credentialNftUUID,
+                apiKey: credentialInfo?.decryptedCredential?.apiKey,
+                apiSecret: credentialInfo?.decryptedCredential?.apiSecret,
+                env: credentialInfo?.environment as any,
+            });
+
             const credentialOwner = credentialInfo?.owner;
 
             // const balanceInfo = await getBalance({
@@ -192,8 +199,6 @@ const orderProcess = async (
                             };
 
                             const direction = directionByKind[kind?.toLowerCase()];
-
-                            console.log('orderProcess (direction)', direction);
 
                             if (isNullOrUndefined(error)) {
                                 litActionResult =

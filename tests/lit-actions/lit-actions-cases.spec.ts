@@ -217,7 +217,7 @@ describe('Lit Action Cases', () => {
             'https://ixily.io/api/proxy';
 
         const result =
-            await fetcher.binance.getPortfolioAccount(
+            await fetcher.binance.placeOrder(
                 chain,
                 pkpAuthSig,
                 {
@@ -226,10 +226,16 @@ describe('Lit Action Cases', () => {
                     source: 'fetch',
                     payload: {
                         credentials: binanceCredentials,
-                        defaultBaseCurrency: 'USDT',
+                        form: {
+                            asset: 'ADAUSDT',
+                            direction: 'BUY',
+                            quantity: 48,
+                        }
                     }
                 },
             );
+
+        console.log('result', result);
 
         expect(result).to.be.an('object');
         expect(isNullOrUndefined(result)).to.be.false;

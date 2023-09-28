@@ -1,3 +1,20 @@
+import * as qs from 'qs';
+import * as crypto from 'crypto';
+
+export const buildSignature = (
+    secret: string,
+    data: string,
+) => {
+    return crypto.createHmac('sha256', secret).update(data).digest('hex');
+}
+
+export const objectToQueryString = (obj) => {
+    // return qs.stringify(obj);
+    return Object.keys(obj)
+    .map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]))
+    .join('&');
+};
+
 export const isNullOrUndefined = (value: any) => {
     const checkValue = [
         undefined,
