@@ -1924,6 +1924,8 @@ const placeOrder = async (
                 quantity = assetInfoToSell.free?.toString() || quantity;
             }
 
+            const shortId = Math.random().toString(36).substr(2, 9);
+
             payload = {
               symbol,
               side,
@@ -1931,6 +1933,7 @@ const placeOrder = async (
               type: 'MARKET',
               timestamp: Date.now(),
               recvWindow: 60000,
+              newClientOrderId: shortId?.toUpperCase() + '_D2EL',
             };
     
             queryString = objectToQueryString(payload);

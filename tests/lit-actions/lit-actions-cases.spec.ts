@@ -227,9 +227,9 @@ describe('Lit Action Cases', () => {
                     payload: {
                         credentials: binanceCredentials,
                         form: {
-                            asset: 'ADAUSDT',
+                            asset: 'BTCUSDT',
                             direction: 'BUY',
-                            quantity: 48,
+                            quantity: 0.0037,
                         }
                     }
                 },
