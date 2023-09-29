@@ -59,12 +59,8 @@ export const D2EventListener = async (
 
         // watch and process events
         watcherLoader(payload, resolve);
-
         // websocket related to the users orders/trades
-        await wsTradeLoader({
-            network,
-            pkpInfo,
-        });
+        wsTradeLoader({ network, pkpInfo });
 
         const {
             contract,

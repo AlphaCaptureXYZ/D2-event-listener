@@ -15,8 +15,6 @@ import * as bodyParser from 'body-parser';
 
 import { wsLogger } from './event-listener/utils/utils';
 
-import * as providerFetcher from './event-listener/core/fetcher';
-
 const app = express();
 
 app.use(cors());
