@@ -185,7 +185,11 @@ export const connect = async (params: {
         const connection = new WebSocket(wsUrl);
 
         setInterval(async () => {
-            await keepAliveDataStream(listenKey);
+            await keepAliveDataStream({
+                apiKey,
+                listenKey,
+                env,
+            });
         }, (1000 * 60) * 25);
 
         connection.onopen = () => {
