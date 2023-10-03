@@ -243,6 +243,8 @@ const wsTradeLoader = async (payload: {
             pkpInfo?.pkpPublicKey,
         );
 
+        console.log('Checking if your wallet have pkp and triggers created...');
+
         let triggers =
             await WeaveDBModule.getAllData<any>(network, {
                 type: 'trigger',
@@ -270,6 +272,8 @@ const wsTradeLoader = async (payload: {
                     });
 
                 if (credentialInfo.provider === 'Binance') {
+                    console.log('Pkp and triggers found, connecting to binance ws...');
+                    
                     await fetcher.binance.ws.connect({
                         id: credentialNftUUID,
                         apiKey: credentialInfo?.decryptedCredential?.apiKey,
