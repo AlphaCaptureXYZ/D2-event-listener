@@ -103,7 +103,7 @@ class Lit {
             authSig = await this.getAuthSig();
         }
 
-        const { encryptedString, symmetricKey } = await LitJsSdk.encryptString(str);
+        const { encryptedString, symmetricKey } = await (LitJsSdk as any).encryptString(str);
 
         const encryptedSymmetricKey = await this.litNodeClient.saveEncryptionKey({
             accessControlConditions,
@@ -233,7 +233,7 @@ class Lit {
             authSig = await this.getAuthSig();
         }
 
-        const litNodeClient = new LitJsSdk.LitNodeClientNodeJs({
+        const litNodeClient = new (LitJsSdk as any).LitNodeClientNodeJs({
             litNetwork: 'serrano',
             debug: showLogs,
         });
