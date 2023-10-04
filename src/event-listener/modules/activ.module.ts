@@ -211,10 +211,10 @@ const createIdea = async (
         }
     });
 
-    await retryFunctionHelper({
+    const idea = await retryFunctionHelper({
         maxRetries: 3,
         retryCallback: async () => {
-            await activ.createIdea(ideaPayload);
+            return activ.createIdea(ideaPayload);
         },
         notificationCallback: async (error: string, retryIndex: number) => {
             wsLogger({
@@ -223,8 +223,6 @@ const createIdea = async (
             });
         },
     })
-
-    const idea = await activ.createIdea(ideaPayload);
 
     wsLogger({
         type: 'success',
