@@ -8,7 +8,7 @@ import { ethers } from "ethers";
 
 import * as WeaveDB from 'weavedb-sdk-node';
 
-import { getStringSize, isNullOrUndefined, wait } from '../helpers/helpers';
+import { getStringSize, isNullOrUndefined } from '../helpers/helpers';
 
 import { blobToBase64String } from '@lit-protocol/lit-node-client-nodejs';
 import { getCurrentWalletAddress } from "../utils/utils";
@@ -111,7 +111,7 @@ const getAllData = async <T>(
         } = payload;
 
         await init();
-        
+
         let docs: any[] = await db.cget(
             COLLECTION_NAME,
             ['type'],
@@ -223,6 +223,7 @@ const addData = async <T>(
         isCompressed?: boolean,
         // to store data via IPFS (data with big size)
         // viaIPFS?: boolean,
+        additionalInfo?: any,
     },
     authSig: any = null,
 ) => {
@@ -239,6 +240,7 @@ const addData = async <T>(
             type,
             pkpKey,
             isCompressed,
+            additionalInfo,
         } = payload;
 
         userWallet = userWallet?.toLowerCase();
@@ -288,6 +290,7 @@ const addData = async <T>(
             userAddress: userWallet,
             pkpWalletAddress,
             isCompressed: isCompressed || false,
+            additionalInfo,
         };
 
         if (isNullOrUndefined(pkpWalletAddress)) {

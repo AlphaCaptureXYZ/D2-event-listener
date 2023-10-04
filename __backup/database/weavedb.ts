@@ -39,6 +39,9 @@ const initCollection = async (db: any) => {
             createdAt: {
                 type: 'number',
             },
+            additionalInfo: {
+                type: 'object',
+            }
         },
     };
 
