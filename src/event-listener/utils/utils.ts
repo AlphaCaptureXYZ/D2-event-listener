@@ -15,6 +15,17 @@ export const wsLogger = (payload: {
     EventEmitter().emit('WS_LOG', payload);
 }
 
+export const getTickerIcon = async (ticker: string) => {
+    let base64 = null;
+    try {
+        const url = `https://technicals-rlco.ixily.io/v1/assets/${ticker}/logo`;
+        const data = await fetch(url);
+        const response = await data.json();
+        base64 = response?.data;
+    } catch (err) { };
+    return base64;
+}
+
 export const getCurrentWalletAddress = () => {
     const privateKey = config.WALLET_PRIVATE_KEY;
     const wallet = new ethers.Wallet(privateKey);

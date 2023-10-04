@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/IXily/DII-event-listener#readme",
   "dependencies": {
+    "@ixily/activ": "^4.2.6",
     "@ixily/activ-web": "^4.0.3",
     "@lit-protocol/lit-node-client-nodejs": "^2.1.123",
     "cors": "^2.8.5",
@@ -35,6 +36,7 @@
     "ethers": "^5.5.1",
     "express": "^4.18.2",
     "isomorphic-fetch": "^3.0.0",
+    "jimp": "^0.22.7",
     "pako": "^2.1.0",
     "qs": "^6.11.1",
     "request-promise-native": "^1.0.9",
