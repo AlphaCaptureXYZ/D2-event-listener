@@ -19,8 +19,9 @@ import * as Jimp from 'jimp';
 
 import { EnvModule, getBoolean } from "@ixily/activ/dist/sdk/activ-v4";
 import { CacheNodeStorageModule, LitNodeProviderModule } from "@ixily/activ/dist/sdk";
-import { getTickerIcon } from "../utils/utils";
+import { getTickerIcon, wsLogger } from "../utils/utils";
 import { ICreateBasicIdea } from "../interfaces/shared.i";
+import { retryFunctionHelper } from "../helpers/helpers";
 
 const { ActivV4Module } = v4;
 
@@ -97,6 +98,11 @@ const getApi = async (
                 await activ.config(MUMBAI_CONFIG);
                 break;
         }
+
+        wsLogger({
+            message: `Activ SDK initialized for "${network}" network`,
+            type: "info",
+        });
 
         state.configured[network] = true;
         state.instance[network] = activ;
@@ -192,9 +198,45 @@ const createIdea = async (
         pricing: {
             provider: pricingProvider,
         },
-    }
+    };
+
+    wsLogger({
+        type: 'info',
+        message: `Creating Activ Idea using the order "${reference}"`,
+        data: {
+            reference,
+            ticker,
+            pricingProvider,
+            direction,
+        }
+    });
+
+    await retryFunctionHelper({
+        maxRetries: 3,
+        retryCallback: async () => {
+            await activ.createIdea(ideaPayload);
+        },
+        notificationCallback: async (error: string, retryIndex: number) => {
+            wsLogger({
+                message: `[createActivIdeaInStrategy] Error creating Activ Idea (retry ${retryIndex}): ${error}`,
+                type: 'error',
+            });
+        },
+    })
 
     const idea = await activ.createIdea(ideaPayload);
+
+    wsLogger({
+        type: 'success',
+        message: `New idea created using the order "${reference}"`,
+        data: {
+            reference,
+            ticker,
+            pricingProvider,
+            direction,
+            idea,
+        }
+    });
 
     return idea;
 }
