@@ -6,6 +6,7 @@ export type EventType =
     | 'NEW_IDEA_NFT'
     | 'NOTIFICATION'
     | 'WS_LOG'
+    | 'CREATE_IDEA'
 
 class EventEmitterService {
     private dataSource;

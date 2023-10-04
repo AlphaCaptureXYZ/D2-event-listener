@@ -15,6 +15,7 @@ import { PkpCredentialNftModule } from "../modules/pkp-credential-nft.module";
 /* events */
 import { newIdeaNFTEvent } from "./events/new-idea-nft";
 import { notification } from "./events/notification";
+import { createIdea } from "./events/create-idea";
 
 /* helpers */
 import { wait } from "../helpers/helpers";
@@ -58,7 +59,7 @@ export const D2EventListener = async (
         const pkpInfo = await config.getPKPInfo(network);
 
         // watch and process events
-        watcherLoader(payload, resolve);
+        watcherLoader(network, payload, resolve);
         // websocket related to the users orders/trades
         wsTradeLoader({ network, pkpInfo });
 
@@ -168,6 +169,7 @@ const contractHandler = (
 }
 
 const watcherLoader = (
+    network: string,
     payload: ID2EventListenerPayload,
     // used to finish the unit test promise
     resolve?: any,
@@ -190,6 +192,9 @@ const watcherLoader = (
                         break;
                     case 'NOTIFICATION':
                         await notification(data as INotificationPayload);
+                        break;
+                    case 'CREATE_IDEA':
+                        await createIdea({ ...data, network, });
                         break;
                 };
 
@@ -273,7 +278,7 @@ const wsTradeLoader = async (payload: {
 
                 if (credentialInfo.provider === 'Binance') {
                     console.log('Pkp and triggers found, connecting to binance ws...');
-                    
+
                     await fetcher.binance.ws.connect({
                         id: credentialNftUUID,
                         apiKey: credentialInfo?.decryptedCredential?.apiKey,

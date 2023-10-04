@@ -1,3 +1,9 @@
+import {
+    CONTRACT,
+} from "@ixily/activ";
+
+import CI = CONTRACT.CONTRACT_INTERFACES;
+
 export type FetcherSource = 'fetch' | 'lit-action';
 
 export interface ID2EventListenerPayload {
@@ -23,4 +29,12 @@ export interface IPkpInfo {
     pkpWalletAddress: string;
     wallets?: string[];
     tx?: any;
+}
+
+export interface ICreateBasicIdea {
+    reference: string;
+    ticker: string;
+    pricingProvider: CI.IPricingProvider;
+    conviction: number;
+    direction: 'long' | 'short',
 }

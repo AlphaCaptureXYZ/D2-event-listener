@@ -8,7 +8,7 @@ import {
 import v4 = SDK.v4;
 import CI = CONTRACT.CONTRACT_INTERFACES;
 
-export type IActiv = typeof activ;
+type IActiv = typeof activ;
 
 //@ts-ignore
 import * as LitJsSdk from '@lit-protocol/lit-node-client-nodejs';
@@ -20,12 +20,13 @@ import * as Jimp from 'jimp';
 import { EnvModule, getBoolean } from "@ixily/activ/dist/sdk/activ-v4";
 import { CacheNodeStorageModule, LitNodeProviderModule } from "@ixily/activ/dist/sdk";
 import { getTickerIcon } from "../utils/utils";
+import { ICreateBasicIdea } from "../interfaces/shared.i";
 
 const { ActivV4Module } = v4;
 
 const activ = ActivV4Module;
 
-export type NetworkType =
+type NetworkType =
     | "hardhat"
     | "goerli"
     | "mumbai"
@@ -120,13 +121,7 @@ const getApi = async (
 const createIdea = async (
     payload: {
         network: NetworkType;
-        ideaObj: {
-            reference: string;
-            ticker: string;
-            pricingProvider: CI.IPricingProvider;
-            conviction: number;
-            direction: 'long' | 'short',
-        }
+        ideaObj: ICreateBasicIdea,
     },
 ) => {
 
