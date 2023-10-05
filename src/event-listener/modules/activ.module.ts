@@ -152,10 +152,15 @@ const createIdea = async (
         reference: 'd213cd4cf56ce46c0eef3c',
         name: 'D2 Crypto Momentum',
         description: 'The D2 crypto momentum strategy tracks the medium and long term momentum on a basket of crypto pairs. The long only algo waits to confirm that a trend is indeed forming and will remain invested in the pair until momentum on either the medium or long term basis changes. Additional risk management features are applied to ensure that any short term volatility does not unduly impact returns. It should be expected to have fewer profitable trades and loss making trades, but that the average profit will be greater than the average loss which results in an overall profitable strategy.',
+        banner: 'https://ixily.io/assets/img/profile/activ-profile-default.png',
     };
 
-    const strategyBanner = 'https://ixily.io/assets/img/profile/activ-profile-default.png';
-    const companyLogo = 'https://d2.ixily.io/assets/img/ixily-d2.png'
+    const creator = {
+        company: 'D2',
+        name: 'D2',
+        website: 'https://d2.ixily.io',
+        logo: 'https://d2.ixily.io/assets/img/ixily-d2.png',
+    };
 
     const ideaPayload: CI.ICreateIdeaRequest = {
         content: {
@@ -166,15 +171,15 @@ const createIdea = async (
             name: strategyInfo.name,
             description: strategyInfo.description,
             image: {
-                url: strategyBanner,
+                url: strategyInfo.banner,
             },
         },
         creator: {
-            company: 'D2',
-            name: 'D2',
-            url: 'https://d2.ixily.io',
+            company: creator.company,
+            name: creator.name,
+            url: creator.website,
             companyLogo: {
-                url: companyLogo,
+                url: creator.logo,
             }
         },
         accessWallets: [],
