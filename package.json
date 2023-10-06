@@ -9,7 +9,7 @@
     "start": "cross-env APP_ENV=production node dist/app.js",
     "deploy": "git push origin main:deploy-production",
     "test": "rimraf dist && mocha --config unit-mocharc.js --exit",
-    "activ-update": "npm i @ixily/activ-web@latest --force",
+    "activ-update": "rimraf node_modules/@ixily/activ && npm i @ixily/activ@latest --force",
     "weavedb": "nodemon ./__backup/database/weavedb.ts --exec ts-node",
     "examples": "nodemon ./examples/examples.ts --exec ts-node"
   },
@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/IXily/DII-event-listener#readme",
   "dependencies": {
-    "@ixily/activ": "^4.2.6",
+    "@ixily/activ": "^4.3.5",
     "@lit-protocol/lit-node-client-nodejs": "^2.1.123",
     "cors": "^2.8.5",
     "cross-env": "^5.2.0",
@@ -42,6 +42,7 @@
     "rxjs": "^7.5.6",
     "siwe": "^1.1.6",
     "weavedb-sdk-node": "^0.31.0",
+    "web3": "^4.1.2",
     "ws": "^8.3.0"
   },
   "devDependencies": {

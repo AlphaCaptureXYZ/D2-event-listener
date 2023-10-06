@@ -21,7 +21,7 @@ import { EnvModule, getBoolean } from "@ixily/activ/dist/sdk/activ-v4";
 import { CacheNodeStorageModule, LitNodeProviderModule } from "@ixily/activ/dist/sdk";
 import { getTickerIcon, wsLogger } from "../utils/utils";
 import { ICreateBasicIdea } from "../interfaces/shared.i";
-import { retryFunctionHelper } from "../helpers/helpers";
+import { isNullOrUndefined, retryFunctionHelper } from "../helpers/helpers";
 
 const { ActivV4Module } = v4;
 
@@ -138,13 +138,17 @@ const createIdea = async (
 
     const activ = await getApi(network);
 
-    const {
+    let {
         reference,
         ticker,
         pricingProvider,
         conviction,
         direction,
     } = ideaObj;
+
+    if (isNullOrUndefined(reference)) {
+        reference = v4.generateUUID();
+    };
 
     const tickerB64Img = await getTickerIcon(ticker);
 

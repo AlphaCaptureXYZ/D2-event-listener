@@ -227,7 +227,7 @@ export const connect = async (params: {
             console.log(`WebSocket error: ${error}`);
         };
 
-        connection.onmessage = (e) => {
+        connection.onmessage = (e: any) => {
             const info = JSON.parse(e.data);
             responseParser(info);
         };

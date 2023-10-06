@@ -32,7 +32,7 @@ export interface IPkpInfo {
 }
 
 export interface ICreateBasicIdea {
-    reference: string;
+    reference?: string;
     ticker: string;
     pricingProvider: CI.IPricingProvider;
     conviction: number;
