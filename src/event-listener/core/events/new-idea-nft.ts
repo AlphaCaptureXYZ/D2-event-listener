@@ -268,6 +268,10 @@ const orderProcess = async (
                     type: 'order',
                     userWallet: userWalletAddress,
                     isCompressed: true,
+                    additionalInfo: {
+                        accountReference: credentialNftUUID,
+                        strategyReference: data?.strategy?.reference,
+                    },
                 },
                 pkpAuthSig,
             );
