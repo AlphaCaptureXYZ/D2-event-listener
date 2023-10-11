@@ -1,5 +1,7 @@
 import 'dotenv/config';
 
+import { CONTRACTS } from '@ixily/activ/dist/sdk/activ-v4';
+
 import { IPkpInfo } from '../interfaces/shared.i';
 import { WeaveDBModule } from '../modules/weavedb.module';
 
@@ -27,42 +29,7 @@ const getPKPInfo = async (network: string): Promise<IPkpInfo> => {
     return pkpInfo;
 }
 
-const IDEA_NFT_CONFIG = {
-    gateContractAddress: '0x99aEA5533c117aa39904B66Ceec69435EC9109C8',
-    coreContractAddress: '0xc5B2d7f8C1BA4A14C32cba6561Fcf44d588d9EFE',
-    gateAbi: [
-        'event IdeaCreated(address,uint256,string,uint256,uint256,uint256)',
-        'event Initialized(uint8)',
-        'function addRulesVersion(string)',
-        'function authorizeCheck(address) view returns (bool)',
-        'function authorizeProvider(address)',
-        'function createIdea(string,uint256,string,address[]) payable returns (uint256)',
-        'function createIdeaStage(string,uint256,string,address[],uint256) payable returns (uint256)',
-        'function getContractRules(uint256) view returns (string)',
-        'function getCreatorOfNft(uint256) view returns (address)',
-        'function getFirstEventBlock() view returns (uint256)',
-        'function getIdeaByKeys(address,string,uint256,uint256) view returns (uint256)',
-        'function getIdeaCreationTax() view returns (uint256)',
-        'function getIdeaViewers(uint256) view returns (address[])',
-        'function getLastEventBlock() view returns (uint256)',
-        'function getLastNftId() view returns (uint256)',
-        'function getMetadataIdByBlockId(uint256) view returns (tuple(uint256,uint256,string))',
-        'function getSmartContractBalance() view returns (uint256)',
-        'function getVersion() view returns (string)',
-        'function giveIdeaTo(uint256,address[])',
-        'function initialize(address,bool)',
-        'function listIdeas(address,string) view returns (uint256[])',
-        'function listStages(address,string,uint256) view returns (uint256[])',
-        'function providerCheck(address) view returns (bool)',
-        'function providerCreateIdea(address,string,uint256,string,address[]) payable returns (uint256)',
-        'function providerCreateIdeaStage(address,string,uint256,string,address[],uint256) payable returns (uint256)',
-        'function providerGiveIdeaTo(uint256,address[])',
-        'function revokeProvider(address)',
-        'function setIdeaCreationTax(uint256)',
-        'function uri(uint256) view returns (string)',
-        'function withdrawMoney(address,uint256)',
-    ],
-};
+const IDEA_NFT_CONFIG = CONTRACTS.IxilyActivV4_Mumbai;
 
 export {
     getPKPInfo,
