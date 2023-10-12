@@ -1,6 +1,6 @@
-# DII-event-listener
+# D2-event-listener
 
-DII Event Listener
+D2 Event Listener
 
 - Add your .env
 
