@@ -18,10 +18,24 @@ import { getBalance, wsLogger } from '../../../event-listener/utils/utils';
 
 import * as fetcher from '../fetcher';
 
-import { PkpAuthModule } from '../../../event-listener/modules/pkp-auth.module';
-import { PkpCredentialNftModule } from '../../../event-listener/modules/pkp-credential-nft.module';
-import { INotificationPayload } from '../../../event-listener/interfaces/notification.i';
-import { ILitActionResult, IPkpInfo } from '../../../event-listener/interfaces/shared.i';
+import {
+    PkpAuthModule
+} from '../../../event-listener/modules/pkp-auth.module';
+
+import {
+    PkpCredentialNftModule
+} from '../../../event-listener/modules/pkp-credential-nft.module';
+
+import {
+    ILitActionResult,
+    IPkpInfo
+} from '../../../event-listener/interfaces/shared.i';
+
+import {
+    INotification,
+    INotificationEventPayload,
+    INotificationPayload
+} from '../../../event-listener/interfaces/notification.i';
 
 export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
     let eventResult = [];
@@ -314,7 +328,7 @@ const orderProcess = async (
                 });
             }
 
-            EventEmitter().emit<INotificationPayload>('NOTIFICATION', {
+            EventEmitter().emit<INotification<INotificationPayload>>('NOTIFICATION', {
                 type: 'NEW_ORDER',
                 info: {
                     credentialNftUUID,
@@ -494,6 +508,29 @@ const getIdeaNFTInfo = async (
         console.log(`Strategy: ${info?.data?.strategy?.name} (${info?.data?.strategy?.reference})`);
         console.log('=================================================================');
         console.log('');
+
+        EventEmitter().emit<INotification<INotificationEventPayload>>('NOTIFICATION', {
+            type: 'NEW_IDEA_NFT',
+            info: {
+                network,
+                nftId: nftId.toString(),
+                blockNumber,
+                provider: info?.data?.pricing?.provider,
+                ticker: info?.data?.idea?.asset?.ticker,
+                kind: info?.data?.idea?.kind,
+                direction: info?.data?.idea?.trade?.direction,
+                price: info?.data?.idea?.priceInfo?.price?.globalPrice,
+                creator: {
+                    name: info?.data?.creator?.name,
+                    walletAddress: info?.data?.creator?.walletAddress,
+                },
+                company: info?.data?.creator?.company,
+                strategy: {
+                    reference: info?.data?.strategy?.reference,
+                    name: info?.data?.strategy?.name,
+                },
+            },
+        });
 
         wsLogger({
             type: 'info',

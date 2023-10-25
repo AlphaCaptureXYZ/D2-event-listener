@@ -1,9 +1,13 @@
-import { INotificationPayload } from '../../../event-listener/interfaces/notification.i';
+import {
+    INotification,
+    INotificationEventPayload,
+    INotificationPayload,
+} from '../../../event-listener/interfaces/notification.i';
 
 import { NotificatorModule } from '../../modules/notificator.module';
 
-export const notification = async (
-    payload: INotificationPayload
+export const notification = async <T>(
+    payload: INotification<T>
 ) => {
     try {
 
@@ -25,9 +29,9 @@ export const notification = async (
                 error,
                 environment,
                 pkpInfo,
-            } = info;
+            } = info as INotificationPayload;
 
-            const fields = [
+            const fields: any[] = [
                 {
                     title: 'Context',
                     value: 'D2 Event Listener (Order)',
@@ -159,6 +163,102 @@ export const notification = async (
             }
 
         }
+
+        if (type === 'NEW_IDEA_NFT') {
+
+            const {
+                network,
+                nftId,
+                blockNumber,
+                provider,
+                ticker,
+                kind,
+                direction,
+                price,
+                creator,
+                company,
+                strategy,
+            } = info as INotificationEventPayload;
+
+            const fields: any[] = [
+                {
+                    title: 'Context',
+                    value: 'D2 Event Listener (New Idea NFT)',
+                    short: false,
+                },
+                {
+                    title: 'Network',
+                    value: network,
+                    short: false
+                },
+                {
+                    title: 'Idea NFT (ID)',
+                    value: nftId,
+                    short: false
+                },
+                {
+                    title: 'BlockNumber',
+                    value: blockNumber,
+                    short: false,
+                },
+                {
+                    title: 'Strategy',
+                    value: `${strategy?.name} (${strategy?.reference})`,
+                    short: false
+                },
+                {
+                    title: 'Creator',
+                    value: `${creator?.name} (${creator?.walletAddress})`,
+                    short: false
+                },
+                {
+                    title: 'Company',
+                    value: company,
+                    short: false,
+                },
+                {
+                    title: 'Ticker',
+                    value: ticker,
+                    short: false
+                },
+                {
+                    title: 'Direction',
+                    value: direction || 'none',
+                    short: false,
+                },
+                {
+                    title: 'Kind',
+                    value: kind,
+                    short: false,
+                },
+                {
+                    title: 'Provider',
+                    value: provider,
+                    short: false,
+                },
+                {
+                    title: 'Price',
+                    value: `$${price}`,
+                    short: false,
+                },
+            ];
+
+            await NotificatorModule.sendNotification({
+                payload: {
+                    username: 'D2 Event Listener (Idea created)',
+                    text: `A new idea has been created. Check the details to know more about it.`,
+                    icon_emoji: ':page_with_curl:',
+                    attachments: [
+                        {
+                            color: '#71BFF0',
+                            fields,
+                            actions: []
+                        }
+                    ],
+                }
+            });
+        }
+
 
     } catch (err) {
         console.log('notification (error)', err.message);

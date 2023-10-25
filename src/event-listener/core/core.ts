@@ -26,7 +26,7 @@ import { getRpcUrlByNetwork } from "../utils/utils";
 /* interfaces */
 import { INewIdeaNFT } from '../interfaces/new-idea-nft.i';
 import { ICreateBasicIdea, ID2EventListenerPayload, IPkpInfo } from "../interfaces/shared.i";
-import { INotificationPayload } from "../interfaces/notification.i";
+import { INotification } from "../interfaces/notification.i";
 
 import * as fetcher from './fetcher';
 
@@ -191,7 +191,7 @@ const watcherLoader = (
                         };
                         break;
                     case 'NOTIFICATION':
-                        await notification(data as INotificationPayload);
+                        await notification(data as INotification<any>);
                         break;
                     case 'CREATE_IDEA':
                         await createIdea({
