@@ -78,6 +78,32 @@ const MUMBAI_CONFIG: v4.IActivConfig = {
     }
 };
 
+const POLYGON_CONFIG: v4.IActivConfig = {
+    defaultBlockchainNetwork: "polygon",
+    defaultContract: "v4",
+    litConfig: {
+        litProvider: LitNodeProviderModule,
+        mock: false,
+    },
+    mockProvableValidation: false,
+    nftStorageKey: config.NFT_STORAGE_API_KEY,
+    mockNftStorage: false,
+    ipfsProxyEnabled: true,
+    showLogsToDebug: false,
+    useProxyInPricing: true,
+    web3AuthorizationOptions: {
+        userWalletPrivateKey: config.WALLET_PRIVATE_KEY,
+    },
+    cacheStorageConfig: {
+        isBrowser: false,
+        module: CacheNodeStorageModule,
+        dbParams: {
+            provider: "memory"
+        },
+        useCache: true,
+    }
+};
+
 const getApi = async (
     network: NetworkType = "mumbai"
 ): Promise<typeof activ> => {
@@ -96,6 +122,13 @@ const getApi = async (
                 await v4.ImagesModule.init({ JimpInstance: Jimp });
                 await EnvModule.set("isProd", false);
                 await activ.config(MUMBAI_CONFIG);
+                break;
+            case "polygon":
+                initObj.backendWalletPrivateKey = config.WALLET_PRIVATE_KEY;
+                await (LitNodeProviderModule as any).init(initObj);
+                await v4.ImagesModule.init({ JimpInstance: Jimp });
+                await EnvModule.set("isProd", true);
+                await activ.config(POLYGON_CONFIG);
                 break;
         }
 

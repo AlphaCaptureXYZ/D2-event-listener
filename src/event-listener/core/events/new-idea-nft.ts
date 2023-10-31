@@ -419,9 +419,11 @@ const getIdeaNFTInfo = async (
                     const encryptedData = nftObject.idea;
                     const encryptedSymmetricKey = nftObject.access.encryption.key;
 
+                    const contractRecipe = config.getContractRecipe(network);
+
                     const acConditions = [
                         {
-                            contractAddress: config.IDEA_NFT_CONFIG.coreContractAddress,
+                            contractAddress: contractRecipe.coreContractAddress,
                             standardContractType: 'ERC1155',
                             method: 'balanceOf',
                             parameters: [':userAddress', nftId.toString()],

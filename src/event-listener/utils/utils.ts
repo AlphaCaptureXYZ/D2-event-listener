@@ -36,6 +36,7 @@ export const getCurrentWalletAddress = () => {
 export const getRpcUrlByNetwork = (network: string) => {
     const rpcUrlByNetwork = {
         mumbai: 'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78',
+        polygon: 'https://polygon-rpc.com',
     };
 
     const rpcUrl = rpcUrlByNetwork[network] || null;
@@ -74,6 +75,7 @@ export const getBalance = async (payload: {
 
     if ([
         'mumbai',
+        'polygon',
     ].includes(network)) {
         response = {
             balance: matic,

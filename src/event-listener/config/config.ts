@@ -29,14 +29,27 @@ const getPKPInfo = async (network: string): Promise<IPkpInfo> => {
     return pkpInfo;
 }
 
-const IDEA_NFT_CONFIG = CONTRACTS.IxilyActivV4_Mumbai;
+const getContractRecipe = (
+    network: string
+) => {
+    const networkObj = {
+        mumbai: CONTRACTS.IxilyActivV4_Mumbai,
+        polygon: CONTRACTS.IxilyActivV4_Polygon_Production,
+    }
+
+    const recipe = networkObj[network] || null;
+
+    if (!recipe) throw new Error(`Network not supported: ${network}`);
+
+    return recipe;
+}
 
 export {
     getPKPInfo,
+    getContractRecipe,
 
     APP_ENV,
     WALLET_PRIVATE_KEY,
-    IDEA_NFT_CONFIG,
     MAX_LIT_ENC_DEC_ATTEMPTS,
     WEAVEDB_CONTRACT_TX_ID,
     NFT_STORAGE_API_KEY,

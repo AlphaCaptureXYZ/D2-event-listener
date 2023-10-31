@@ -17,11 +17,15 @@ describe('D2EventListener Implementation', () => {
             test: {
                 enabled: true,
                 // Block number linked to BTCUSDT test idea
-                blockNumber: 39831442,
+                blockNumber: 41628525,
             }
         });
 
+        console.log('data', data);
+
         const orderDetail = data.find(res => res);
+
+        console.log('orderDetail', orderDetail);
 
         const orderRequest = orderDetail?.request;
         const orderResponse = orderDetail?.response;

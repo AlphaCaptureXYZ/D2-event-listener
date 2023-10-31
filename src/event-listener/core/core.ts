@@ -155,9 +155,11 @@ const contractHandler = (
 
     const signer = wallet.connect(provider);
 
+    const contractRecipe = config.getContractRecipe(network);
+
     const contract = new ethers.Contract(
-        config.IDEA_NFT_CONFIG.gateContractAddress,
-        config.IDEA_NFT_CONFIG.gateAbi,
+        contractRecipe.gateContractAddress,
+        contractRecipe.gateAbi,
         signer
     );
 
