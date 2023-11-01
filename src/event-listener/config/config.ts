@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-import { CONTRACTS } from '@ixily/activ/dist/sdk/activ-v4';
+import { CONTRACTS, IContractRecipe } from '@ixily/activ/dist/sdk/activ-v4';
 
 import { IPkpInfo } from '../interfaces/shared.i';
 import { WeaveDBModule } from '../modules/weavedb.module';
@@ -22,7 +22,8 @@ const getPKPInfo = async (network: string): Promise<IPkpInfo> => {
         byUserWalletFilter: true,
     });
 
-    const pkpInfo = data?.find(res => res) || null;
+    const dataSize = data?.length;
+    const pkpInfo = dataSize > 0 ? data[dataSize - 1] : null;
 
     if (!pkpInfo) throw new Error('PKP Info not found, please generate one using the D2 site');
 
@@ -31,7 +32,7 @@ const getPKPInfo = async (network: string): Promise<IPkpInfo> => {
 
 const getContractRecipe = (
     network: string
-) => {
+): IContractRecipe => {
     const networkObj = {
         mumbai: CONTRACTS.IxilyActivV4_Mumbai,
         polygon: CONTRACTS.IxilyActivV4_Polygon_Production,
