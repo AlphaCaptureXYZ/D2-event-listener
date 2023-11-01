@@ -7,7 +7,14 @@ import { PkpAuthModule } from './pkp-auth.module';
 import { isNullOrUndefined, retryFunctionHelper } from '../helpers/helpers';
 import { getRpcUrlByNetwork } from '../utils/utils';
 
-export const contractAddress = '0x1F4b87e36478EE89b6a6d32B3B0da75EBf57A602';
+export const getContractAddress = (chain: string): string => {
+    const obj = {
+        mumbai: '0x1F4b87e36478EE89b6a6d32B3B0da75EBf57A602',
+        polygon: '0x743802C21F9359fb34e29721875D2A5844cd8148'
+    };
+    const contractAddress = obj[chain];
+    return contractAddress;
+};
 
 export const abi = [
     "constructor()",
@@ -128,6 +135,8 @@ const getCredentialNftEncryptedDeprecated = async (
 
             go();
         `;
+
+        const contractAddress = getContractAddress(chain);
 
         const listActionSignCodeParams = {
             rpcUrl,
@@ -261,6 +270,8 @@ const getCredentialNftEncrypted = async (
 
         const rpcUrl = getRpcUrlByNetwork(chain);
 
+        const contractAddress = getContractAddress(chain);
+
         const litActionGetCredentialCode = `
             const go = async () => {
 
@@ -359,6 +370,8 @@ const decryptCredentialNft = async <T>(
                 pkpKey
             );
         };
+
+        const contractAddress = getContractAddress(chain);
 
         const accessControlConditionsNFT = [
             {

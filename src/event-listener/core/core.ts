@@ -260,6 +260,8 @@ const wsTradeLoader = async (payload: {
                 type: 'trigger',
             }, pkpAuthSig);
 
+        console.log('Triggers found: ', triggers?.length, '\n');
+
         const pkpWalletAddress = pkpInfo?.pkpWalletAddress;
 
         // triggers linked to the pkp

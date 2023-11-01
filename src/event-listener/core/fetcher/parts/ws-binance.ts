@@ -220,7 +220,7 @@ export const connect = async (params: {
         connection.onopen = () => {
             connectionCheck[id] = true;
 
-            console.log(`The Binance WS connection has been established using this id credential "${id}"`);
+            console.log(`The Binance WS connection has been established using this id credential "${id}"`, '\n');
         };
 
         connection.onerror = (error) => {
