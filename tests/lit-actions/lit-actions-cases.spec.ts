@@ -75,7 +75,7 @@ describe('Lit Action Cases', () => {
 
         const source = 'fetch';
         const chain = 'mumbai';
-        const credentialNftUUID = '0xd06b243c18ffc6f0c24338804773b5b4';
+        const credentialNftUUID = '0x60c72ae1c211faf1e1a5bab5eb0c09a3';
         const environment = 'demo';
 
         const symbol = 'XRPUSDT';
@@ -171,6 +171,83 @@ describe('Lit Action Cases', () => {
         expect(isNullOrUndefined(result.error)).to.be.true;
         expect(binanceCredentials.apiKey?.trim()?.length > 0).to.be.true;
         expect(binanceCredentials.apiSecret?.trim()?.length > 0).to.be.true;
+
+    }).timeout(50000);
+
+    it('IG order test', async () => {
+
+        const source = 'lit-action';
+        const chain = 'mumbai';
+        const credentialNftUUID = '0x49b8ee18ea516da68dfbf8bf09203bcb';
+
+        const epic = 'UA.D.AAPL.DAILY.IP';
+        const direction = 'Buy';
+        const quantity = 1;
+
+        const pkpInfo = await config.getPKPInfo(chain);
+
+        const credentialInfo = await PkpCredentialNftModule.getFullCredential<{
+            username: string;
+            password: string;
+            apiKey: string;
+            environment: string;
+        }>({
+            chain,
+            credentialNftUUID,
+            pkpKey: pkpInfo?.pkpPublicKey,
+        });
+
+        const igCredentials = {
+            username: credentialInfo.decryptedCredential?.username as string,
+            password: credentialInfo.decryptedCredential?.password as string,
+            apiKey: credentialInfo.decryptedCredential?.apiKey as string,
+        };
+
+        const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
+            chain,
+            pkpInfo?.pkpPublicKey,
+        );
+
+        const litActionResult =
+            await fetcher.ig.placeOrder(
+                chain,
+                pkpAuthSig,
+                {
+                    env: credentialInfo.decryptedCredential?.environment as any,
+                    source,
+                    payload: {
+                        credentials: igCredentials,
+                        form: {
+                            epic,
+                            direction,
+                            quantity,
+                        },
+                    }
+                },
+            );
+
+        const result: ILitActionResult = {
+            additionalInfo: {
+                epic,
+                nftId: 12345,
+                credentialNftUUID,
+                userWalletAddress: credentialInfo?.owner,
+                environment: credentialInfo.decryptedCredential?.environment as any,
+            },
+            request: litActionResult?.request || null,
+            response: litActionResult?.response || null,
+            error: litActionResult?.response?.error || null,
+        };
+
+        console.log('result', result);
+
+        expect(result).to.be.an('object');
+        expect(isNullOrUndefined(result.request)).to.be.false;
+        expect(isNullOrUndefined(result.response)).to.be.false;
+        expect(isNullOrUndefined(result.error)).to.be.true;
+        expect(igCredentials.apiKey?.trim()?.length > 0).to.be.true;
+        expect(igCredentials.username?.trim()?.length > 0).to.be.true;
+        expect(igCredentials.password?.trim()?.length > 0).to.be.true;
 
     }).timeout(50000);
 
