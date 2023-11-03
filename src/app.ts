@@ -68,7 +68,7 @@ WebSocketModule.initialize(server);
 (async function main() {
     try {
         await D2EventListener({
-            network: 'polygon',
+            network: 'mumbai',
             privateKey: process.env.WALLET_PRIVATE_KEY,
         });
     } catch (err: any) {

@@ -103,16 +103,12 @@ const orderProcess = async (
         pkpInfo,
     } = payload;
 
-    const pricingProvider = data?.pricing?.provider;
+    let pricingProvider = data?.pricing?.provider;
 
-    const orderResults = await Promise.all(triggers?.map(async (triggerInfo: any) => {
-
-        const credentialNftUUID = triggerInfo?.account?.reference;
-
-        let result: ILitActionResult = null as any;
-
+    let credentials = await Promise.all(triggers?.map(async (triggerInfo: any) => {
         try {
-            const action = triggerInfo?.action;
+
+            const credentialNftUUID = triggerInfo?.account?.reference;
 
             const credentialInfo =
                 await PkpCredentialNftModule.getFullCredential<any>({
@@ -121,6 +117,29 @@ const orderProcess = async (
                     authSig: pkpAuthSig,
                     pkpKey: pkpInfo.pkpPublicKey,
                 });
+
+            triggerInfo.credentialInfo = credentialInfo;
+
+        } catch (err) { }
+
+        return triggerInfo;
+    }));
+
+    credentials = credentials?.filter((credential) => {
+        pricingProvider = pricingProvider === 'IG Group' ? 'IG' : pricingProvider;
+        return credential?.credentialInfo?.provider === pricingProvider;
+    });
+
+    const orderResults = await Promise.all(credentials?.map(async (triggerInfo: any) => {
+
+        const credentialNftUUID = triggerInfo?.account?.reference;
+
+        let result: ILitActionResult = null as any;
+
+        try {
+            const action = triggerInfo?.action;
+
+            const credentialInfo = triggerInfo?.credentialInfo;
 
             const credentialOwner = credentialInfo?.owner;
 
@@ -135,117 +154,153 @@ const orderProcess = async (
 
             if (action === 'copy-trade') {
 
-                const temporalCheck = pricingProvider === 'Binance';
+                let error = null;
+                let litActionResult = null;
 
-                if (temporalCheck) {
-                    let error = null;
-                    let litActionResult = null;
+                const kind = data?.idea?.kind?.toUpperCase();
 
-                    switch (pricingProvider) {
-                        case 'Binance':
+                switch (pricingProvider) {
+                    case 'Binance':
 
-                            // 10 USDT (temporal)
-                            // so, the idea is get this usdt amount based on the balance of the user, etc (i.e. the order calc)
-                            // settings to apply the calc order 
-                            const settings = triggerInfo?.settings || null;
+                        // 10 USDT (temporal)
+                        // so, the idea is get this usdt amount based on the balance of the user, etc (i.e. the order calc)
+                        // settings to apply the calc order 
+                        const settings = triggerInfo?.settings || null;
 
-                            const userSetting = await getUserSettings(
+                        const userSetting = await getUserSettings(
+                            network,
+                            credentialOwner,
+                            pkpInfo,
+                        );
+
+                        const proxyUrl =
+                            userSetting?.proxy_url ||
+                            'https://ixily.io/api/proxy';
+
+                        const portfolioAccount =
+                            await fetcher.binance.getPortfolioAccount(
                                 network,
-                                credentialOwner,
-                                pkpInfo,
+                                pkpAuthSig,
+                                {
+                                    proxyUrl,
+                                    env: environment as any,
+                                    source: 'fetch',
+                                    payload: {
+                                        credentials: credentialInfo.decryptedCredential,
+                                        defaultBaseCurrency: 'USDT',
+                                    }
+                                },
                             );
 
-                            const proxyUrl =
-                                userSetting?.proxy_url ||
-                                'https://ixily.io/api/proxy';
+                        const userTotalBalance = portfolioAccount?.baseCurrencyTotal || 0;
 
-                            const portfolioAccount =
-                                await fetcher.binance.getPortfolioAccount(
+                        const orderSize = settings?.orderSize || 0;
+
+                        const usdtAmount = userTotalBalance * (orderSize / 100);
+
+                        const qtyWithSymbolPrecisionResult =
+                            await fetcher.binance.getQtyWithSymbolPrecision(
+                                network,
+                                pkpAuthSig,
+                                {
+                                    env: environment as any,
+                                    source: 'fetch',
+                                    symbol: asset,
+                                    usdtAmount,
+                                    proxyUrl,
+                                }
+                            );
+
+                        error = qtyWithSymbolPrecisionResult?.error || null;
+                        const quantity = qtyWithSymbolPrecisionResult?.quantity || 0;
+
+                        // this is SPOT and we can just buy or sell (this is not furture to use short orders, etc)
+                        const directionByKind = {
+                            'open': 'BUY',
+                            'adjust': 'BUY',
+                            'close': 'SELL',
+                        };
+
+                        const direction = directionByKind[kind?.toLowerCase()];
+
+                        if (isNullOrUndefined(error)) {
+                            litActionResult =
+                                await fetcher.binance.placeOrder(
                                     network,
                                     pkpAuthSig,
                                     {
+                                        env: environment as any,
+                                        source: 'fetch',
                                         proxyUrl,
+                                        payload: {
+                                            credentials: credentialInfo.decryptedCredential,
+                                            form: {
+                                                asset,
+                                                direction,
+                                                quantity,
+                                            },
+                                        }
+                                    }
+                                );
+                        }
+                        break;
+
+                    case 'IG':
+                    case 'IG Group':
+
+                        const igDirectionByKind = {
+                            'open': 'Buy',
+                            'adjust': 'Buy',
+                            'close': 'Sell',
+                        };
+
+                        const igDirection = igDirectionByKind[kind?.toLowerCase()];
+
+                        if (isNullOrUndefined(error)) {
+                            litActionResult =
+                                await fetcher.ig.placeOrder(
+                                    network,
+                                    pkpAuthSig,
+                                    {
                                         env: environment as any,
                                         source: 'fetch',
                                         payload: {
-                                            credentials: credentialInfo.decryptedCredential,
-                                            defaultBaseCurrency: 'USDT',
+                                            credentials: {
+                                                apiKey:
+                                                    credentialInfo.decryptedCredential?.apiKey,
+                                                username:
+                                                    credentialInfo.decryptedCredential?.username,
+                                                password:
+                                                    credentialInfo.decryptedCredential?.password,
+                                            },
+                                            form: {
+                                                direction: igDirection,
+                                                epic: asset,
+                                                quantity: 1,
+                                            },
                                         }
-                                    },
-                                );
-
-                            const userTotalBalance = portfolioAccount?.baseCurrencyTotal || 0;
-
-                            const orderSize = settings?.orderSize || 0;
-
-                            const usdtAmount = userTotalBalance * (orderSize / 100);
-
-                            const qtyWithSymbolPrecisionResult =
-                                await fetcher.binance.getQtyWithSymbolPrecision(
-                                    network,
-                                    pkpAuthSig,
-                                    {
-                                        env: environment as any,
-                                        source: 'fetch',
-                                        symbol: asset,
-                                        usdtAmount,
-                                        proxyUrl,
                                     }
                                 );
 
-                            error = qtyWithSymbolPrecisionResult?.error || null;
-                            const quantity = qtyWithSymbolPrecisionResult?.quantity || 0;
-
-                            const kind = data?.idea?.kind?.toUpperCase();
-
-                            // this is SPOT and we can just buy or sell (this is not furture to use short orders, etc)
-                            const directionByKind = {
-                                'open': 'BUY',
-                                'adjust': 'BUY',
-                                'close': 'SELL',
-                            };
-
-                            const direction = directionByKind[kind?.toLowerCase()];
-
-                            if (isNullOrUndefined(error)) {
-                                litActionResult =
-                                    await fetcher.binance.placeOrder(
-                                        network,
-                                        pkpAuthSig,
-                                        {
-                                            env: environment as any,
-                                            source: 'fetch',
-                                            proxyUrl,
-                                            payload: {
-                                                credentials: credentialInfo.decryptedCredential,
-                                                form: {
-                                                    asset,
-                                                    direction,
-                                                    quantity,
-                                                },
-                                            }
-                                        }
-                                    );
-                            }
-                            break;
-                    }
-
-                    result = {
-                        additionalInfo: {
-                            asset,
-                            nftId,
-                            blockNumber,
-                            credentialNftUUID,
-                            userWalletAddress: credentialOwner,
-                            environment,
-                        },
-                        request: litActionResult?.request || null,
-                        response: litActionResult?.response || null,
-                        error: error || litActionResult?.response?.error || null,
-                    };
-
+                            error =
+                                litActionResult?.response?.dealStatus === 'REJECTED' || null;
+                        }
+                        break;
                 }
 
+                result = {
+                    additionalInfo: {
+                        asset,
+                        nftId,
+                        blockNumber,
+                        credentialNftUUID,
+                        userWalletAddress: credentialOwner,
+                        environment,
+                    },
+                    request: litActionResult?.request || null,
+                    response: litActionResult?.response || null,
+                    error: error || litActionResult?.response?.error || null,
+                };
             }
 
         } catch (err) {
@@ -268,7 +323,11 @@ const orderProcess = async (
             const credentialOwner = orderResult?.additionalInfo?.userWalletAddress;
             const environment = orderResult?.additionalInfo?.environment;
 
-            const orderId = orderResult?.response?.orderId || null;
+            const orderId =
+                orderResult?.response?.orderId ||
+                orderResult?.response?.dealId ||
+                null;
+
             const error = orderResult?.error || orderResult?.response?.error || null;
 
             const dataStored = await WeaveDBModule.addData<any>(

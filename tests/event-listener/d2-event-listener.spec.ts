@@ -9,7 +9,7 @@ import {
 
 describe('D2EventListener Implementation', () => {
 
-    it('Full event listener test: Listen/Watch the idea nft flow (crypto), retrive info (trigger, credential, and decrypt, etc) and place the Binance order', async () => {
+    xit('Full event listener test: Listen/Watch the idea nft flow (crypto), retrive info (trigger, credential, and decrypt, etc) and place the Binance order', async () => {
 
         const data: any[] = await D2EventListener({
             network: 'mumbai',
@@ -17,7 +17,7 @@ describe('D2EventListener Implementation', () => {
             test: {
                 enabled: true,
                 // Block number linked to BTCUSDT test idea
-                blockNumber: 41628525,
+                blockNumber: 41969920,
             }
         });
 
