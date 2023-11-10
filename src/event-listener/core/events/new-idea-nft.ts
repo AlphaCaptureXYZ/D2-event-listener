@@ -257,21 +257,35 @@ const orderProcess = async (
                         const igDirection = igDirectionByKind[kind?.toLowerCase()];
 
                         if (isNullOrUndefined(error)) {
+
+                            const igAuth = await fetcher.ig.authentication(network, pkpAuthSig, {
+                                env: environment as any,
+                                source: 'fetch',
+                                credentials: {
+                                    apiKey:
+                                        credentialInfo.decryptedCredential?.apiKey,
+                                    username:
+                                        credentialInfo.decryptedCredential?.username,
+                                    password:
+                                        credentialInfo.decryptedCredential?.password,
+                                },
+                            });
+
                             litActionResult =
-                                await fetcher.ig.placeOrder(
+                                await fetcher.ig.placeBasicOrder(
                                     network,
                                     pkpAuthSig,
                                     {
                                         env: environment as any,
                                         source: 'fetch',
                                         payload: {
-                                            credentials: {
+                                            auth: {
                                                 apiKey:
-                                                    credentialInfo.decryptedCredential?.apiKey,
-                                                username:
-                                                    credentialInfo.decryptedCredential?.username,
-                                                password:
-                                                    credentialInfo.decryptedCredential?.password,
+                                                    igAuth?.apiKey,
+                                                clientSessionToken:
+                                                    igAuth?.clientSessionToken,
+                                                activeAccountSessionToken:
+                                                    igAuth?.activeAccountSessionToken,
                                             },
                                             form: {
                                                 direction: igDirection,

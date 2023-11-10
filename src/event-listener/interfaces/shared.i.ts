@@ -4,6 +4,8 @@ import {
 
 import CI = CONTRACT.CONTRACT_INTERFACES;
 
+export type EnvType = 'demo' | 'prod';
+
 export type FetcherSource = 'fetch' | 'lit-action';
 
 export interface ID2EventListenerPayload {

@@ -1,9 +1,7 @@
 import 'isomorphic-fetch';
 
-import { FetcherSource } from "src/event-listener/interfaces/shared.i";
+import { FetcherSource, EnvType } from "../../../../event-listener/interfaces/shared.i";
 import { LitModule } from "../../../modules/lit.module";
-
-type EnvType = 'demo' | 'prod';
 
 const igUrlSelector = {
     demo: 'https://demo-api.ig.com',
@@ -14,7 +12,7 @@ const getApiUrl = (env: EnvType) => {
     return igUrlSelector[env] || igUrlSelector['demo'];
 };
 
-const checkCredentials = async (
+const authentication = async (
     network: string,
     pkpAuthSig: any,
     params: {
@@ -69,6 +67,7 @@ const checkCredentials = async (
         const activeAccountSessionToken = response.headers.get('x-security-token');
 
         response = {
+            apiKey: credentials.apiKey,
             clientSessionToken,
             activeAccountSessionToken,
             error,
@@ -115,6 +114,7 @@ const checkCredentials = async (
                 const activeAccountSessionToken = response.headers.get('x-security-token');
 
                 Lit.Actions.setResponse({response: JSON.stringify({
+                    apiKey,
                     clientSessionToken,
                     activeAccountSessionToken,
                     error,
@@ -149,10 +149,10 @@ const placeOrder = async (
         env: EnvType,
         source: FetcherSource,
         payload: {
-            credentials: {
-                username: string,
-                password: string,
+            auth: {
                 apiKey: string,
+                clientSessionToken: string
+                activeAccountSessionToken: string,
             },
             form: {
                 epic,
@@ -173,19 +173,14 @@ const placeOrder = async (
 
     let response = null as any;
 
-    const apiKey = payload?.credentials?.apiKey;
-    const password = payload?.credentials?.password;
-    const username = payload?.credentials?.username;
+    const apiKey =
+        payload?.auth?.apiKey;
 
-    const auth = await checkCredentials(network, pkpAuthSig, {
-        env,
-        source,
-        credentials: {
-            apiKey,
-            password,
-            username,
-        },
-    });
+    const clientSessionToken =
+        payload?.auth?.clientSessionToken;
+
+    const activeAccountSessionToken =
+        payload?.auth?.activeAccountSessionToken;
 
     if (source === 'fetch') {
 
@@ -212,9 +207,9 @@ const placeOrder = async (
             body: JSON.stringify(body),
             headers: {
                 'Version': '2',
-                'CST': auth.clientSessionToken,
+                'CST': clientSessionToken,
                 'X-IG-API-KEY': apiKey,
-                'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
+                'X-SECURITY-TOKEN': activeAccountSessionToken,
                 'User-Agent': 'PostmanRuntime/7.29.2',
                 'Accept': 'application/json; charset=UTF-8',
                 'Content-Type': 'application/json; charset=UTF-8',
@@ -237,9 +232,9 @@ const placeOrder = async (
                     method: 'GET',
                     headers: {
                         'Version': '1',
-                        'CST': auth.clientSessionToken,
+                        'CST': clientSessionToken,
                         'X-IG-API-KEY': apiKey,
-                        'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
+                        'X-SECURITY-TOKEN': activeAccountSessionToken,
                         'User-Agent': 'PostmanRuntime/7.29.2',
                         'Accept': 'application/json; charset=UTF-8',
                         'Content-Type': 'application/json; charset=UTF-8',
@@ -289,7 +284,7 @@ const placeOrder = async (
                     headers: {
                         'Version': '2',
                         'CST': auth.clientSessionToken,
-                        'X-IG-API-KEY': '${apiKey}',
+                        'X-IG-API-KEY': auth.apiKey,
                         'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
                         'User-Agent': 'PostmanRuntime/7.29.2',
                         'Accept': 'application/json; charset=UTF-8',
@@ -314,7 +309,7 @@ const placeOrder = async (
                             headers: {
                                 'Version': '1',
                                 'CST': auth.clientSessionToken,
-                                'X-IG-API-KEY': '${apiKey}',
+                                'X-IG-API-KEY': auth.apiKey,
                                 'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
                                 'User-Agent': 'PostmanRuntime/7.29.2',
                                 'Accept': 'application/json; charset=UTF-8',
@@ -346,7 +341,431 @@ const placeOrder = async (
             litActionCode: code,
             listActionCodeParams: {
                 ...params?.payload,
-                auth,
+                auth: {
+                    apiKey,
+                    clientSessionToken,
+                    activeAccountSessionToken,
+                },
+            },
+            nodes: 1,
+            showLogs: false,
+            authSig: pkpAuthSig,
+        });
+
+        response = litActionCall?.response as any;
+    }
+
+    return response;
+
+};
+
+const placeBasicOrder = async (
+    network: string,
+    pkpAuthSig: any,
+    params: {
+        env: EnvType,
+        source: FetcherSource,
+        payload: {
+            auth: {
+                apiKey: string,
+                clientSessionToken: string
+                activeAccountSessionToken: string,
+            },
+            form: {
+                epic,
+                direction,
+                quantity,
+            },
+        }
+    }
+) => {
+
+    const response = await placeOrder(
+        network,
+        pkpAuthSig,
+        params
+    )
+
+    return response;
+
+};
+
+const placeManagedOrder = async (
+    network: string,
+    pkpAuthSig: any,
+    params: {
+        env: EnvType,
+        source: FetcherSource,
+        payload: {
+            auth: {
+                apiKey: string,
+                clientSessionToken: string
+                activeAccountSessionToken: string,
+            },
+            form: {
+                epic,
+                direction,
+                quantity,
+            },
+        }
+    }
+) => {
+
+    const response = await placeOrder(
+        network,
+        pkpAuthSig,
+        params
+    )
+
+    return response;
+
+};
+
+const getPositions = async (
+    network: string,
+    pkpAuthSig: any,
+    params: {
+        env: EnvType,
+        source: FetcherSource,
+        payload: {
+            auth: {
+                apiKey: string,
+                clientSessionToken: string
+                activeAccountSessionToken: string,
+            },
+        }
+    }
+) => {
+
+    const {
+        env,
+        source,
+        payload,
+    } = params;
+
+    const requestUrl = getApiUrl(env);
+
+    let response = null as any;
+
+    const apiKey =
+        payload?.auth?.apiKey;
+
+    const clientSessionToken =
+        payload?.auth?.clientSessionToken;
+
+    const activeAccountSessionToken =
+        payload?.auth?.activeAccountSessionToken;
+
+    if (source === 'fetch') {
+
+        const url = `${requestUrl}/gateway/deal/positions`;
+
+        const options: any = {
+            method: 'GET',
+            headers: {
+                'Version': '1',
+                'CST': clientSessionToken,
+                'X-IG-API-KEY': apiKey,
+                'X-SECURITY-TOKEN': activeAccountSessionToken,
+                'User-Agent': 'PostmanRuntime/7.29.2',
+                'Accept': 'application/json; charset=UTF-8',
+                'Content-Type': 'application/json; charset=UTF-8',
+            },
+            redirect: 'follow',
+            mode: 'cors',
+        };
+
+        response = await fetch(url, options);
+        const data = await response.json();
+
+        response = data?.positions || [];
+
+    }
+
+    if (source === 'lit-action') {
+
+        const code = `
+            const go = async () => {
+
+                const url = '${requestUrl}/gateway/deal/positions';
+
+                const options = {
+                    method: 'GET',
+                    headers: {
+                        'Version': '1',
+                        'CST': auth.clientSessionToken,
+                        'X-IG-API-KEY': auth.apiKey,
+                        'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
+                        'User-Agent': 'PostmanRuntime/7.29.2',
+                        'Accept': 'application/json; charset=UTF-8',
+                        'Content-Type': 'application/json; charset=UTF-8',
+                    },
+                    redirect: 'follow',
+                    mode: 'cors',
+                };
+
+                const response = await fetch(url, options);
+                const data = await response.json();
+    
+                const info = data?.positions || [];
+    
+                Lit.Actions.setResponse({response: JSON.stringify(info)});
+
+            };
+
+            go();
+        `;
+
+        const litActionCall = await LitModule().runLitAction({
+            chain: network,
+            litActionCode: code,
+            listActionCodeParams: {
+                ...params?.payload,
+                auth: {
+                    apiKey,
+                    clientSessionToken,
+                    activeAccountSessionToken,
+                },
+            },
+            nodes: 1,
+            showLogs: false,
+            authSig: pkpAuthSig,
+        });
+
+        response = litActionCall?.response as any;
+    }
+
+    return response;
+
+};
+
+const getAccounts = async (
+    network: string,
+    pkpAuthSig: any,
+    params: {
+        env: EnvType,
+        source: FetcherSource,
+        payload: {
+            auth: {
+                apiKey: string,
+                clientSessionToken: string
+                activeAccountSessionToken: string,
+            },
+        }
+    }
+) => {
+
+    const {
+        env,
+        source,
+        payload,
+    } = params;
+
+    const requestUrl = getApiUrl(env);
+
+    let response = null as any;
+
+    const apiKey =
+        payload?.auth?.apiKey;
+
+    const clientSessionToken =
+        payload?.auth?.clientSessionToken;
+
+    const activeAccountSessionToken =
+        payload?.auth?.activeAccountSessionToken;
+
+    if (source === 'fetch') {
+
+        const url = `${requestUrl}/gateway/deal/accounts`;
+
+        const options: any = {
+            method: 'GET',
+            headers: {
+                'Version': '1',
+                'CST': clientSessionToken,
+                'X-IG-API-KEY': apiKey,
+                'X-SECURITY-TOKEN': activeAccountSessionToken,
+                'User-Agent': 'PostmanRuntime/7.29.2',
+                'Accept': 'application/json; charset=UTF-8',
+                'Content-Type': 'application/json; charset=UTF-8',
+            },
+            redirect: 'follow',
+            mode: 'cors',
+        };
+
+        response = await fetch(url, options);
+        const data = await response.json();
+
+        response = data?.accounts || [];
+
+    }
+
+    if (source === 'lit-action') {
+
+        const code = `
+            const go = async () => {
+
+                const url = '${requestUrl}/gateway/deal/accounts';
+
+                const options = {
+                    method: 'GET',
+                    headers: {
+                        'Version': '1',
+                        'CST': auth.clientSessionToken,
+                        'X-IG-API-KEY': auth.apiKey,
+                        'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
+                        'User-Agent': 'PostmanRuntime/7.29.2',
+                        'Accept': 'application/json; charset=UTF-8',
+                        'Content-Type': 'application/json; charset=UTF-8',
+                    },
+                    redirect: 'follow',
+                    mode: 'cors',
+                };
+
+                const response = await fetch(url, options);
+                const data = await response.json();
+    
+                const info = data?.accounts || [];
+    
+                Lit.Actions.setResponse({response: JSON.stringify(info)});
+
+            };
+
+            go();
+        `;
+
+        const litActionCall = await LitModule().runLitAction({
+            chain: network,
+            litActionCode: code,
+            listActionCodeParams: {
+                ...params?.payload,
+                auth: {
+                    apiKey,
+                    clientSessionToken,
+                    activeAccountSessionToken,
+                },
+            },
+            nodes: 1,
+            showLogs: false,
+            authSig: pkpAuthSig,
+        });
+
+        response = litActionCall?.response as any;
+    }
+
+    return response;
+
+};
+
+const getMarketInfoByEpic = async (
+    network: string,
+    pkpAuthSig: any,
+    params: {
+        env: EnvType,
+        source: FetcherSource,
+        payload: {
+            epic: string,
+            auth: {
+                apiKey: string,
+                clientSessionToken: string
+                activeAccountSessionToken: string,
+            },
+        }
+    }
+) => {
+
+    const {
+        env,
+        source,
+        payload,
+    } = params;
+
+    const requestUrl = getApiUrl(env);
+
+    let response = null as any;
+
+    const epic =
+        payload?.epic;
+
+    const apiKey =
+        payload?.auth?.apiKey;
+
+    const clientSessionToken =
+        payload?.auth?.clientSessionToken;
+
+    const activeAccountSessionToken =
+        payload?.auth?.activeAccountSessionToken;
+
+    if (source === 'fetch') {
+
+        const url = `${requestUrl}/gateway/deal/markets/${epic}`;
+
+        const options: any = {
+            method: 'GET',
+            headers: {
+                'Version': '1',
+                'CST': clientSessionToken,
+                'X-IG-API-KEY': apiKey,
+                'X-SECURITY-TOKEN': activeAccountSessionToken,
+                'User-Agent': 'PostmanRuntime/7.29.2',
+                'Accept': 'application/json; charset=UTF-8',
+                'Content-Type': 'application/json; charset=UTF-8',
+            },
+            redirect: 'follow',
+            mode: 'cors',
+        };
+
+        response = await fetch(url, options);
+        const data = await response.json();
+
+        response = data || null;
+
+    }
+
+    if (source === 'lit-action') {
+
+        const code = `
+            const go = async () => {
+
+                const url = '${requestUrl}/gateway/deal/accounts';
+
+                const options = {
+                    method: 'GET',
+                    headers: {
+                        'Version': '1',
+                        'CST': auth.clientSessionToken,
+                        'X-IG-API-KEY': auth.apiKey,
+                        'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
+                        'User-Agent': 'PostmanRuntime/7.29.2',
+                        'Accept': 'application/json; charset=UTF-8',
+                        'Content-Type': 'application/json; charset=UTF-8',
+                    },
+                    redirect: 'follow',
+                    mode: 'cors',
+                };
+
+                const response = await fetch(url, options);
+                const data = await response.json();
+    
+                const info = data || null;
+
+                Lit.Actions.setResponse({response: JSON.stringify(info)});
+
+            };
+
+            go();
+        `;
+
+        const litActionCall = await LitModule().runLitAction({
+            chain: network,
+            litActionCode: code,
+            listActionCodeParams: {
+                ...params?.payload,
+                auth: {
+                    apiKey,
+                    clientSessionToken,
+                    activeAccountSessionToken,
+                },
             },
             nodes: 1,
             showLogs: false,
@@ -361,6 +780,10 @@ const placeOrder = async (
 };
 
 export {
-    checkCredentials,
-    placeOrder,
+    authentication,
+    placeBasicOrder,
+    placeManagedOrder,
+    getPositions,
+    getAccounts,
+    getMarketInfoByEpic,
 }

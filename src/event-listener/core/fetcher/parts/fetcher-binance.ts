@@ -5,12 +5,10 @@ import {
     objectToQueryString,
 } from '../../../helpers/helpers';
 
-import { FetcherSource } from "src/event-listener/interfaces/shared.i";
+import { FetcherSource, EnvType } from "../../../../event-listener/interfaces/shared.i";
 import { LitModule } from "../../../modules/lit.module";
 
 import * as ws from './ws-binance';
-
-type EnvType = 'demo' | 'prod';
 
 const binanceUrlSelector = {
     demo: 'https://testnet.binance.vision/api',
