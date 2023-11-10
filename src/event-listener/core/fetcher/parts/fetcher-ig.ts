@@ -2,6 +2,7 @@ import 'isomorphic-fetch';
 
 import { FetcherSource, EnvType } from "../../../../event-listener/interfaces/shared.i";
 import { LitModule } from "../../../modules/lit.module";
+import { orderCalc } from './shared/ig-order-calc';
 
 const igUrlSelector = {
     demo: 'https://demo-api.ig.com',
@@ -158,6 +159,7 @@ const placeOrder = async (
                 epic,
                 direction,
                 quantity,
+                currencyCode: string,
             },
         }
     }
@@ -191,7 +193,7 @@ const placeOrder = async (
             Math.random().toString(36).substring(2, 15);
 
         const body = {
-            currencyCode: 'USD',
+            currencyCode: payload.form.currencyCode,
             dealReference: dealReferenceGenerator(),
             direction: payload.form.direction.toUpperCase(),
             epic: payload.form.epic,
@@ -372,9 +374,10 @@ const placeBasicOrder = async (
                 activeAccountSessionToken: string,
             },
             form: {
-                epic,
-                direction,
-                quantity,
+                epic: string,
+                direction: string,
+                quantity: number,
+                currencyCode: string,
             },
         }
     }
@@ -398,24 +401,66 @@ const placeManagedOrder = async (
         source: FetcherSource,
         payload: {
             auth: {
+                accountId: string,
                 apiKey: string,
                 clientSessionToken: string
                 activeAccountSessionToken: string,
             },
             form: {
-                epic,
-                direction,
-                quantity,
+                epic: string,
+                direction: string,
             },
         }
     }
 ) => {
 
+    const calc = await orderCalc(
+        network,
+        pkpAuthSig,
+        {
+            env: params?.env,
+            source: params?.source,
+            payload: {
+                auth: {
+                    accountId: params?.payload?.auth?.accountId,
+                    apiKey: params?.payload?.auth?.apiKey,
+                    clientSessionToken: params?.payload?.auth?.clientSessionToken,
+                    activeAccountSessionToken: params?.payload?.auth?.activeAccountSessionToken,
+                },
+                direction: params?.payload?.form?.direction as any,
+                epic: params?.payload?.form?.epic,
+            }
+        }
+    );
+
+    const currencyCode = calc?.account?.currencyCode;
+
     const response = await placeOrder(
         network,
         pkpAuthSig,
-        params
+        {
+            env: params?.env,
+            source: params?.source,
+            payload: {
+                auth: {
+                    activeAccountSessionToken: params?.payload?.auth?.activeAccountSessionToken,
+                    apiKey: params?.payload?.auth?.apiKey,
+                    clientSessionToken: params?.payload?.auth?.clientSessionToken,
+                },
+                form: {
+                    epic: params?.payload?.form?.epic,
+                    direction: params?.payload?.form?.direction,
+                    quantity: calc?.order?.final?.quantity?.rounded,
+                    currencyCode,
+                }
+            }
+        }
     )
+
+    response.request = {
+        ...response?.request,
+        calc,
+    }
 
     return response;
 
@@ -727,7 +772,7 @@ const getMarketInfoByEpic = async (
         const code = `
             const go = async () => {
 
-                const url = '${requestUrl}/gateway/deal/accounts';
+                const url = '${requestUrl}/gateway/deal/markets/${epic}';
 
                 const options = {
                     method: 'GET',

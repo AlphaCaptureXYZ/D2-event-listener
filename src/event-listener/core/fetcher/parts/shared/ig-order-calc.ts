@@ -8,6 +8,11 @@ import { isNullOrUndefined } from '../../../../helpers/helpers';
 
 export type DirectionType = 'buy' | 'sell';
 
+const countDecimals = (value: number): number => {
+  if (Math.floor(value) === value) return 0;
+  return value.toString().split(".")[1].length || 0;
+}
+
 const currencyInfo = {
   GBP: {
     symbol: '£',
@@ -46,6 +51,7 @@ export interface IOrderCalc {
     leverage: number
     leverageBalance: number
     currencySymbol: string
+    currencyCode: string
   }
   existingPosition: {
     valueInBase: number
@@ -132,6 +138,7 @@ const defaultOrderCalc: IOrderCalc = {
     leverage: 1,
     leverageBalance: 0,
     currencySymbol: '$',
+    currencyCode: 'USD',
   },
   existingPosition: {
     valueInBase: 0,
@@ -217,217 +224,6 @@ const defaultOrderCalc: IOrderCalc = {
       }
     }
   }
-}
-
-const orderCalc = async (
-  network: string,
-  pkpAuthSig: any,
-  params: {
-    env: EnvType,
-    source: FetcherSource,
-    payload: {
-      auth: {
-        apiKey: string,
-        clientSessionToken: string
-        activeAccountSessionToken: string,
-        accountId: string
-      },
-      direction: DirectionType,
-    }
-  }
-) => {
-  const data = defaultOrderCalc;
-
-  const form = {
-    conviction: 100,
-    orderLimits: false,
-    maxLeverage: 1,
-    defaultOrderSize: 2,
-    maxSizePortofolio: 10,
-    direction: params.payload.direction,
-  };
-
-  try {
-
-    const {
-      env,
-      payload,
-      source,
-    } = params;
-
-    const {
-      auth
-    } = payload
-
-    /* positions */
-    const positions: any[] = await fetcher.ig.getPositions(
-      network,
-      pkpAuthSig,
-      {
-        env,
-        source,
-        payload: {
-          auth: {
-            apiKey: auth.apiKey,
-            clientSessionToken: auth.clientSessionToken,
-            activeAccountSessionToken: auth.activeAccountSessionToken,
-          }
-        }
-      }
-    );
-
-    const accounts: any[] = await fetcher.ig.getAccounts(
-      network,
-      pkpAuthSig,
-      {
-        env,
-        source,
-        payload: {
-          auth: {
-            apiKey: auth.apiKey,
-            clientSessionToken: auth.clientSessionToken,
-            activeAccountSessionToken: auth.activeAccountSessionToken,
-          }
-        }
-      }
-    );
-
-    let account = accounts?.find((res: any) => res.accountId === auth.accountId);
-
-    if (isNullOrUndefined(account)) {
-      account = accounts?.find((res: any) => res.preferred);
-    }
-
-
-    const currency: any = account.currency;
-    const accountCurrencySymbol = (currencyInfo as any)[currency || 'GBP']?.symbol;
-
-    // check to see if there are any assets other than the base currency of the account
-    const diffAssets = positions?.filter((res) => res.position.currency !== currency) || [];
-
-    // console.log('diffAssets', diffAssets);
-
-    // good example to do, the demo account have 2 existing positions in USD and the other in GBP
-    if (diffAssets.length > 0) {
-      // pending to add the conversion and logic, etc
-    }
-
-    data.account.currencySymbol = accountCurrencySymbol;
-    data.account.leverageBalance = data.account.balance * data.account.leverage;
-
-    // reset our portfolio
-    data.portfolio.raw = [];
-    data.portfolio.net = [];
-    // and reset our portfolio stats
-    data.portfolioStats.long = 0;
-    data.portfolioStats.short = 0;
-    data.portfolioStats.net = 0;
-
-    // loop through the positions to get the totafl existing exposure
-    for (const p in positions) {
-      if (p) {
-
-        let val = 0;
-        let direction = 'Neutral';
-        if (positions[p].position.direction === 'SELL') {
-          val = positions[p].market.bid * positions[p].position.contractSize;
-          direction = 'Short';
-          data.portfolioStats.short = data.portfolioStats.short + val;
-        } else {
-          val = positions[p].market.offer * positions[p].position.contractSize;
-          direction = 'Long';
-          data.portfolioStats.long = data.portfolioStats.long + val;
-        }
-        data.portfolioStats.net = data.portfolioStats.long - data.portfolioStats.short;
-
-
-        // always add the raw
-        const rawPosition = {
-          ticker: positions[p].market.epic,
-          size: positions[p].position.contractSize,
-          direction,
-          bid: positions[p].market.bid,
-          offer: positions[p].market.offer,
-          value: val,
-        }
-        data.portfolio.raw.push(rawPosition);
-
-        // create our net 
-        const existing = data.portfolio.net.filter(res => res.ticker === positions[p].market.epic) || [];
-        if (existing.length > 0) {
-          // console.log('existing position for ', positions[p].market.epic);
-
-          data.portfolio.net.filter(res => {
-            // console.log('check the existing position for ', positions[p].market.epic);
-            if (res.ticker === positions[p].market.epic) {
-
-              // console.log('update the existing position for ', positions[p].market.epic);
-              if (rawPosition.direction === 'SELL' || rawPosition.direction === 'Short') {
-                res.size = res.size - rawPosition.size;
-                res.value = res.value - rawPosition.value;
-              } else if (rawPosition.direction === 'BUY' || rawPosition.direction === 'Long') {
-                res.size = res.size + rawPosition.size;
-                res.value = res.value + rawPosition.value;
-              }
-
-              // set the overall direction
-              if (res.size > 0) {
-                res.direction = 'Long';
-              } else if (res.size < 0) {
-                res.direction = 'Short';
-              } else {
-                res.direction = 'Neutral';
-              }
-              // console.log('updated res', res);
-            }
-            return res;
-          })
-        } else {
-
-          // console.log('add the new existing position for ', positions[p].market.epic);
-          // console.log('add the new existing position for ', rawPosition);
-          data.portfolio.net.push(rawPosition);
-        }
-
-      }
-    }
-    // console.log('data.portfolio', data.portfolio);
-
-    const accountBalance = account?.balance?.balance || 0;
-
-    data.account.balance = accountBalance;
-    data.account.leverageBalance = accountBalance * data.account.leverage;
-
-    // update our total remaining portfolo 'space'
-    data.portfolioStats.remaining = data.account.leverageBalance - data.portfolioStats.net;
-
-    // filter out our net portfolio
-    const netPositions = data.portfolio.net;
-    for (const p in netPositions) {
-      if (p) {
-        if (netPositions[p].ticker === data.asset.ticker) {
-          data.existingPosition.valueInBase = netPositions[p].value;
-          data.existingPosition.currentPortfolioAllocation = data.existingPosition.valueInBase / data.account.leverageBalance * 100;
-        }
-      }
-    }
-
-    defaultOrderCalcUsingtheAccountBalance(
-      data,
-      {
-        orderLimits: form.orderLimits,
-        defaultOrderSize: form.defaultOrderSize,
-        conviction: form.conviction,
-        maxSizePortofolio: form.maxSizePortofolio,
-        direction: form.direction as DirectionType,
-      }
-    );
-
-  } catch (err: any) {
-
-  }
-
-  return data;
 }
 
 const defaultOrderCalcUsingtheAccountBalance = (
@@ -624,4 +420,251 @@ const defaultOrderCalcUsingtheAccountBalance = (
     return initialObject;
 
   }
+}
+
+export const orderCalc = async (
+  network: string,
+  pkpAuthSig: any,
+  params: {
+    env: EnvType,
+    source: FetcherSource,
+    payload: {
+      auth: {
+        apiKey: string,
+        clientSessionToken: string
+        activeAccountSessionToken: string,
+        accountId: string
+      },
+      direction: DirectionType,
+      epic: string,
+    }
+  }
+) => {
+  const data = defaultOrderCalc;
+
+  const form = {
+    conviction: 100,
+    orderLimits: false,
+    maxLeverage: 1,
+    defaultOrderSize: 2,
+    maxSizePortofolio: 10,
+    direction: params.payload.direction,
+  };
+
+  try {
+
+    const {
+      env,
+      payload,
+      source,
+    } = params;
+
+    const {
+      auth
+    } = payload
+
+    const igAssetInfo: any = await fetcher.ig.getMarketInfoByEpic(
+      network,
+      pkpAuthSig,
+      {
+        env,
+        source,
+        payload: {
+          epic: payload.epic,
+          auth: {
+            apiKey: auth.apiKey,
+            clientSessionToken: auth.clientSessionToken,
+            activeAccountSessionToken: auth.activeAccountSessionToken,
+          }
+        }
+      }
+    );
+
+    // we can use the above for these...
+    data.asset.ticker = igAssetInfo?.instrument?.epic;
+    data.asset.name = igAssetInfo.instrument?.name;
+    data.asset.price.ask = igAssetInfo?.snapshot?.offer || 0;
+    data.asset.price.bid = igAssetInfo?.snapshot?.bid || 0;
+
+    // these come from the more detailed request
+    data.asset.minQty =
+      igAssetInfo?.dealingRules?.minDealSize?.value || 1;
+    // there is a value on the asset object that is called 'step' or something like that
+    // if that has decimals, then fractional is true
+    data.asset.fractional =
+      igAssetInfo?.dealingRules?.minDealSize?.value?.toString()?.includes('.') ? true : false;
+
+    // use the number of decimals from the min qty
+    data.asset.decimals = countDecimals(data.asset.minQty);
+
+    /* positions */
+    const positions: any[] = await fetcher.ig.getPositions(
+      network,
+      pkpAuthSig,
+      {
+        env,
+        source,
+        payload: {
+          auth: {
+            apiKey: auth.apiKey,
+            clientSessionToken: auth.clientSessionToken,
+            activeAccountSessionToken: auth.activeAccountSessionToken,
+          }
+        }
+      }
+    );
+
+    const accounts: any[] = await fetcher.ig.getAccounts(
+      network,
+      pkpAuthSig,
+      {
+        env,
+        source,
+        payload: {
+          auth: {
+            apiKey: auth.apiKey,
+            clientSessionToken: auth.clientSessionToken,
+            activeAccountSessionToken: auth.activeAccountSessionToken,
+          }
+        }
+      }
+    );
+
+    let account = accounts?.find((res: any) => res.accountId === auth.accountId);
+
+    if (isNullOrUndefined(account)) {
+      account = accounts?.find((res: any) => res.preferred);
+    }
+
+    const currency: any = account.currency;
+    const accountCurrencySymbol = (currencyInfo as any)[currency || 'GBP']?.symbol;
+
+    // check to see if there are any assets other than the base currency of the account
+    const diffAssets = positions?.filter((res) => res.position.currency !== currency) || [];
+
+    // console.log('diffAssets', diffAssets);
+
+    // good example to do, the demo account have 2 existing positions in USD and the other in GBP
+    if (diffAssets.length > 0) {
+      // pending to add the conversion and logic, etc
+    }
+
+    data.account.currencyCode = currency;
+    data.account.currencySymbol = accountCurrencySymbol;
+    data.account.leverageBalance = data.account.balance * data.account.leverage;
+
+    // reset our portfolio
+    data.portfolio.raw = [];
+    data.portfolio.net = [];
+    // and reset our portfolio stats
+    data.portfolioStats.long = 0;
+    data.portfolioStats.short = 0;
+    data.portfolioStats.net = 0;
+
+    // loop through the positions to get the totafl existing exposure
+    for (const p in positions) {
+      if (p) {
+
+        let val = 0;
+        let direction = 'Neutral';
+        if (positions[p].position.direction === 'SELL') {
+          val = positions[p].market.bid * positions[p].position.contractSize;
+          direction = 'Short';
+          data.portfolioStats.short = data.portfolioStats.short + val;
+        } else {
+          val = positions[p].market.offer * positions[p].position.contractSize;
+          direction = 'Long';
+          data.portfolioStats.long = data.portfolioStats.long + val;
+        }
+        data.portfolioStats.net = data.portfolioStats.long - data.portfolioStats.short;
+
+
+        // always add the raw
+        const rawPosition = {
+          ticker: positions[p].market.epic,
+          size: positions[p].position.contractSize,
+          direction,
+          bid: positions[p].market.bid,
+          offer: positions[p].market.offer,
+          value: val,
+        }
+        data.portfolio.raw.push(rawPosition);
+
+        // create our net 
+        const existing = data.portfolio.net.filter(res => res.ticker === positions[p].market.epic) || [];
+        if (existing.length > 0) {
+          // console.log('existing position for ', positions[p].market.epic);
+
+          data.portfolio.net.filter(res => {
+            // console.log('check the existing position for ', positions[p].market.epic);
+            if (res.ticker === positions[p].market.epic) {
+
+              // console.log('update the existing position for ', positions[p].market.epic);
+              if (rawPosition.direction === 'SELL' || rawPosition.direction === 'Short') {
+                res.size = res.size - rawPosition.size;
+                res.value = res.value - rawPosition.value;
+              } else if (rawPosition.direction === 'BUY' || rawPosition.direction === 'Long') {
+                res.size = res.size + rawPosition.size;
+                res.value = res.value + rawPosition.value;
+              }
+
+              // set the overall direction
+              if (res.size > 0) {
+                res.direction = 'Long';
+              } else if (res.size < 0) {
+                res.direction = 'Short';
+              } else {
+                res.direction = 'Neutral';
+              }
+              // console.log('updated res', res);
+            }
+            return res;
+          })
+        } else {
+
+          // console.log('add the new existing position for ', positions[p].market.epic);
+          // console.log('add the new existing position for ', rawPosition);
+          data.portfolio.net.push(rawPosition);
+        }
+
+      }
+    }
+    // console.log('data.portfolio', data.portfolio);
+
+    const accountBalance = account?.balance?.balance || 0;
+
+    data.account.balance = accountBalance;
+    data.account.leverageBalance = accountBalance * data.account.leverage;
+
+    // update our total remaining portfolo 'space'
+    data.portfolioStats.remaining = data.account.leverageBalance - data.portfolioStats.net;
+
+    // filter out our net portfolio
+    const netPositions = data.portfolio.net;
+
+    for (const p in netPositions) {
+      if (p) {
+        if (netPositions[p].ticker === data.asset.ticker) {
+          data.existingPosition.valueInBase = netPositions[p].value;
+          data.existingPosition.currentPortfolioAllocation = data.existingPosition.valueInBase / data.account.leverageBalance * 100;
+        }
+      }
+    }
+
+    defaultOrderCalcUsingtheAccountBalance(
+      data,
+      {
+        orderLimits: form.orderLimits,
+        defaultOrderSize: form.defaultOrderSize,
+        conviction: form.conviction,
+        maxSizePortofolio: form.maxSizePortofolio,
+        direction: form.direction as DirectionType,
+      }
+    );
+
+  } catch (err: any) {
+
+  }
+
+  return data;
 }

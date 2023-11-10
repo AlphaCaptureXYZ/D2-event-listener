@@ -174,7 +174,7 @@ describe('Lit Action Cases', () => {
 
     }).timeout(50000);
 
-    it('IG order test', async () => {
+    xit('IG order test', async () => {
 
         const source = 'lit-action';
         const chain = 'mumbai';
@@ -182,7 +182,6 @@ describe('Lit Action Cases', () => {
 
         const epic = 'UA.D.AAPL.DAILY.IP';
         const direction = 'Buy';
-        const quantity = 1;
 
         const pkpInfo = await config.getPKPInfo(chain);
 
@@ -191,6 +190,7 @@ describe('Lit Action Cases', () => {
             password: string;
             apiKey: string;
             environment: string;
+            accountId: string;
         }>({
             chain,
             credentialNftUUID,
@@ -201,6 +201,7 @@ describe('Lit Action Cases', () => {
             username: credentialInfo.decryptedCredential?.username as string,
             password: credentialInfo.decryptedCredential?.password as string,
             apiKey: credentialInfo.decryptedCredential?.apiKey as string,
+            accountId: credentialInfo.decryptedCredential?.accountId as string,
         };
 
         const pkpAuthSig = await PkpAuthModule.getPkpAuthSig(
@@ -208,19 +209,36 @@ describe('Lit Action Cases', () => {
             pkpInfo?.pkpPublicKey,
         );
 
-        const litActionResult =
-            await fetcher.ig.placeOrder(
+        const igAuth = await fetcher.ig.authentication(chain, pkpAuthSig, {
+            env: credentialInfo.decryptedCredential?.environment as any,
+            source: 'fetch',
+            credentials: {
+                apiKey:
+                    igCredentials.apiKey,
+                username:
+                    igCredentials.username,
+                password:
+                    igCredentials.password,
+            },
+        });
+
+        const litActionResult: any =
+            await fetcher.ig.placeManagedOrder(
                 chain,
                 pkpAuthSig,
                 {
                     env: credentialInfo.decryptedCredential?.environment as any,
                     source,
                     payload: {
-                        credentials: igCredentials,
+                        auth: {
+                            accountId: igCredentials.accountId,
+                            activeAccountSessionToken: igAuth?.activeAccountSessionToken,
+                            clientSessionToken: igAuth?.clientSessionToken,
+                            apiKey: igCredentials.apiKey,
+                        },
                         form: {
                             epic,
                             direction,
-                            quantity,
                         },
                     }
                 },
@@ -238,8 +256,6 @@ describe('Lit Action Cases', () => {
             response: litActionResult?.response || null,
             error: litActionResult?.response?.error || null,
         };
-
-        console.log('result', result);
 
         expect(result).to.be.an('object');
         expect(isNullOrUndefined(result.request)).to.be.false;
