@@ -269,7 +269,7 @@ const placeOrder = async (
                 const dealReferenceGenerator = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
                 const body = {
-                    currencyCode: 'USD',
+                    currencyCode: payload.form.currencyCode,
                     dealReference: dealReferenceGenerator(),
                     direction: form.direction.toUpperCase(),
                     epic: form.epic,
@@ -463,6 +463,270 @@ const placeManagedOrder = async (
     }
 
     return response;
+
+};
+
+const closePosition = async (
+    network: string,
+    pkpAuthSig: any,
+    params: {
+        env: EnvType,
+        source: FetcherSource,
+        payload: {
+            auth: {
+                accountId: string,
+                apiKey: string,
+                clientSessionToken: string
+                activeAccountSessionToken: string,
+            },
+            form: {
+                epic: string,
+            },
+        }
+    }
+) => {
+
+    const {
+        env,
+        source,
+        payload,
+    } = params;
+
+    const positions = await getPositions(
+        network,
+        pkpAuthSig,
+        {
+            env: params?.env,
+            source: params?.source,
+            payload: {
+                auth: {
+                    apiKey: params?.payload?.auth?.apiKey,
+                    clientSessionToken: params?.payload?.auth?.clientSessionToken,
+                    activeAccountSessionToken: params?.payload?.auth?.activeAccountSessionToken,
+                },
+            }
+        }
+    );
+
+    const epic = params?.payload?.form?.epic;
+
+    const positionsByEpic = positions?.filter((res: any) => {
+        return res?.market?.epic === epic;
+    });
+
+    const dealIdsWithSize: Array<{
+        dealId: string,
+        size: number,
+        direction: string,
+    }> = positionsByEpic?.map((res: any) => {
+        const response = {
+            dealId: res?.position?.dealId,
+            size: res?.position?.dealSize,
+            direction: res?.position?.direction === 'BUY' ? 'SELL' : 'BUY',
+        };
+        return response;
+    });
+
+    const closePositionProcess = async (dealId: string, size: number, direction: string) => {
+        let response = null as any;
+        let error = null as any;
+
+        try {
+
+            const requestUrl = getApiUrl(env);
+
+            const apiKey =
+                payload?.auth?.apiKey;
+
+            const clientSessionToken =
+                payload?.auth?.clientSessionToken;
+
+            const activeAccountSessionToken =
+                payload?.auth?.activeAccountSessionToken;
+
+            if (source === 'fetch') {
+
+                const url = `${requestUrl}/gateway/deal/positions/otc`;
+
+                const body = {
+                    dealId,
+                    direction,
+                    orderType: 'MARKET',
+                    size: size.toString(),
+                }
+
+                const options: any = {
+                    method: 'POST',
+                    body: JSON.stringify(body),
+                    headers: {
+                        'Version': '1',
+                        'CST': clientSessionToken,
+                        'X-IG-API-KEY': apiKey,
+                        'X-SECURITY-TOKEN': activeAccountSessionToken,
+                        'User-Agent': 'PostmanRuntime/7.29.2',
+                        'Accept': 'application/json; charset=UTF-8',
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        '_method': 'DELETE',
+                    },
+                    redirect: 'follow',
+                    mode: 'cors',
+                };
+
+                error = {
+                    url,
+                    body,
+                    options,
+                }
+
+                response = await fetch(url, options);
+                const data = await response.json();
+
+                const dealReference = data?.dealReference || null;
+
+                let globalResponse = null;
+
+                if (dealReference) {
+                    const orderDetailsReq = await fetch(
+                        `${requestUrl}/gateway/deal/confirms/` + dealReference,
+                        {
+                            method: 'GET',
+                            headers: {
+                                'Version': '1',
+                                'CST': clientSessionToken,
+                                'X-IG-API-KEY': apiKey,
+                                'X-SECURITY-TOKEN': activeAccountSessionToken,
+                                'User-Agent': 'PostmanRuntime/7.29.2',
+                                'Accept': 'application/json; charset=UTF-8',
+                                'Content-Type': 'application/json; charset=UTF-8',
+                            },
+                            redirect: 'follow',
+                            mode: 'cors',
+                        }
+                    );
+
+                    const orderDetails = await orderDetailsReq.json();
+
+                    globalResponse = orderDetails;
+                } else {
+                    globalResponse = data;
+                }
+
+                response = {
+                    response: globalResponse,
+                    request: body,
+                };
+
+            }
+
+            if (source === 'lit-action') {
+
+                const code = `
+                    const go = async () => {
+        
+                        const url = '${requestUrl}/gateway/deal/positions/otc';
+        
+                        const body = {
+                            dealId: '${dealId}',
+                            direction: '${direction}',
+                            orderType: 'MARKET',
+                            size: '${size.toString()}',
+                        };
+        
+                        const options = {
+                            method: 'POST',
+                            body: JSON.stringify(body),
+                            headers: {
+                                'Version': '1',
+                                'CST': auth.clientSessionToken,
+                                'X-IG-API-KEY': auth.apiKey,
+                                'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
+                                'User-Agent': 'PostmanRuntime/7.29.2',
+                                'Accept': 'application/json; charset=UTF-8',
+                                'Content-Type': 'application/json; charset=UTF-8',
+                                '_method': 'DELETE',
+                            },
+                            redirect: 'follow',
+                            mode: 'cors',
+                        };
+        
+                        const response = await fetch(url, options);
+                        const data = await response.json();
+        
+                        const dealReference = data?.dealReference || null;
+        
+                        let globalResponse = null;
+        
+                        if(dealReference){
+                            const orderDetailsReq = await fetch(
+                                '${requestUrl}/gateway/deal/confirms/' + dealReference,
+                                {
+                                    method: 'GET',
+                                    headers: {
+                                        'Version': '1',
+                                        'CST': auth.clientSessionToken,
+                                        'X-IG-API-KEY': auth.apiKey,
+                                        'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
+                                        'User-Agent': 'PostmanRuntime/7.29.2',
+                                        'Accept': 'application/json; charset=UTF-8',
+                                        'Content-Type': 'application/json; charset=UTF-8',
+                                    },
+                                    redirect: 'follow',
+                                    mode: 'cors',
+                                }
+                            );
+                
+                            const orderDetails = await orderDetailsReq.json();
+                            globalResponse = orderDetails;
+                        } else {
+                            globalResponse = data;
+                        }
+        
+                        Lit.Actions.setResponse({response: JSON.stringify({
+                            response: globalResponse,
+                            request: body,
+                        })});
+        
+                    };
+        
+                    go();
+                `;
+
+                const litActionCall = await LitModule().runLitAction({
+                    chain: network,
+                    litActionCode: code,
+                    listActionCodeParams: {
+                        ...params?.payload,
+                        auth: {
+                            apiKey,
+                            clientSessionToken,
+                            activeAccountSessionToken,
+                        },
+                    },
+                    nodes: 1,
+                    showLogs: false,
+                    authSig: pkpAuthSig,
+                });
+
+                response = litActionCall?.response as any;
+            }
+
+        } catch (err: any) {
+            error = {
+                ...error,
+                message: err?.message,
+            }
+            console.log('closePositionProcess ERR', error)
+        }
+
+        return response;
+    }
+
+    const data = await Promise.all(dealIdsWithSize?.map(async ({ dealId, size, direction }) => {
+        const response = await closePositionProcess(dealId, size, direction);
+        return response;
+    }));
+
+    return data;
 
 };
 
@@ -828,6 +1092,7 @@ export {
     authentication,
     placeBasicOrder,
     placeManagedOrder,
+    closePosition,
     getPositions,
     getAccounts,
     getMarketInfoByEpic,

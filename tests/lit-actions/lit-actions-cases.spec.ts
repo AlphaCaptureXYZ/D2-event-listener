@@ -181,7 +181,7 @@ describe('Lit Action Cases', () => {
         const credentialNftUUID = '0x49b8ee18ea516da68dfbf8bf09203bcb';
 
         const epic = 'UA.D.AAPL.DAILY.IP';
-        const direction = 'Buy';
+        const direction: any = 'Buy';
 
         const pkpInfo = await config.getPKPInfo(chain);
 
@@ -222,27 +222,54 @@ describe('Lit Action Cases', () => {
             },
         });
 
-        const litActionResult: any =
-            await fetcher.ig.placeManagedOrder(
-                chain,
-                pkpAuthSig,
-                {
-                    env: credentialInfo.decryptedCredential?.environment as any,
-                    source,
-                    payload: {
-                        auth: {
-                            accountId: igCredentials.accountId,
-                            activeAccountSessionToken: igAuth?.activeAccountSessionToken,
-                            clientSessionToken: igAuth?.clientSessionToken,
-                            apiKey: igCredentials.apiKey,
-                        },
-                        form: {
-                            epic,
-                            direction,
-                        },
-                    }
-                },
-            );
+        let litActionResult: any = null;
+
+        if (direction === 'Buy') {
+            litActionResult =
+                await fetcher.ig.placeManagedOrder(
+                    chain,
+                    pkpAuthSig,
+                    {
+                        env: credentialInfo.decryptedCredential?.environment as any,
+                        source,
+                        payload: {
+                            auth: {
+                                accountId: igCredentials.accountId,
+                                activeAccountSessionToken: igAuth?.activeAccountSessionToken,
+                                clientSessionToken: igAuth?.clientSessionToken,
+                                apiKey: igCredentials.apiKey,
+                            },
+                            form: {
+                                epic,
+                                direction,
+                            },
+                        }
+                    },
+                );
+        }
+
+        if (direction === 'Sell') {
+            litActionResult =
+                await fetcher.ig.closePosition(
+                    chain,
+                    pkpAuthSig,
+                    {
+                        env: credentialInfo.decryptedCredential?.environment as any,
+                        source,
+                        payload: {
+                            auth: {
+                                accountId: igCredentials.accountId,
+                                activeAccountSessionToken: igAuth?.activeAccountSessionToken,
+                                clientSessionToken: igAuth?.clientSessionToken,
+                                apiKey: igCredentials.apiKey,
+                            },
+                            form: {
+                                epic,
+                            },
+                        }
+                    },
+                );
+        }
 
         const result: ILitActionResult = {
             additionalInfo: {
@@ -256,6 +283,9 @@ describe('Lit Action Cases', () => {
             response: litActionResult?.response || null,
             error: litActionResult?.response?.error || null,
         };
+
+        console.log('result', result);
+        console.log('result', JSON.stringify(result));
 
         expect(result).to.be.an('object');
         expect(isNullOrUndefined(result.request)).to.be.false;
