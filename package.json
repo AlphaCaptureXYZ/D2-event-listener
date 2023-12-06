@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/IXily/DII-event-listener#readme",
   "dependencies": {
-    "@ixily/activ": "^4.9.38",
+    "@ixily/activ": "^4.9.40",
     "@lit-protocol/lit-node-client-nodejs": "^2.1.123",
     "cors": "^2.8.5",
     "cross-env": "^5.2.0",
