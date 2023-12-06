@@ -369,6 +369,7 @@ const placeBasicOrder = async (
         source: FetcherSource,
         payload: {
             auth: {
+                accountId: string,
                 apiKey: string,
                 clientSessionToken: string
                 activeAccountSessionToken: string,
@@ -377,17 +378,58 @@ const placeBasicOrder = async (
                 epic: string,
                 direction: string,
                 quantity: number,
-                currencyCode: string,
             },
         }
     }
 ) => {
 
+    const calc = await orderCalc(
+        network,
+        pkpAuthSig,
+        {
+            env: params?.env,
+            source: params?.source,
+            payload: {
+                auth: {
+                    accountId: params?.payload?.auth?.accountId,
+                    apiKey: params?.payload?.auth?.apiKey,
+                    clientSessionToken: params?.payload?.auth?.clientSessionToken,
+                    activeAccountSessionToken: params?.payload?.auth?.activeAccountSessionToken,
+                },
+                direction: params?.payload?.form?.direction as any,
+                epic: params?.payload?.form?.epic,
+            }
+        }
+    );
+
+    const currencyCode = calc?.account?.currencyCode;
+
     const response = await placeOrder(
         network,
         pkpAuthSig,
-        params
+        {
+            env: params?.env,
+            source: params?.source,
+            payload: {
+                auth: {
+                    activeAccountSessionToken: params?.payload?.auth?.activeAccountSessionToken,
+                    apiKey: params?.payload?.auth?.apiKey,
+                    clientSessionToken: params?.payload?.auth?.clientSessionToken,
+                },
+                form: {
+                    epic: params?.payload?.form?.epic,
+                    direction: params?.payload?.form?.direction,
+                    quantity: params?.payload?.form?.quantity,
+                    currencyCode,
+                }
+            }
+        }
     )
+
+    response.request = {
+        ...response?.request,
+        calc,
+    }
 
     return response;
 
@@ -677,6 +719,7 @@ const closePosition = async (
                 
                             const orderDetails = await orderDetailsReq.json();
                             globalResponse = orderDetails;
+
                         } else {
                             globalResponse = data;
                         }
@@ -726,7 +769,12 @@ const closePosition = async (
         return response;
     }));
 
-    return data;
+    const response = {
+        request: data.map((res: any) => res?.request),
+        response: data.map((res: any) => res?.response),
+    }
+
+    return response;
 
 };
 

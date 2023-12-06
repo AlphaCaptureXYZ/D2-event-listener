@@ -162,9 +162,6 @@ const orderProcess = async (
                 switch (pricingProvider) {
                     case 'Binance':
 
-                        // 10 USDT (temporal)
-                        // so, the idea is get this usdt amount based on the balance of the user, etc (i.e. the order calc)
-                        // settings to apply the calc order 
                         const settings = triggerInfo?.settings || null;
 
                         const userSetting = await getUserSettings(
@@ -271,30 +268,62 @@ const orderProcess = async (
                                 },
                             });
 
-                            litActionResult =
-                                await fetcher.ig.placeBasicOrder(
-                                    network,
-                                    pkpAuthSig,
-                                    {
-                                        env: environment as any,
-                                        source: 'fetch',
-                                        payload: {
-                                            auth: {
-                                                apiKey:
-                                                    igAuth?.apiKey,
-                                                clientSessionToken:
-                                                    igAuth?.clientSessionToken,
-                                                activeAccountSessionToken:
-                                                    igAuth?.activeAccountSessionToken,
-                                            },
-                                            form: {
-                                                direction: igDirection,
-                                                epic: asset,
-                                                quantity: 1,
-                                            },
+                            if (igDirection === 'Buy') {
+                                litActionResult =
+                                    await fetcher.ig.placeManagedOrder(
+                                        network,
+                                        pkpAuthSig,
+                                        {
+                                            env: environment as any,
+                                            source: 'fetch',
+                                            payload: {
+                                                auth: {
+                                                    apiKey:
+                                                        igAuth?.apiKey,
+                                                    clientSessionToken:
+                                                        igAuth?.clientSessionToken,
+                                                    activeAccountSessionToken:
+                                                        igAuth?.activeAccountSessionToken,
+                                                    accountId:
+                                                        igAuth?.accountId,
+                                                },
+                                                form: {
+                                                    direction: igDirection,
+                                                    epic: asset,
+                                                },
+                                            }
                                         }
-                                    }
-                                );
+                                    );
+                            }
+
+                            if (igDirection === 'Sell') {
+                                if (igDirection === 'Buy') {
+                                    litActionResult =
+                                        await fetcher.ig.closePosition(
+                                            network,
+                                            pkpAuthSig,
+                                            {
+                                                env: environment as any,
+                                                source: 'fetch',
+                                                payload: {
+                                                    auth: {
+                                                        apiKey:
+                                                            igAuth?.apiKey,
+                                                        clientSessionToken:
+                                                            igAuth?.clientSessionToken,
+                                                        activeAccountSessionToken:
+                                                            igAuth?.activeAccountSessionToken,
+                                                        accountId:
+                                                            igAuth?.accountId,
+                                                    },
+                                                    form: {
+                                                        epic: asset,
+                                                    },
+                                                }
+                                            }
+                                        );
+                                }
+                            }
 
                             error =
                                 litActionResult?.response?.dealStatus === 'REJECTED' || null;
