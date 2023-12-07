@@ -42,7 +42,7 @@ const init = async () => {
                 await db.setDefaultWallet(config, 'evm');
             }
 
-            console.log('[weavedb] init (success)');
+            // console.log('[weavedb] init (success)');
         } catch (err: any) {
             console.log('[weavedb] init (error)', err?.message);
         }
@@ -127,8 +127,6 @@ const getAllData = async <T>(
                 return doc?.data?.userAddress === userAddress;
             });
         }
-
-        console.log(`[weave | ${type}] docs (size)`, docs?.length);
 
         data = (await Promise?.all(docs?.map(async (res) => {
             try {

@@ -136,6 +136,8 @@ const orderProcess = async (
 
         let result: ILitActionResult = null as any;
 
+        let orderId: any = null;
+
         try {
             const action = triggerInfo?.action;
 
@@ -239,6 +241,9 @@ const orderProcess = async (
                                         }
                                     }
                                 );
+
+                            orderId =
+                                litActionResult?.response?.orderId || null;
                         }
                         break;
 
@@ -294,35 +299,39 @@ const orderProcess = async (
                                             }
                                         }
                                     );
+
+                                orderId =
+                                    litActionResult?.response?.dealId || null;
                             }
 
                             if (igDirection === 'Sell') {
-                                if (igDirection === 'Buy') {
-                                    litActionResult =
-                                        await fetcher.ig.closePosition(
-                                            network,
-                                            pkpAuthSig,
-                                            {
-                                                env: environment as any,
-                                                source: 'fetch',
-                                                payload: {
-                                                    auth: {
-                                                        apiKey:
-                                                            igAuth?.apiKey,
-                                                        clientSessionToken:
-                                                            igAuth?.clientSessionToken,
-                                                        activeAccountSessionToken:
-                                                            igAuth?.activeAccountSessionToken,
-                                                        accountId:
-                                                            igAuth?.accountId,
-                                                    },
-                                                    form: {
-                                                        epic: asset,
-                                                    },
-                                                }
+                                litActionResult =
+                                    await fetcher.ig.closePosition(
+                                        network,
+                                        pkpAuthSig,
+                                        {
+                                            env: environment as any,
+                                            source: 'fetch',
+                                            payload: {
+                                                auth: {
+                                                    apiKey:
+                                                        igAuth?.apiKey,
+                                                    clientSessionToken:
+                                                        igAuth?.clientSessionToken,
+                                                    activeAccountSessionToken:
+                                                        igAuth?.activeAccountSessionToken,
+                                                    accountId:
+                                                        igAuth?.accountId,
+                                                },
+                                                form: {
+                                                    epic: asset,
+                                                },
                                             }
-                                        );
-                                }
+                                        }
+                                    );
+
+                                orderId =
+                                    litActionResult?.response?.find(res => res)?.dealId || null;
                             }
 
                             error =
@@ -339,11 +348,14 @@ const orderProcess = async (
                         credentialNftUUID,
                         userWalletAddress: credentialOwner,
                         environment,
+                        orderId,
+
                     },
                     request: litActionResult?.request || null,
                     response: litActionResult?.response || null,
                     error: error || litActionResult?.response?.error || null,
                 };
+
             }
 
         } catch (err) {
@@ -366,12 +378,9 @@ const orderProcess = async (
             const credentialOwner = orderResult?.additionalInfo?.userWalletAddress;
             const environment = orderResult?.additionalInfo?.environment;
 
-            const orderId =
-                orderResult?.response?.orderId ||
-                orderResult?.response?.dealId ||
-                null;
-
             const error = orderResult?.error || orderResult?.response?.error || null;
+
+            const orderId = orderResult?.additionalInfo?.orderId || null;
 
             const dataStored = await WeaveDBModule.addData<any>(
                 network,
