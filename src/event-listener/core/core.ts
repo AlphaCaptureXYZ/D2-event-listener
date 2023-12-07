@@ -55,13 +55,8 @@ export const D2EventListener = async (
 
         const { privateKey, network } = payload;
 
-        // pkp check/loader
-        const pkpInfo = await config.getPKPInfo(network);
-
-        // watch and process events
-        watcherLoader(network, payload, resolve);
-        // websocket related to the users orders/trades
-        wsTradeLoader({ network, pkpInfo });
+        log(`Network: ${network}`);
+        log(`Private key detected: ${privateKey}`);
 
         const {
             contract,
@@ -72,9 +67,27 @@ export const D2EventListener = async (
             network,
         });
 
-        log(`Network: ${network}`);
-        log(`Private key detected: ${privateKey}`);
-        log(`Address: ${wallet.address}`);
+        log(`Wallet Address: ${wallet.address}`);
+
+        let pkpInfo: IPkpInfo = null as any;
+
+        try {
+            await wait(2, 'seconds');
+            // pkp check/loader
+            pkpInfo = await config.getPKPInfo(network);
+            log(`PKP: ${pkpInfo?.pkpWalletAddress}`);
+            log(`PKP Wallet Address: ${pkpInfo?.pkpWalletAddress}`);
+        } catch (err: any) {
+            log('config.getPKPInfo (ERROR)', err.message);
+        }
+
+        // watch and process events
+        watcherLoader(network, payload, resolve);
+
+        if (pkpInfo) {
+            // websocket related to the users orders/trades
+            wsTradeLoader({ network, pkpInfo });
+        }
 
         log(`Listening the events flow...`);
 
