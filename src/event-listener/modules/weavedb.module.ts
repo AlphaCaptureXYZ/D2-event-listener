@@ -120,8 +120,6 @@ const getAllData = async <T>(
             ['type', '==', type],
         );
 
-        console.log(`docs [${type}] pre (size)`, docs?.length);
-
         if (byUserWalletFilter) {
             const userAddress = wallet ? wallet?.toLowerCase() : getCurrentWalletAddress();
 
@@ -130,7 +128,7 @@ const getAllData = async <T>(
             });
         }
 
-        console.log(`docs [${type}] post (size)`, docs?.length);
+        console.log(`[weave | ${type}] docs (size)`, docs?.length);
 
         data = (await Promise?.all(docs?.map(async (res) => {
             try {
