@@ -17,17 +17,22 @@ const NFT_STORAGE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaW
 const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY as string;
 
 const getPKPInfo = async (network: string): Promise<IPkpInfo> => {
-    const data = await WeaveDBModule.getAllData<any>(network, {
-        type: 'pkp-info',
-        byUserWalletFilter: true,
-    });
+    try {
+        const data = await WeaveDBModule.getAllData<any>(network, {
+            type: 'pkp-info',
+            byUserWalletFilter: true,
+        });
 
-    const dataSize = data?.length;
-    const pkpInfo = dataSize > 0 ? data[dataSize - 1] : null;
+        const dataSize = data?.length;
+        const pkpInfo = dataSize > 0 ? data[dataSize - 1] : null;
 
-    if (!pkpInfo) throw new Error('PKP Info not found, please generate one using the D2 site');
+        if (!pkpInfo) throw new Error('PKP Info not found, please generate one using the D2 site');
 
-    return pkpInfo;
+        return pkpInfo;
+    } catch (err) {
+        console.log('getPKPInfo (ERROR)', err.message);
+        throw err;
+    }
 }
 
 const getContractRecipe = (

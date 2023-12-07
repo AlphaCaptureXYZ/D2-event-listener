@@ -70,16 +70,12 @@ export const D2EventListener = async (
         log(`Wallet Address: ${wallet.address}`);
 
         let pkpInfo: IPkpInfo = null as any;
+        
+        // pkp check/loader
+        pkpInfo = await config.getPKPInfo(network);
 
-        try {
-            await wait(2, 'seconds');
-            // pkp check/loader
-            pkpInfo = await config.getPKPInfo(network);
-            log(`PKP: ${pkpInfo?.pkpWalletAddress}`);
-            log(`PKP Wallet Address: ${pkpInfo?.pkpWalletAddress}`);
-        } catch (err: any) {
-            log('config.getPKPInfo (ERROR)', err.message);
-        }
+        log(`PKP: ${pkpInfo?.pkpWalletAddress}`);
+        log(`PKP Wallet Address: ${pkpInfo?.pkpWalletAddress}`);
 
         // watch and process events
         watcherLoader(network, payload, resolve);
