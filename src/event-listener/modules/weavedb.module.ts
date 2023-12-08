@@ -22,6 +22,8 @@ const init = async () => {
         try {
             const contractTxId = config.WEAVEDB_CONTRACT_TX_ID;
 
+            console.log('[weavedb] init (contractTxId)', contractTxId);
+
             db = new WeaveDB({
                 contractTxId,
                 nocache: true,
@@ -42,7 +44,7 @@ const init = async () => {
                 await db.setDefaultWallet(config, 'evm');
             }
 
-            // console.log('[weavedb] init (success)');
+            console.log('[weavedb] init (success)');
         } catch (err: any) {
             console.log('[weavedb] init (error)', err?.message);
         }
@@ -117,11 +119,13 @@ const getAllData = async <T>(
         let docs = [] as any[];
 
         try {
+            console.log('[weavedb] pre getAllData');
             docs = await db.cget(
                 COLLECTION_NAME,
                 ['type'],
                 ['type', '==', type],
             );
+            console.log('[weavedb] post getAllData');
         } catch (err: any) {
             console.log('[weavedb] getAllData (error "db.cget(...)")', err?.message);
         }
