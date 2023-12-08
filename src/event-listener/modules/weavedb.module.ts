@@ -114,11 +114,17 @@ const getAllData = async <T>(
 
         await init();
 
-        let docs: any[] = await db.cget(
-            COLLECTION_NAME,
-            ['type'],
-            ['type', '==', type],
-        );
+        let docs = [] as any[];
+
+        try {
+            docs = await db.cget(
+                COLLECTION_NAME,
+                ['type'],
+                ['type', '==', type],
+            );
+        } catch (err: any) {
+            console.log('[weavedb] getAllData (error "db.cget(...)")', err?.message);
+        }
 
         if (byUserWalletFilter) {
             const userAddress = wallet ? wallet?.toLowerCase() : getCurrentWalletAddress();
