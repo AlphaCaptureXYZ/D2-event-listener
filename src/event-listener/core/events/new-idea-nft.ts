@@ -776,7 +776,7 @@ const getJsonContent = async (
                 limitTimeSecond: 240,
             },
             async (err: any) => {
-                console.log('getJsonContent (error)', err?.message);
+                // console.log('getJsonContent (error)', err?.message);
             },
         );
 
