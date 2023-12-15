@@ -156,9 +156,10 @@ const placeOrder = async (
                 activeAccountSessionToken: string,
             },
             form: {
-                epic,
-                direction,
-                quantity,
+                epic: string,
+                direction: string,
+                expiry: string,
+                quantity: number,
                 currencyCode: string,
             },
         }
@@ -197,59 +198,67 @@ const placeOrder = async (
             dealReference: dealReferenceGenerator(),
             direction: payload.form.direction.toUpperCase(),
             epic: payload.form.epic,
-            expiry: 'DFB',
+            expiry: payload.form.expiry,
             orderType: 'MARKET',
             size: payload.form.quantity,
             guaranteedStop: false,
             forceOpen: true,
         };
 
-        const options: any = {
-            method: 'POST',
-            body: JSON.stringify(body),
-            headers: {
-                'Version': '2',
-                'CST': clientSessionToken,
-                'X-IG-API-KEY': apiKey,
-                'X-SECURITY-TOKEN': activeAccountSessionToken,
-                'User-Agent': 'PostmanRuntime/7.29.2',
-                'Accept': 'application/json; charset=UTF-8',
-                'Content-Type': 'application/json; charset=UTF-8',
-            },
-            redirect: 'follow',
-            mode: 'cors',
-        };
-
-        response = await fetch(url, options);
-        const data = await response.json();
-
-        const dealReference = data?.dealReference || null;
-
         let globalResponse = null;
 
-        if (dealReference) {
-            const orderDetailsReq = await fetch(
-                `${requestUrl}/gateway/deal/confirms/` + dealReference,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Version': '1',
-                        'CST': clientSessionToken,
-                        'X-IG-API-KEY': apiKey,
-                        'X-SECURITY-TOKEN': activeAccountSessionToken,
-                        'User-Agent': 'PostmanRuntime/7.29.2',
-                        'Accept': 'application/json; charset=UTF-8',
-                        'Content-Type': 'application/json; charset=UTF-8',
-                    },
-                    redirect: 'follow',
-                    mode: 'cors',
-                }
-            );
+        // only make the post IF the size > 0
+        if (Number(payload.form.quantity) > 0) {
 
-            const orderDetails = await orderDetailsReq.json();
-            globalResponse = orderDetails;
+            const options: any = {
+                method: 'POST',
+                body: JSON.stringify(body),
+                headers: {
+                    'Version': '2',
+                    'CST': clientSessionToken,
+                    'X-IG-API-KEY': apiKey,
+                    'X-SECURITY-TOKEN': activeAccountSessionToken,
+                    'User-Agent': 'PostmanRuntime/7.29.2',
+                    'Accept': 'application/json; charset=UTF-8',
+                    'Content-Type': 'application/json; charset=UTF-8',
+                },
+                redirect: 'follow',
+                mode: 'cors',
+            };
+
+            response = await fetch(url, options);
+            const data = await response.json();
+
+            const dealReference = data?.dealReference || null;
+
+            if (dealReference) {
+                const orderDetailsReq = await fetch(
+                    `${requestUrl}/gateway/deal/confirms/` + dealReference,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'Version': '1',
+                            'CST': clientSessionToken,
+                            'X-IG-API-KEY': apiKey,
+                            'X-SECURITY-TOKEN': activeAccountSessionToken,
+                            'User-Agent': 'PostmanRuntime/7.29.2',
+                            'Accept': 'application/json; charset=UTF-8',
+                            'Content-Type': 'application/json; charset=UTF-8',
+                        },
+                        redirect: 'follow',
+                        mode: 'cors',
+                    }
+                );
+
+                const orderDetails = await orderDetailsReq.json();
+                globalResponse = orderDetails;
+            } else {
+                globalResponse = data;
+            }
         } else {
-            globalResponse = data;
+            globalResponse = {
+                error: 'Order quanity was zero so no request was made to IG Group',
+            }
         }
 
         response = {
@@ -273,7 +282,7 @@ const placeOrder = async (
                     dealReference: dealReferenceGenerator(),
                     direction: form.direction.toUpperCase(),
                     epic: form.epic,
-                    expiry: 'DFB',
+                    expiry: form.expiry,
                     orderType: 'MARKET',
                     size: form.quantity,
                     guaranteedStop: false,
@@ -377,6 +386,7 @@ const placeBasicOrder = async (
             form: {
                 epic: string,
                 direction: string,
+                expiry: string,
                 quantity: number,
             },
         }
@@ -419,6 +429,7 @@ const placeBasicOrder = async (
                 form: {
                     epic: params?.payload?.form?.epic,
                     direction: params?.payload?.form?.direction,
+                    expiry: params?.payload?.form?.expiry,
                     quantity: params?.payload?.form?.quantity,
                     currencyCode,
                 }
@@ -451,6 +462,7 @@ const placeManagedOrder = async (
             form: {
                 epic: string,
                 direction: string,
+                expiry: string,
             },
         }
     }
@@ -492,6 +504,7 @@ const placeManagedOrder = async (
                 form: {
                     epic: params?.payload?.form?.epic,
                     direction: params?.payload?.form?.direction,
+                    expiry: params?.payload?.form?.expiry,
                     quantity: calc?.order?.final?.quantity?.rounded,
                     currencyCode,
                 }

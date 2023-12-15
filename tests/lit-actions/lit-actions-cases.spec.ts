@@ -115,7 +115,7 @@ describe('Lit Action Cases', () => {
 
         const proxyUrl =
             userSetting?.find(res => res)?.proxy_url ||
-            'https://ixily.io/api/proxy';
+            'https://alphacapture.xyz/api/proxy';
 
         const qtyWithSymbolPrecisionResult =
             await fetcher.binance.getQtyWithSymbolPrecision(
@@ -181,6 +181,7 @@ describe('Lit Action Cases', () => {
         const credentialNftUUID = '0x49b8ee18ea516da68dfbf8bf09203bcb';
 
         const epic = 'UA.D.AAPL.DAILY.IP';
+        const expiry = 'DFB';
         const direction: any = 'Buy';
 
         const pkpInfo = await config.getPKPInfo(chain);
@@ -242,6 +243,7 @@ describe('Lit Action Cases', () => {
                             form: {
                                 epic,
                                 direction,
+                                expiry,
                             },
                         }
                     },
