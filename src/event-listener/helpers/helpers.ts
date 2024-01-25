@@ -219,3 +219,72 @@ export const retryFunctionHelper = async <T>(payload: {
         }
     }
 }
+
+
+/**
+ * Adjusts a number to the specified digit.
+ *
+ * @param {"round" | "floor" | "ceil"} type The type of adjustment.
+ * @param {number} value The number.
+ * @param {number} exp The exponent (the 10 logarithm of the adjustment base).
+ * @returns {number} The adjusted value.
+ */
+export function decimalAdjust(type: string, value: number, exp: number) {
+    type = String(type);
+    if (!["round", "floor", "ceil"].includes(type)) {
+      throw new TypeError(
+        "The type of decimal adjustment must be one of 'round', 'floor', or 'ceil'.",
+      );
+    }
+    exp = Number(exp);
+    value = Number(value);
+    if (exp % 1 !== 0 || Number.isNaN(value)) {
+      return NaN;
+    } else if (exp === 0) {
+      switch(type) {
+        case 'round': 
+          return Math.round(value);
+        case 'floor': 
+          return Math.floor(value);
+        case 'ceil': 
+          return Math.ceil(value);
+      }
+    }
+    const [magnitude, exponent = 0] = value.toString().split("e");
+    let adjustedValue = 0;
+    // const adjustedValue = Math[type](`${magnitude}e${exponent - exp}`);
+  
+    switch(type) {
+      case 'round': 
+        adjustedValue = Math.round(Number(`${magnitude}e${Number(exponent) - exp}`));
+        break;
+      case 'floor': 
+        adjustedValue = Math.floor(Number(`${magnitude}e${Number(exponent) - exp}`));
+        break;
+      case 'ceil': 
+        adjustedValue = Math.ceil(Number(`${magnitude}e${Number(exponent) - exp}`));
+        break;
+  }
+  
+    // Shift back
+    const [newMagnitude, newExponent = 0] = adjustedValue.toString().split("e");
+    return Number(`${newMagnitude}e${+newExponent + exp}`);
+  }
+  
+
+export function countDecimals(value: number): number {
+	if(Math.floor(value) === value) return 0;
+	return value.toString().split(".")[1].length || 0;	
+}
+ 
+export const currencyInfo = {
+    GBP: {
+      symbol: '£',
+    },
+    USD: {
+      symbol: '$',
+    },
+    EUR: {
+      symbol: '€',
+    },
+  }

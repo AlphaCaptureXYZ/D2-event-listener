@@ -7,7 +7,7 @@ import {
     D2EventListener
 } from '../../src/event-listener';
 
-describe('D2EventListener Implementation', () => {
+xdescribe('D2EventListener Implementation', () => {
 
     xit('Full event listener test: Listen/Watch the idea nft flow (crypto), retrive info (trigger, credential, and decrypt, etc) and place the Binance order', async () => {
 

@@ -257,6 +257,7 @@ const orderProcess = async (
                         };
 
                         const igDirection = igDirectionByKind[kind?.toLowerCase()];
+                        const igExpiry = '';
 
                         if (isNullOrUndefined(error)) {
 
@@ -295,6 +296,7 @@ const orderProcess = async (
                                                 form: {
                                                     direction: igDirection,
                                                     epic: asset,
+                                                    expiry: igExpiry,
                                                 },
                                             }
                                         }

@@ -2,7 +2,9 @@ import 'isomorphic-fetch';
 
 import { FetcherSource, EnvType } from "../../../../event-listener/interfaces/shared.i";
 import { LitModule } from "../../../modules/lit.module";
-import { orderCalc } from './shared/ig-order-calc';
+
+
+import { OrderCalcPre } from './ig-calculation';
 
 const igUrlSelector = {
     demo: 'https://demo-api.ig.com',
@@ -393,7 +395,7 @@ const placeBasicOrder = async (
     }
 ) => {
 
-    const calc = await orderCalc(
+    const calc = await OrderCalcPre(
         network,
         pkpAuthSig,
         {
@@ -468,7 +470,7 @@ const placeManagedOrder = async (
     }
 ) => {
 
-    const calc = await orderCalc(
+    const calc = await OrderCalcPre(
         network,
         pkpAuthSig,
         {
@@ -505,7 +507,7 @@ const placeManagedOrder = async (
                     epic: params?.payload?.form?.epic,
                     direction: params?.payload?.form?.direction,
                     expiry: params?.payload?.form?.expiry,
-                    quantity: calc?.order?.final?.quantity?.rounded,
+                    quantity: calc?.order?.final?.order?.quantity?.rounded,
                     currencyCode,
                 }
             }

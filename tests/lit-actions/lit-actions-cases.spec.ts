@@ -174,7 +174,7 @@ describe('Lit Action Cases', () => {
 
     }).timeout(50000);
 
-    xit('IG order test', async () => {
+    it('IG order test', async () => {
 
         const source = 'lit-action';
         const chain = 'mumbai';
@@ -184,7 +184,9 @@ describe('Lit Action Cases', () => {
         const expiry = 'DFB';
         const direction: any = 'Buy';
 
+        console.log('pre pkpInfo request', chain);
         const pkpInfo = await config.getPKPInfo(chain);
+        console.log('post pkpInfo request', pkpInfo);
 
         const credentialInfo = await PkpCredentialNftModule.getFullCredential<{
             username: string;
