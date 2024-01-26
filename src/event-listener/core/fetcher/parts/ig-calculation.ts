@@ -4,7 +4,7 @@ import { IAssetInfo } from './_interfaces/asset-info.i';
 import { IPositionInfo } from './_interfaces/position.i';
 import { IAccount } from './_interfaces/account.i';
 
-import * as fetcher from '../../../../../src/event-listener/core/fetcher';
+import * as fetcher from '../../../../event-listener/core/fetcher';
 
 import { FetcherSource, EnvType } from "../../../../event-listener/interfaces/shared.i";
 
