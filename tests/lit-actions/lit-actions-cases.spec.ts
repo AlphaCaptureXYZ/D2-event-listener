@@ -178,7 +178,10 @@ describe('Lit Action Cases', () => {
 
         const source = 'lit-action';
         const chain = 'mumbai';
-        const credentialNftUUID = '0x49b8ee18ea516da68dfbf8bf09203bcb';
+        // const credentialNftUUID = '0x49b8ee18ea516da68dfbf8bf09203bcb';
+        // CR IG Demo
+        const credentialNftUUID = '0x06765151fcd0b6b89f38c32d4efda1af';
+        	
 
         const epic = 'UA.D.AAPL.DAILY.IP';
         const expiry = 'DFB';
@@ -199,6 +202,7 @@ describe('Lit Action Cases', () => {
             credentialNftUUID,
             pkpKey: pkpInfo?.pkpPublicKey,
         });
+        console.log('post credentialInfo', credentialInfo.decryptedCredential);
 
         const igCredentials = {
             username: credentialInfo.decryptedCredential?.username as string,
@@ -211,6 +215,7 @@ describe('Lit Action Cases', () => {
             chain,
             pkpInfo?.pkpPublicKey,
         );
+        console.log('post pkpAuthSig', pkpAuthSig);
 
         const igAuth = await fetcher.ig.authentication(chain, pkpAuthSig, {
             env: credentialInfo.decryptedCredential?.environment as any,
@@ -224,6 +229,7 @@ describe('Lit Action Cases', () => {
                     igCredentials.password,
             },
         });
+        console.log('post igAuth', igAuth);
 
         let litActionResult: any = null;
 

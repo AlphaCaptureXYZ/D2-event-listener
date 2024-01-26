@@ -206,6 +206,7 @@ const placeOrder = async (
             guaranteedStop: false,
             forceOpen: true,
         };
+        console.log('body submitted to IG', body);
 
         let globalResponse = null;
 
@@ -272,6 +273,13 @@ const placeOrder = async (
 
     if (source === 'lit-action') {
 
+        console.log('currencyCode', payload.form.currencyCode);
+        // console.log('dealReference', dealReferenceGenerator());
+        console.log('direction', payload.form.direction.toUpperCase());
+        console.log('epic', payload.form.epic);
+        console.log('expiry', payload.form.expiry);
+        console.log('size:', payload.form.quantity);
+
         const code = `
             const go = async () => {
 
@@ -282,11 +290,11 @@ const placeOrder = async (
                 const body = {
                     currencyCode: payload.form.currencyCode,
                     dealReference: dealReferenceGenerator(),
-                    direction: form.direction.toUpperCase(),
-                    epic: form.epic,
-                    expiry: form.expiry,
+                    direction: payload.form.direction.toUpperCase(),
+                    epic: payload.form.epic,
+                    expiry: payload.form.expiry,
                     orderType: 'MARKET',
-                    size: form.quantity,
+                    size: payload.form.quantity,
                     guaranteedStop: false,
                     forceOpen: true,
                 };
@@ -348,6 +356,10 @@ const placeOrder = async (
 
             go();
         `;
+        console.log('code submitted to Lit Action', code);
+        console.log('auth submitted to Lit Action', apiKey);
+        console.log('auth submitted to Lit Action', clientSessionToken);
+        console.log('auth submitted to Lit Action', activeAccountSessionToken);
 
         const litActionCall = await LitModule().runLitAction({
             chain: network,
@@ -489,7 +501,22 @@ const placeManagedOrder = async (
         }
     );
 
-    const currencyCode = calc?.account?.currencyCode;
+    const currencyCode = calc?.account?.currencySymbol;
+    
+    console.log('this should be our final calc', calc);
+
+    console.log('epic: params?.payload?.form?.epic', params?.payload?.form?.epic);
+    console.log('direction: params?.payload?.form?.direction', params?.payload?.form?.direction);
+    console.log('expiry: params?.payload?.form?.expiry', params?.payload?.form?.expiry);
+    console.log('quantity: calc?.order?.final?.order?.quantity?.rounded', calc?.order?.final?.order?.quantity?.rounded);
+    console.log('currencyCode', currencyCode);
+
+    console.log('activeAccountSessionToken', params?.payload?.auth?.activeAccountSessionToken);
+    console.log('apiKey', params?.payload?.auth?.apiKey);
+    console.log('clientSessionToken', params?.payload?.auth?.clientSessionToken);
+
+    console.log('env:', params?.env);
+    console.log('source:', params?.source);
 
     const response = await placeOrder(
         network,
@@ -508,7 +535,7 @@ const placeManagedOrder = async (
                     direction: params?.payload?.form?.direction,
                     expiry: params?.payload?.form?.expiry,
                     quantity: calc?.order?.final?.order?.quantity?.rounded,
-                    currencyCode,
+                    currencyCode: 'GBP',
                 }
             }
         }

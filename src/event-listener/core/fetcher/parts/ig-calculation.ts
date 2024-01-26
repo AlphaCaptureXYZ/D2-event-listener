@@ -63,6 +63,7 @@ export const OrderCalcPre = async (
           }
         }
       );
+    //   console.log('igAssetInfo', igAssetInfo);
   
       // we can use the above for these...
       data.asset.ticker = igAssetInfo?.instrument?.epic;
@@ -81,6 +82,8 @@ export const OrderCalcPre = async (
       // use the number of decimals from the min qty
       data.asset.decimals = countDecimals(data.asset.minQty);
   
+    //   console.log('igAssetInfo asset object', data.asset);
+
       /* positions */
       const positions: any[] = await fetcher.ig.getPositions(
         network,
@@ -97,6 +100,7 @@ export const OrderCalcPre = async (
           }
         }
       );
+    //   console.log('igPositions', positions);
   
       const accounts: any[] = await fetcher.ig.getAccounts(
         network,
@@ -119,9 +123,11 @@ export const OrderCalcPre = async (
       if (isNullOrUndefined(account)) {
         account = accounts?.find((res: any) => res.preferred);
       }
+      console.log('igAccount', account);
   
       const currency: any = account.currency;
       data.account.currencyCode = (currencyInfo as any)[currency || 'GBP']?.symbol;
+      console.log('data.account', data.account);
   
       // check to see if there are any assets other than the base currency of the account
       const diffAssets = positions?.filter((res) => res.position.currency !== currency) || [];
@@ -133,9 +139,17 @@ export const OrderCalcPre = async (
         // pending to add the conversion and logic, etc
       }
 
+      console.log('pre calcAccountBalanceAndPositions');
       calcAccountBalanceAndPositions(data, account, positions);
+      console.log('post calcAccountBalanceAndPositions');
+      console.log('pre calcExistingPosition');
       calcExistingPosition(data);
+      console.log('post calcExistingPosition');
+      console.log('pre defaultOrderCalcUsingtheAccountBalance');
       defaultOrderCalcUsingtheAccountBalance(data);       
+      console.log('post defaultOrderCalcUsingtheAccountBalance');
+
+      console.log('final data', data);
 
     } catch (err: any) {
   
@@ -335,7 +349,7 @@ const portfolioStats = (data: IOrderCalc) => {
     }
 
     // net positions
-    data.portfolioStats.net = data.portfolioStats.long - data.portfolioStats.short;
+    data.portfolioStats.net = data.portfolioStats.long - Math.abs(data.portfolioStats.short);
 
     // update our total remaining portfolo 'space'
     data.portfolioStats.remaining = data.account.leverageBalance - data.portfolioStats.net;
