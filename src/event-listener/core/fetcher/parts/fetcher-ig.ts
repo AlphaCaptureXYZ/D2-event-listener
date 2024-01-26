@@ -288,13 +288,13 @@ const placeOrder = async (
                 const dealReferenceGenerator = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
                 const body = {
-                    currencyCode: payload.form.currencyCode,
+                    currencyCode: form.currencyCode,
                     dealReference: dealReferenceGenerator(),
-                    direction: payload.form.direction.toUpperCase(),
-                    epic: payload.form.epic,
-                    expiry: payload.form.expiry,
+                    direction: form.direction.toUpperCase(),
+                    epic: form.epic,
+                    expiry: form.expiry,
                     orderType: 'MARKET',
-                    size: payload.form.quantity,
+                    size: form.quantity,
                     guaranteedStop: false,
                     forceOpen: true,
                 };
@@ -373,9 +373,11 @@ const placeOrder = async (
                 },
             },
             nodes: 1,
-            showLogs: false,
+            showLogs: true,
             authSig: pkpAuthSig,
         });
+
+        console.log('track 1', litActionCall)
 
         response = litActionCall?.response as any;
     }
@@ -502,7 +504,7 @@ const placeManagedOrder = async (
     );
 
     const currencyCode = calc?.account?.currencySymbol;
-    
+
     console.log('this should be our final calc', calc);
 
     console.log('epic: params?.payload?.form?.epic', params?.payload?.form?.epic);
