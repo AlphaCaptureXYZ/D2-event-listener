@@ -123,11 +123,12 @@ export const OrderCalcPre = async (
       if (isNullOrUndefined(account)) {
         account = accounts?.find((res: any) => res.preferred);
       }
-      console.log('igAccount', account);
+    //   console.log('igAccount', account);
   
       const currency: any = account.currency;
-      data.account.currencyCode = (currencyInfo as any)[currency || 'GBP']?.symbol;
-      console.log('data.account', data.account);
+      data.account.currencyCode = currency;
+      data.account.currencySymbol = (currencyInfo as any)[currency || 'GBP']?.symbol;
+    //   console.log('data.account', data.account);
   
       // check to see if there are any assets other than the base currency of the account
       const diffAssets = positions?.filter((res) => res.position.currency !== currency) || [];
@@ -139,17 +140,11 @@ export const OrderCalcPre = async (
         // pending to add the conversion and logic, etc
       }
 
-      console.log('pre calcAccountBalanceAndPositions');
       calcAccountBalanceAndPositions(data, account, positions);
-      console.log('post calcAccountBalanceAndPositions');
-      console.log('pre calcExistingPosition');
       calcExistingPosition(data);
-      console.log('post calcExistingPosition');
-      console.log('pre defaultOrderCalcUsingtheAccountBalance');
       defaultOrderCalcUsingtheAccountBalance(data);       
-      console.log('post defaultOrderCalcUsingtheAccountBalance');
 
-      console.log('final data', data);
+    //   console.log('final data', data);
 
     } catch (err: any) {
   
@@ -341,9 +336,9 @@ const portfolioStats = (data: IOrderCalc) => {
     for (const m in data.portfolio.net) {
         if (m) {
         if (data.portfolio.net[m].direction === 'Long') {
-            data.portfolioStats.long = data.portfolioStats.long + data.portfolio.net[m].value;
+            data.portfolioStats.long = data.portfolioStats.long + Math.abs(data.portfolio.net[m].value);
         } else if (data.portfolio.net[m].direction === 'Short') {
-            data.portfolioStats.short = data.portfolioStats.short + data.portfolio.net[m].value;
+            data.portfolioStats.short = data.portfolioStats.short + Math.abs(data.portfolio.net[m].value);
         }
         }
     }
@@ -352,7 +347,7 @@ const portfolioStats = (data: IOrderCalc) => {
     data.portfolioStats.net = data.portfolioStats.long - Math.abs(data.portfolioStats.short);
 
     // update our total remaining portfolo 'space'
-    data.portfolioStats.remaining = data.account.leverageBalance - data.portfolioStats.net;
+    data.portfolioStats.remaining = data.account.leverageBalance - Math.abs(data.portfolioStats.net);
     // console.log('in portfolioStats', this.data.portfolioStats);
 
     return data;

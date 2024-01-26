@@ -273,113 +273,142 @@ const placeOrder = async (
 
     if (source === 'lit-action') {
 
-        console.log('currencyCode', payload.form.currencyCode);
-        // console.log('dealReference', dealReferenceGenerator());
-        console.log('direction', payload.form.direction.toUpperCase());
-        console.log('epic', payload.form.epic);
-        console.log('expiry', payload.form.expiry);
-        console.log('size:', payload.form.quantity);
+        const body = {
+            currencyCode: payload.form.currencyCode,
+            direction: payload.form.direction.toUpperCase(),
+            epic: payload.form.epic,
+            expiry: payload.form.expiry,
+            orderType: 'MARKET',
+            size: payload.form.quantity,
+            guaranteedStop: false,
+            forceOpen: true,
+        };
+        // console.log('lit-action body', body);
 
-        const code = `
-            const go = async () => {
+        // only make the post IF the size > 0
+        if (Number(payload.form.quantity) > 0) {
 
-                const url = '${requestUrl}/gateway/deal/positions/otc';
+            // console.log('currencyCode', payload.form.currencyCode);
+            // console.log('dealReference', dealReferenceGenerator());
+            // console.log('direction', payload.form.direction.toUpperCase());
+            // console.log('epic', payload.form.epic);
+            // console.log('expiry', payload.form.expiry);
+            // console.log('size:', payload.form.quantity);
 
-                const dealReferenceGenerator = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            const code = `
+                const go = async () => {
 
-                const body = {
-                    currencyCode: form.currencyCode,
-                    dealReference: dealReferenceGenerator(),
-                    direction: form.direction.toUpperCase(),
-                    epic: form.epic,
-                    expiry: form.expiry,
-                    orderType: 'MARKET',
-                    size: form.quantity,
-                    guaranteedStop: false,
-                    forceOpen: true,
+                    const url = '${requestUrl}/gateway/deal/positions/otc';
+
+                    const dealReferenceGenerator = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+                    const body = {
+                        currencyCode: form.currencyCode,
+                        dealReference: dealReferenceGenerator(),
+                        direction: form.direction.toUpperCase(),
+                        epic: form.epic,
+                        expiry: form.expiry,
+                        orderType: 'MARKET',
+                        size: form.quantity,
+                        guaranteedStop: false,
+                        forceOpen: true,
+                    };
+
+                    const options = {
+                        method: 'POST',
+                        body: JSON.stringify(body),
+                        headers: {
+                            'Version': '2',
+                            'CST': auth.clientSessionToken,
+                            'X-IG-API-KEY': auth.apiKey,
+                            'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
+                            'User-Agent': 'PostmanRuntime/7.29.2',
+                            'Accept': 'application/json; charset=UTF-8',
+                            'Content-Type': 'application/json; charset=UTF-8',
+                        },
+                        redirect: 'follow',
+                        mode: 'cors',
+                    };
+
+                    const response = await fetch(url, options);
+                    const data = await response.json();
+
+                    const dealReference = data?.dealReference || null;
+
+                    let globalResponse = null;
+
+                    if(dealReference){
+                        const orderDetailsReq = await fetch(
+                            '${requestUrl}/gateway/deal/confirms/' + dealReference,
+                            {
+                                method: 'GET',
+                                headers: {
+                                    'Version': '1',
+                                    'CST': auth.clientSessionToken,
+                                    'X-IG-API-KEY': auth.apiKey,
+                                    'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
+                                    'User-Agent': 'PostmanRuntime/7.29.2',
+                                    'Accept': 'application/json; charset=UTF-8',
+                                    'Content-Type': 'application/json; charset=UTF-8',
+                                },
+                                redirect: 'follow',
+                                mode: 'cors',
+                            }
+                        );
+            
+                        const orderDetails = await orderDetailsReq.json();
+                        globalResponse = orderDetails;
+                    } else {
+                        globalResponse = data;
+                    }
+
+                    Lit.Actions.setResponse({response: JSON.stringify({
+                        response: globalResponse,
+                        request: body,
+                    })});
+
                 };
 
-                const options = {
-                    method: 'POST',
-                    body: JSON.stringify(body),
-                    headers: {
-                        'Version': '2',
-                        'CST': auth.clientSessionToken,
-                        'X-IG-API-KEY': auth.apiKey,
-                        'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
-                        'User-Agent': 'PostmanRuntime/7.29.2',
-                        'Accept': 'application/json; charset=UTF-8',
-                        'Content-Type': 'application/json; charset=UTF-8',
+                go();
+            `;
+            // console.log('code submitted to Lit Action', code);
+            // console.log('auth submitted to Lit Action', apiKey);
+            // console.log('auth submitted to Lit Action', clientSessionToken);
+            // console.log('auth submitted to Lit Action', activeAccountSessionToken);
+
+            const litActionCall = await LitModule().runLitAction({
+                chain: network,
+                litActionCode: code,
+                listActionCodeParams: {
+                    ...params?.payload,
+                    auth: {
+                        apiKey,
+                        clientSessionToken,
+                        activeAccountSessionToken,
                     },
-                    redirect: 'follow',
-                    mode: 'cors',
-                };
-
-                const response = await fetch(url, options);
-                const data = await response.json();
-
-                const dealReference = data?.dealReference || null;
-
-                let globalResponse = null;
-
-                if(dealReference){
-                    const orderDetailsReq = await fetch(
-                        '${requestUrl}/gateway/deal/confirms/' + dealReference,
-                        {
-                            method: 'GET',
-                            headers: {
-                                'Version': '1',
-                                'CST': auth.clientSessionToken,
-                                'X-IG-API-KEY': auth.apiKey,
-                                'X-SECURITY-TOKEN': auth.activeAccountSessionToken,
-                                'User-Agent': 'PostmanRuntime/7.29.2',
-                                'Accept': 'application/json; charset=UTF-8',
-                                'Content-Type': 'application/json; charset=UTF-8',
-                            },
-                            redirect: 'follow',
-                            mode: 'cors',
-                        }
-                    );
-        
-                    const orderDetails = await orderDetailsReq.json();
-                    globalResponse = orderDetails;
-                } else {
-                    globalResponse = data;
-                }
-
-                Lit.Actions.setResponse({response: JSON.stringify({
-                    response: globalResponse,
-                    request: body,
-                })});
-
-            };
-
-            go();
-        `;
-        console.log('code submitted to Lit Action', code);
-        console.log('auth submitted to Lit Action', apiKey);
-        console.log('auth submitted to Lit Action', clientSessionToken);
-        console.log('auth submitted to Lit Action', activeAccountSessionToken);
-
-        const litActionCall = await LitModule().runLitAction({
-            chain: network,
-            litActionCode: code,
-            listActionCodeParams: {
-                ...params?.payload,
-                auth: {
-                    apiKey,
-                    clientSessionToken,
-                    activeAccountSessionToken,
                 },
-            },
-            nodes: 1,
-            showLogs: false,
-            authSig: pkpAuthSig,
-        });
+                nodes: 1,
+                showLogs: false,
+                authSig: pkpAuthSig,
+            });
 
-        console.log('track 1', litActionCall)
+            // console.log('track 1', litActionCall)
 
-        response = litActionCall?.response as any;
+            response = litActionCall?.response as any;
+
+        } else {
+
+            const globalResponse = {
+                error: 'Order quanity was zero so no request was made to IG Group',
+            }
+
+            response = {
+                response: globalResponse,
+                request: body,
+            };
+    
+        }
+        
     }
 
     return response;
@@ -503,22 +532,27 @@ const placeManagedOrder = async (
         }
     );
 
-    const currencyCode = calc?.account?.currencySymbol;
+    // console.log('calc?.account?', calc.account);
+    const currencyCode = calc?.account?.currencyCode;
 
-    console.log('this should be our final calc', calc);
+    // console.log('this should be our final calc', calc);
 
-    console.log('epic: params?.payload?.form?.epic', params?.payload?.form?.epic);
-    console.log('direction: params?.payload?.form?.direction', params?.payload?.form?.direction);
-    console.log('expiry: params?.payload?.form?.expiry', params?.payload?.form?.expiry);
-    console.log('quantity: calc?.order?.final?.order?.quantity?.rounded', calc?.order?.final?.order?.quantity?.rounded);
-    console.log('currencyCode', currencyCode);
+    // console.log('this should be our final order', calc.order.final.order);
+    // console.log('this should be our final portfolio', calc.order.final.portfolio);
+    // console.log('this should be our final price', calc.order.final.price);
 
-    console.log('activeAccountSessionToken', params?.payload?.auth?.activeAccountSessionToken);
-    console.log('apiKey', params?.payload?.auth?.apiKey);
-    console.log('clientSessionToken', params?.payload?.auth?.clientSessionToken);
+    // console.log('epic: params?.payload?.form?.epic', params?.payload?.form?.epic);
+    // console.log('direction: params?.payload?.form?.direction', params?.payload?.form?.direction);
+    // console.log('expiry: params?.payload?.form?.expiry', params?.payload?.form?.expiry);
+    // console.log('quantity: calc?.order?.final?.order?.quantity?.rounded', calc?.order?.final?.order?.quantity?.rounded);
+    // console.log('currencyCode', currencyCode);
 
-    console.log('env:', params?.env);
-    console.log('source:', params?.source);
+    // console.log('activeAccountSessionToken', params?.payload?.auth?.activeAccountSessionToken);
+    // console.log('apiKey', params?.payload?.auth?.apiKey);
+    // console.log('clientSessionToken', params?.payload?.auth?.clientSessionToken);
+
+    // console.log('env:', params?.env);
+    // console.log('source:', params?.source);
 
     const response = await placeOrder(
         network,
@@ -537,7 +571,7 @@ const placeManagedOrder = async (
                     direction: params?.payload?.form?.direction,
                     expiry: params?.payload?.form?.expiry,
                     quantity: calc?.order?.final?.order?.quantity?.rounded,
-                    currencyCode: 'GBP',
+                    currencyCode: currencyCode,
                 }
             }
         }
@@ -547,6 +581,7 @@ const placeManagedOrder = async (
         ...response?.request,
         calc,
     }
+    // const response = calc;
 
     return response;
 

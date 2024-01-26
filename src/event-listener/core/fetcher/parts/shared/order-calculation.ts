@@ -254,8 +254,8 @@ const defaultOrderCalcUsingtheAccountBalance = (
       initialObject.order.calc.maxPortfolioValueExceeded = true;
 
       initialObject.order.calc.maxPortfolioValueExceededBy =
-        initialObject.order.default.valueWithConviction -
-        initialObject.order.settings.maxPortfolioValue;
+        Math.abs(initialObject.order.default.valueWithConviction -
+        initialObject.order.settings.maxPortfolioValue);
 
     } else {
       initialObject.order.calc.maxPortfolioValueExceeded = false;
