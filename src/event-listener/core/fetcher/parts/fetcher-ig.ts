@@ -373,7 +373,7 @@ const placeOrder = async (
                 },
             },
             nodes: 1,
-            showLogs: true,
+            showLogs: false,
             authSig: pkpAuthSig,
         });
 
