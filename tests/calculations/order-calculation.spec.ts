@@ -35,6 +35,7 @@ describe('Calulate Order Sizes', () => {
         const docId = '2fe8c7f04da315d7c8fa55b64a472fe1';
 
         const pkpInfo = await config.getPKPInfo(chain);
+        // console.log('pkpInfo', pkpInfo);
 
         const authSigh = await PkpAuthModule.getPkpAuthSig(
             chain,
@@ -54,14 +55,14 @@ describe('Calulate Order Sizes', () => {
         const source = 'lit-action';
         // we can use the IG demo - it shouldn't matter
         // but useful to call demo if we are using prod for the calc to stop too many calls
-        const chainForCredentials = 'mumbai';
-        const credentialNftUUID = '0x06765151fcd0b6b89f38c32d4efda1af';
-        // const chainForCredentials = 'polygon';
-        // const credentialNftUUID = '0xafc1239741ddf44e08f5c5beb0e98e51';
+        // const chainForCredentials = 'mumbai';
+        // const credentialNftUUID = '0x06765151fcd0b6b89f38c32d4efda1af';
+        const chainForCredentials = 'polygon';
+        const credentialNftUUID = '0xafc1239741ddf44e08f5c5beb0e98e51';
 
         const pkpInfoForCredentials = await config.getPKPInfo(chainForCredentials);
         	
-        const epic = 'UA.D.AAPL.DAILY.IP';
+        const epic = 'SG.D.SQUS.DAILY.IP';
         const direction: any = 'Buy';
 
         const credentialInfo = await PkpCredentialNftModule.getFullCredential<{

@@ -342,14 +342,14 @@ const defaultOrderCalcUsingtheAccountBalance = (
           // use the remaining value
           initialObject.order.final.order.value = howBigAPositionCanWeHave;
           initialObject.order.final.order.percentage = initialObject.order.final.order.value / initialObject.account.leverageBalance * 100;
-          initialObject.order.final.portfolio.value = initialObject.existingPosition.valueInBase + initialObject.order.final.order.value;
-          initialObject.order.final.portfolio.allocation = initialObject.order.potential.portfolio.value / initialObject.account.leverageBalance * 100;
+          initialObject.order.final.portfolio.value = Math.abs(initialObject.existingPosition.valueInBase) + Math.abs(initialObject.order.final.order.value);
+          initialObject.order.final.portfolio.allocation = Math.abs(initialObject.order.potential.portfolio.value) / initialObject.account.leverageBalance * 100;
       } else {  
           // use the potential (without adjustment)
           initialObject.order.final.order.value = initialObject.order.default.valueWithConviction;
           initialObject.order.final.order.percentage = initialObject.order.final.order.value / initialObject.account.leverageBalance * 100;
-          initialObject.order.final.portfolio.value = initialObject.existingPosition.valueInBase + initialObject.order.final.order.value;
-          initialObject.order.final.portfolio.allocation = initialObject.order.potential.portfolio.value / initialObject.account.leverageBalance * 100;
+          initialObject.order.final.portfolio.value = Math.abs(initialObject.existingPosition.valueInBase) + Math.abs(initialObject.order.final.order.value);
+          initialObject.order.final.portfolio.allocation = initialObject.order.final.portfolio.value / initialObject.account.leverageBalance * 100;
       }      
 
     }

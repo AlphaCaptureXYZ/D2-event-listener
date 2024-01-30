@@ -358,7 +358,7 @@ const portfolioStats = (data: IOrderCalc) => {
     data.portfolioStats.net = data.portfolioStats.long - Math.abs(data.portfolioStats.short);
 
     // update our total remaining portfolo 'space'
-    data.portfolioStats.remaining = data.account.leverageBalance - Math.abs(data.portfolioStats.net);
+    data.portfolioStats.remaining = Math.abs(data.account.leverageBalance - Math.abs(data.portfolioStats.net));
     // console.log('in portfolioStats', this.data.portfolioStats);
 
     return data;
