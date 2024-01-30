@@ -182,10 +182,18 @@ describe('Lit Action Cases', () => {
         // CR IG Demo
         const credentialNftUUID = '0x06765151fcd0b6b89f38c32d4efda1af';
         	
-
         const epic = 'UA.D.AAPL.DAILY.IP';
         const expiry = 'DFB';
         const direction: any = 'Buy';
+
+        const trigger = {
+            action: 'copy-trade',
+            strategy: { reference: 'f218a176db4e1d07d27ba6', name: 'US Tech Momentum' },
+            account: { reference: '0xafc1239741ddf44e08f5c5beb0e98e51' },
+            settings: { maxLeverage: 10, orderSize: 5, maxPositionSize: 10 },
+            docId: '2fe8c7f04da315d7c8fa55b64a472fe1',
+            pkpWalletAddress: '0xcf44232de1810F369E931Ffb7AafFf2666AB94f5'
+          }
 
         console.log('pre pkpInfo request', chain);
         const pkpInfo = await config.getPKPInfo(chain);
@@ -216,6 +224,8 @@ describe('Lit Action Cases', () => {
             pkpInfo?.pkpPublicKey,
         );
         console.log('post pkpAuthSig', pkpAuthSig);
+
+        
 
         const igAuth = await fetcher.ig.authentication(chain, pkpAuthSig, {
             env: credentialInfo.decryptedCredential?.environment as any,
@@ -253,7 +263,8 @@ describe('Lit Action Cases', () => {
                                 direction,
                                 expiry,
                             },
-                        }
+                        },
+                        trigger,
                     },
                 );
         }

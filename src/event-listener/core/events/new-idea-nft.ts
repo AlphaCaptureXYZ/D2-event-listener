@@ -252,12 +252,15 @@ const orderProcess = async (
 
                         const igDirectionByKind = {
                             'open': 'Buy',
-                            'adjust': 'Buy',
+                            // 'adjust': 'Buy',
                             'close': 'Sell',
                         };
 
                         const igDirection = igDirectionByKind[kind?.toLowerCase()];
                         const igExpiry = '';
+
+                        // these are our order settings
+                        const triggerSettings = triggerInfo;
 
                         if (isNullOrUndefined(error)) {
 
@@ -298,8 +301,9 @@ const orderProcess = async (
                                                     epic: asset,
                                                     expiry: igExpiry,
                                                 },
-                                            }
-                                        }
+                                            },
+                                            trigger: triggerSettings
+                                        },
                                     );
 
                                 orderId =

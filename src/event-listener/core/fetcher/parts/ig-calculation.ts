@@ -30,7 +30,8 @@ export const OrderCalcPre = async (
         },
         direction: DirectionType,
         epic: string,
-      }
+      },
+      trigger: any,
     }
   ) => {
     const data = OrderCalc.constants.defaultOrderCalc;
@@ -47,6 +48,11 @@ export const OrderCalcPre = async (
         auth
       } = payload
   
+      // get and set our trigger settings
+      const triggerSettings = params.trigger.settings;
+      
+      // { maxLeverage: 10, orderSize: 5, maxPositionSize: 10 },
+
       const igAssetInfo: any = await fetcher.ig.getMarketInfoByEpic(
         network,
         pkpAuthSig,
@@ -142,7 +148,7 @@ export const OrderCalcPre = async (
 
       calcAccountBalanceAndPositions(data, account, positions);
       calcExistingPosition(data);
-      defaultOrderCalcUsingtheAccountBalance(data);       
+      defaultOrderCalcUsingtheAccountBalance(data, triggerSettings, params?.payload.direction);       
 
     //   console.log('final data', data);
 
@@ -202,15 +208,19 @@ const calcExistingPosition = (data: IOrderCalc) => {
     }
 }
 
-const defaultOrderCalcUsingtheAccountBalance = (data: any) => {
-    // these need to come from the weaver store
-    // OR the nft order details
+const defaultOrderCalcUsingtheAccountBalance = (data: any, triggerSettings: any, direction: DirectionType) => {
 
+    // we need to allow these to be passed in if we're going to use them
     const orderLimits = false;
-    const defaultOrderSize = 5;
     const conviction = 100;
-    const maxSizePortofolio = 10;
-    const direction = 'Long' as DirectionType;
+
+    // this is the trigger object
+    // { maxLeverage: 10, orderSize: 5, maxPositionSize: 10 },
+    const defaultOrderSize = triggerSettings.orderSize;
+    const maxSizePortofolio = triggerSettings.maxPositionSize;
+    const leverageMultiple = triggerSettings.maxLeverage;
+
+    // const direction = 'Long' as DirectionType;
 
     OrderCalc.functions.defaultOrderCalcUsingtheAccountBalance(
         data,
@@ -220,6 +230,7 @@ const defaultOrderCalcUsingtheAccountBalance = (data: any) => {
             conviction,
             maxSizePortofolio,
             direction,
+            leverageMultiple,
         }
     );
 }

@@ -435,6 +435,7 @@ const placeBasicOrder = async (
                 quantity: number,
             },
         }
+        trigger: any,
     }
 ) => {
 
@@ -453,7 +454,8 @@ const placeBasicOrder = async (
                 },
                 direction: params?.payload?.form?.direction as any,
                 epic: params?.payload?.form?.epic,
-            }
+            },
+            trigger: params?.trigger
         }
     );
 
@@ -509,9 +511,11 @@ const placeManagedOrder = async (
                 direction: string,
                 expiry: string,
             },
-        }
+        },
+        trigger: any,
     }
 ) => {
+
 
     const calc = await OrderCalcPre(
         network,
@@ -528,7 +532,8 @@ const placeManagedOrder = async (
                 },
                 direction: params?.payload?.form?.direction as any,
                 epic: params?.payload?.form?.epic,
-            }
+            },
+            trigger: params?.trigger,
         }
     );
 

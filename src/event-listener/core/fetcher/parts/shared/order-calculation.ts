@@ -224,6 +224,7 @@ const defaultOrderCalcUsingtheAccountBalance = (
     conviction: number,
     maxSizePortofolio: number,
     direction: DirectionType,
+    leverageMultiple: number,
   }
 ): any => {
 
@@ -231,6 +232,11 @@ const defaultOrderCalcUsingtheAccountBalance = (
 
     // update our  setting
     initialObject.order.calc.overrideLimits = valuesToSet.orderLimits;
+
+    // update our trigger settings
+    initialObject.account.leverage = valuesToSet.leverageMultiple;
+    // the leverage balance was original using the default value of 1
+    initialObject.account.leverageBalance = initialObject.account.balance * initialObject.account.leverage;
 
     // DEFAULT ORDER SIZE
     initialObject.order.default.portfolioAllocation = valuesToSet.defaultOrderSize;
@@ -277,6 +283,8 @@ const defaultOrderCalcUsingtheAccountBalance = (
     initialObject.order.potential.portfolio.value = initialObject.existingPosition.valueInBase + initialObject.order.default.valueWithConviction;
 
     initialObject.order.potential.portfolio.allocation = initialObject.order.potential.portfolio.value / initialObject.account.leverageBalance * 100;
+
+    initialObject.order.potential.order.percentage = initialObject.order.potential.order.value / initialObject.account.leverageBalance * 100;
 
     // qty needs to be worked out based on the price
     // if the direction 'buy' we using the bid
