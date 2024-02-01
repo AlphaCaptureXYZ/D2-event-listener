@@ -20,7 +20,6 @@ import { PkpCredentialNftModule } from '../../src/event-listener/modules/pkp-cre
 
 describe('Calulate Order Sizes', () => {
 
-
     xit('Get trigger and calculate the order size', async () => {
 
         // this is an IG specific calc

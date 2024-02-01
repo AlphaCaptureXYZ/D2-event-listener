@@ -5,6 +5,7 @@ export type DirectionType = 'buy' | 'sell';
 export interface IOrderCalc {
   asset: {
     ticker: string,
+    expiry: string,
     name: string,
     price: {
       ask: number,
@@ -111,6 +112,7 @@ const defaultOrderCalc: IOrderCalc = {
   asset: {
     ticker: '',
     name: '',
+    expiry: '',
     price: {
       ask: 0,
       bid: 0,

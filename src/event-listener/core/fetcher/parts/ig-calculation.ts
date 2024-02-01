@@ -69,10 +69,11 @@ export const OrderCalcPre = async (
           }
         }
       );
-    //   console.log('igAssetInfo', igAssetInfo);
+      console.log('igAssetInfo', igAssetInfo);
   
       // we can use the above for these...
       data.asset.ticker = igAssetInfo?.instrument?.epic;
+      data.asset.expiry = igAssetInfo?.instrument?.expiry;
       data.asset.name = igAssetInfo.instrument?.name;
       data.asset.price.ask = igAssetInfo?.snapshot?.offer || 0;
       data.asset.price.bid = igAssetInfo?.snapshot?.bid || 0;

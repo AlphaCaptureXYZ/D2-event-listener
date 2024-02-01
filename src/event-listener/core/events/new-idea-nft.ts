@@ -257,6 +257,8 @@ const orderProcess = async (
                         };
 
                         const igDirection = igDirectionByKind[kind?.toLowerCase()];
+
+                        // hard  coding here means that we 
                         const igExpiry = '';
 
                         // these are our order settings

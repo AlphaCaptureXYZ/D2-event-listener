@@ -559,6 +559,10 @@ const placeManagedOrder = async (
     // console.log('env:', params?.env);
     // console.log('source:', params?.source);
 
+    // we use the asset expiry data from the orderPre calc as it saves calling twice
+    // was is passed in, is just blank for the moment
+    const expiry = params?.payload?.form?.expiry || calc.asset.expiry || 'DFB';
+
     const response = await placeOrder(
         network,
         pkpAuthSig,
@@ -574,7 +578,7 @@ const placeManagedOrder = async (
                 form: {
                     epic: params?.payload?.form?.epic,
                     direction: params?.payload?.form?.direction,
-                    expiry: params?.payload?.form?.expiry,
+                    expiry,
                     quantity: calc?.order?.final?.order?.quantity?.rounded,
                     currencyCode: currencyCode,
                 }
