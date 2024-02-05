@@ -11,7 +11,7 @@ const APP_ENV: 'development' | 'production' =
     (process.env.APP_ENV as any) || 'development';
 
 // const WEAVEDB_CONTRACT_TX_ID = 'uItgIC0zhIGUM3uK0DPb__1TVb-2F5Q1awI2mVMICbk';
-
+//
 // new contract tx id to test
 const WEAVEDB_CONTRACT_TX_ID = '5_KIAVYCJeJj9d-fAJmCcNsPlMefjfoo4PUgk1JbLTA';
 
