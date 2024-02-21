@@ -2,11 +2,11 @@ import {
     INotification,
     INotificationEventPayload,
     INotificationPayload,
-} from '../../../event-listener/interfaces/notification.i';
+} from '../../interfaces/notification.i';
 
 import { NotificatorModule } from '../../modules/notificator.module';
 
-export const notification = async <T>(
+export const notificationSlack = async <T>(
     payload: INotification<T>
 ) => {
     try {
@@ -129,7 +129,7 @@ export const notification = async <T>(
             }
 
             if (data?.idea?.asset?.ticker && orderId && !error) {
-                await NotificatorModule.sendNotification({
+                await NotificatorModule.sendNotificationSlack({
                     payload: {
                         username: 'D2 Event Listener (Order)',
                         text: `A new order has been placed. Check the details to know more about it.`,
@@ -146,7 +146,7 @@ export const notification = async <T>(
             }
 
             if (error) {
-                await NotificatorModule.sendNotification({
+                await NotificatorModule.sendNotificationSlack({
                     payload: {
                         username: 'D2 Event Listener (Order)',
                         text: `An error occurred while processing the order. Check the details to know more about it.`,
@@ -243,7 +243,7 @@ export const notification = async <T>(
                 },
             ];
 
-            await NotificatorModule.sendNotification({
+            await NotificatorModule.sendNotificationSlack({
                 payload: {
                     username: 'D2 Event Listener (Idea created)',
                     text: `A new idea has been created. Check the details to know more about it.`,

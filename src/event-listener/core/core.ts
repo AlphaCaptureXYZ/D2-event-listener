@@ -14,8 +14,11 @@ import { PkpCredentialNftModule } from "../modules/pkp-credential-nft.module";
 
 /* events */
 import { newIdeaNFTEvent } from "./events/new-idea-nft";
-import { notification } from "./events/notification";
 import { createIdea } from "./events/create-idea";
+
+/* notifications */
+import { notificationSlack } from "./events/notification-slack";
+import { notificationTelegram } from "./events/notification-telegram";
 
 /* helpers */
 import { wait } from "../helpers/helpers";
@@ -187,22 +190,29 @@ const watcherLoader = (
 ) => {
     // watcher process
     try {
+        // console.log('in watcherLoader');
         if (!watcherLoaded) {
             EventEmitter().listen().subscribe(async (res) => {
 
                 const event = res.type as EventType;
                 const data = res?.data || null;
 
+
                 // event selector
                 switch (event) {
                     case 'NEW_IDEA_NFT':
+                        // added here just to test
+                        // await notificationTelegram(data as INotification<any>);
+
+                        // console.log('data for watcher Loader', data);
                         const response = await newIdeaNFTEvent(data as INewIdeaNFT);
                         if (payload?.test?.enabled) {
                             return resolve(response);
                         };
                         break;
                     case 'NOTIFICATION':
-                        await notification(data as INotification<any>);
+                        await notificationSlack(data as INotification<any>);
+                        await notificationTelegram(data as INotification<any>);
                         break;
                     case 'CREATE_IDEA':
                         await createIdea({
