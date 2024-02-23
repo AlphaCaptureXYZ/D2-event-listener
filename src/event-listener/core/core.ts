@@ -73,7 +73,7 @@ export const D2EventListener = async (
         log(`Wallet Address: ${wallet.address}`);
 
         let pkpInfo: IPkpInfo = null as any;
-        
+
         // pkp check/loader
         pkpInfo = await config.getPKPInfo(network);
 
@@ -95,7 +95,6 @@ export const D2EventListener = async (
         log('');
 
         const isAUnitTest = payload?.test?.enabled;
-
 
         if (!isAUnitTest) {
             events?.map((key) => {
@@ -295,23 +294,25 @@ const wsTradeLoader = async (payload: {
 
                 const credentialNftUUID = trigger?.account?.reference;
 
-                const credentialInfo =
-                    await PkpCredentialNftModule.getFullCredential<any>({
-                        chain: network,
-                        credentialNftUUID,
-                        authSig: pkpAuthSig,
-                        pkpKey: pkpInfo.pkpPublicKey,
-                    });
+                if (trigger?.action === 'copy-trade') {
+                    const credentialInfo =
+                        await PkpCredentialNftModule.getFullCredential<any>({
+                            chain: network,
+                            credentialNftUUID,
+                            authSig: pkpAuthSig,
+                            pkpKey: pkpInfo.pkpPublicKey,
+                        });
 
-                if (credentialInfo.provider === 'Binance') {
-                    console.log('Pkp and triggers found, connecting to binance ws...');
+                    if (credentialInfo?.provider === 'Binance') {
+                        console.log('Pkp and triggers found, connecting to binance ws...');
 
-                    await fetcher.binance.ws.connect({
-                        id: credentialNftUUID,
-                        apiKey: credentialInfo?.decryptedCredential?.apiKey,
-                        apiSecret: credentialInfo?.decryptedCredential?.apiSecret,
-                        env: credentialInfo?.environment as any,
-                    });
+                        await fetcher.binance.ws.connect({
+                            id: credentialNftUUID,
+                            apiKey: credentialInfo?.decryptedCredential?.apiKey,
+                            apiSecret: credentialInfo?.decryptedCredential?.apiSecret,
+                            env: credentialInfo?.environment as any,
+                        });
+                    }
                 }
 
             }
