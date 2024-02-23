@@ -14,6 +14,7 @@ const APP_ENV: 'development' | 'production' =
 //
 // new contract tx id to test
 const WEAVEDB_CONTRACT_TX_ID = '5_KIAVYCJeJj9d-fAJmCcNsPlMefjfoo4PUgk1JbLTA';
+const WEAVEDB_CHAIN = 'polygon';
 
 const NFT_STORAGE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDg4QWQ0MDgwODIxMTIyOTRGQjU5MDM3NDk2Y0ZDMjk0Yzg2QjNGQzkiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY5NTEzODUyMjcwMiwibmFtZSI6ImQyLW9yZGVyLXN0b3JlIn0.Dm2J9JxCuBnxRk6Q9nrrUGkhmwWAJ5rvBfsdtU4sR38';
 
@@ -62,5 +63,6 @@ export {
     WALLET_PRIVATE_KEY,
     MAX_LIT_ENC_DEC_ATTEMPTS,
     WEAVEDB_CONTRACT_TX_ID,
+    WEAVEDB_CHAIN,
     NFT_STORAGE_API_KEY,
 };

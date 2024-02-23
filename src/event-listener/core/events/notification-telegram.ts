@@ -7,6 +7,15 @@ import {
     INotificationPayload,
 } from '../../interfaces/notification.i';
 
+import * as config from '../../../event-listener/config/config';
+
+import { EnvType } from '../../../event-listener/interfaces/shared.i';
+
+import { WeaveDBModule } from '../../../event-listener/modules/weavedb.module';
+
+import { PkpAuthModule } from '../../../event-listener/modules/pkp-auth.module';
+
+
 // import { NotificatorModule } from '../../modules/notificator.module';
 
 export const notificationTelegram = async <T>(
@@ -14,14 +23,7 @@ export const notificationTelegram = async <T>(
 ) => {
     try {
 
-        // this need
-        const token = '6699019551:AAEnKU6nSTjAyV6E7PEnaBo9bMvUZEg4ZCE';
-        
-        const bot = new TelegramBot(token);
-        const chatId = '-4163709012';
-
-        await bot.sendMessage(chatId, 'Testing 2');
-        // console.log('test', test);
+        // PAYLOAD
 
         const {
             type,
@@ -29,100 +31,76 @@ export const notificationTelegram = async <T>(
         } = payload;
         console.log('this is the payload in the telegram not', payload);
 
-        const {
-            network,
-            nftId,
-            blockNumber,
-            provider,
-            ticker,
-            kind,
-            direction,
-            price,
-            creator,
-            company,
-            strategy,
-        } = info as INotificationEventPayload;
+        // TELEGRAM
 
-        const fields: any[] = [
-            {
-                title: 'Context',
-                value: 'D2 Event Listener (New Idea NFT)',
-                short: false,
-            },
-            {
-                title: 'Network',
-                value: network,
-                short: false
-            },
-            {
-                title: 'Idea NFT (ID)',
-                value: nftId,
-                short: false
-            },
-            {
-                title: 'BlockNumber',
-                value: blockNumber,
-                short: false,
-            },
-            {
-                title: 'Strategy',
-                value: `${strategy?.name} (${strategy?.reference})`,
-                short: false
-            },
-            {
-                title: 'Creator',
-                value: `${creator?.name} (${creator?.walletAddress})`,
-                short: false
-            },
-            {
-                title: 'Company',
-                value: company,
-                short: false,
-            },
-            {
-                title: 'Ticker',
-                value: ticker,
-                short: false
-            },
-            {
-                title: 'Direction',
-                value: direction || 'none',
-                short: false,
-            },
-            {
-                title: 'Kind',
-                value: kind,
-                short: false,
-            },
-            {
-                title: 'Provider',
-                value: provider,
-                short: false,
-            },
-            {
-                title: 'Price',
-                value: `$${price}`,
-                short: false,
-            },
-        ];
+        // const chain = 'mumbai';
+        const chain = config.WEAVEDB_CHAIN;
 
-        console.log('fields', fields);
+        const pkpInfo = await config.getPKPInfo(chain);
+        // console.log('pkpInfo', pkpInfo);
 
-        // await NotificatorModule.sendNotificationTelegram({
-        //     payload: {
-        //         username: 'D2 Event Listener (Idea created)',
-        //         text: `A new idea has been created. Check the details to know more about it.`,
-        //         icon_emoji: ':page_with_curl:',
-        //         attachments: [
-        //             {
-        //                 color: '#71BFF0',
-        //                 fields,
-        //                 actions: []
-        //             }
-        //         ],
-        //     }
-        // });
+        const authSigh = await PkpAuthModule.getPkpAuthSig(
+            chain,
+            pkpInfo.pkpPublicKey,
+        );
 
+        const data = await WeaveDBModule.getAllData<any>(
+            chain,
+            {
+                type: 'trigger',
+            },
+            authSigh
+        );
+        // console.log('weave data', data);
+// 
+        // we only send the idea notifications here, not the trades
+        if (type === 'NEW_IDEA_NFT') {
+
+            const {
+                nftId,
+                provider,
+                ticker,
+                kind,
+                direction,
+                price,
+                creator,
+                company,
+                strategy,
+            } = info as INotificationEventPayload;
+
+            const ideaStrategyReference = strategy?.reference;
+
+            // loop through until we have our relevant docId
+            for (const i in data) {
+                if (i) {
+
+                    // we need our strategy reference and the trigger type
+                    const triggerStrategyReference = data[i].strategy.reference || '';
+                    const triggerType = data[i].action || '';
+
+                    if (triggerType === 'telegram-notification' && triggerStrategyReference === ideaStrategyReference) {
+                        // console.log('Telegram trigger', data[i]);
+
+                        // where to post
+                        const chatId = data[i].settings.chatId || '';
+                        const chatToken = data[i].settings.chatToken || '';
+
+                        const bot = new TelegramBot(chatToken);
+
+                        let msgText = '';
+                        // if this is a 
+                        if (kind === 'open') {
+                            msgText = 'New idea for ' + ticker + ' at ' + price + ' . See https://alphacapture.xyz/ideas/' + nftId;
+                        } else if (kind === 'close') {
+                            msgText = 'Idea closed for ' + ticker + ' at ' + price + ' . See https://alphacapture.xyz/ideas/' + nftId;
+                        }
+
+                        await bot.sendMessage(chatId, msgText);
+                    }
+
+                }
+            }
+        }
 
     } catch (err) {
         console.log('Telegram notification (error)', err.message);

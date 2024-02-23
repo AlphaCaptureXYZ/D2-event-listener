@@ -201,9 +201,6 @@ const watcherLoader = (
                 // event selector
                 switch (event) {
                     case 'NEW_IDEA_NFT':
-                        // added here just to test
-                        // await notificationTelegram(data as INotification<any>);
-
                         // console.log('data for watcher Loader', data);
                         const response = await newIdeaNFTEvent(data as INewIdeaNFT);
                         if (payload?.test?.enabled) {
@@ -212,7 +209,11 @@ const watcherLoader = (
                         break;
                     case 'NOTIFICATION':
                         await notificationSlack(data as INotification<any>);
-                        await notificationTelegram(data as INotification<any>);
+                        try {
+                            await notificationTelegram(data as INotification<any>);
+                        } catch (err) {
+                            // console.log('err', err.message);
+                        }
                         break;
                     case 'CREATE_IDEA':
                         await createIdea({
@@ -272,7 +273,7 @@ const wsTradeLoader = async (payload: {
             pkpInfo?.pkpPublicKey,
         );
 
-        console.log('Checking if your wallet have pkp and triggers created...');
+        console.log('Checking if your wallet has pkp and triggers created...');
 
         let triggers =
             await WeaveDBModule.getAllData<any>(network, {
