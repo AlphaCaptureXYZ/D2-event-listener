@@ -22,13 +22,13 @@ export const notificationTelegram = async <T>(
     payload: INotification<T>
 ) => {
     try {
-
         // PAYLOAD
 
         const {
             type,
             info,
         } = payload;
+
         console.log('this is the payload in the telegram not', payload);
 
         // TELEGRAM
@@ -37,7 +37,6 @@ export const notificationTelegram = async <T>(
         const chain = config.WEAVEDB_CHAIN;
 
         const pkpInfo = await config.getPKPInfo(chain);
-        // console.log('pkpInfo', pkpInfo);
 
         const authSigh = await PkpAuthModule.getPkpAuthSig(
             chain,
@@ -51,8 +50,9 @@ export const notificationTelegram = async <T>(
             },
             authSigh
         );
-        // console.log('weave data', data);
-// 
+
+        console.log('weave data', data);
+        // 
         // we only send the idea notifications here, not the trades
         if (type === 'NEW_IDEA_NFT') {
 

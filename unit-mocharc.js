@@ -5,7 +5,7 @@ const filesToTest = [
   // "tests/calculations/order-calculation.spec.ts",
   // "tests/lit-actions/lit-actions-cases.spec.ts",
   // "tests/weavedb/weavedb-cases.spec.ts",
-  "tests/notifications/telegram.spec.ts",
+  "tests/notifications/notifications.spec.ts",
 ];
 
 module.exports = {
