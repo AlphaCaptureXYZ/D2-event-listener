@@ -84,7 +84,7 @@ export const notificationTelegram = async <T>(
                         // where to post
                         const chatId = data[i].settings.chatId || '';
                         const chatToken = data[i].settings.chatToken || '';
-                        const threadId = data[i].settings.threadId || 0;
+                        const threadId = Number(data[i].settings.threadId) || 0;
 
                         const bot = new TelegramBot(chatToken);
 
