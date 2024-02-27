@@ -32,3 +32,18 @@ docker-compose -f docker-compose.yml up --build -d
 echo "Finished!"
 echo "Get docker processes after the previous changes/updates"
 sudo docker ps
+
+echo "Getting the new id"
+CURRENT_ID=$(sudo docker images 'd2-event-listener' -a -q)
+echo "the current id is $CURRENT_ID"
+
+# reset (stop) and start again
+echo "Stopping the current container"
+sudo docker stop $CURRENT_ID
+sleep 5s
+echo "Starting the new container"
+sudo docker start $CURRENT_ID
+sleep 5s
+
+echo "Get docker processes after the previous stop and start"
+sudo docker ps
