@@ -84,6 +84,7 @@ export const notificationTelegram = async <T>(
                         // where to post
                         const chatId = data[i].settings.chatId || '';
                         const chatToken = data[i].settings.chatToken || '';
+                        const threadId = data[i].settings.threadId || 0;
 
                         const bot = new TelegramBot(chatToken);
 
@@ -95,7 +96,12 @@ export const notificationTelegram = async <T>(
                             msgText = 'Idea closed for ' + ticker + ' at ' + price + ' . See https://alphacapture.xyz/ideas/' + nftId;
                         }
 
-                        await bot.sendMessage(chatId, msgText);
+                        // if we have a thread id (topic) then we need to pass an additional param
+                        if (threadId > 0) {
+                            await bot.sendMessage(chatId, msgText, {message_thread_id: threadId});
+                        } else {
+                            await bot.sendMessage(chatId, msgText);
+                        }
                     }
 
                 }
