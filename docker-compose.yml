@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  api:
+    image: d2-event-listener
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3006
+    volumes:
+      - ./:/usr/src/api
+      - /usr/src/api/node_modules
+    expose:
+      - 3006
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.type == api
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "3006:3006"
