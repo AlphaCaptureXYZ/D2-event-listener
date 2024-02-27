@@ -45,5 +45,14 @@ echo "Starting the new container"
 sudo docker start $CURRENT_ID
 sleep 5s
 
+# reset (stop) and start again
+echo "Stopping the current container"
+sudo docker stop $CURRENT_ID
+sleep 10s
+echo "Starting the new container"
+sudo docker start $CURRENT_ID
+sleep 5s
+
+
 echo "Get docker processes after the previous stop and start"
 sudo docker ps
