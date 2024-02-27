@@ -31,9 +31,12 @@ app.get('/', (req, res) => {
         message: 'Ping'
     });
 
+    const status = process.env.D2_STATUS || null
+
     res.status(200).json({
         message: 'D2 Event Listener API running...',
         status: 'success',
+        d2Status: status,
     });
 });
 

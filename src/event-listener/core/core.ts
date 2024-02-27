@@ -56,6 +56,8 @@ export const D2EventListener = async (
 ) => new Promise<any>(async (resolve, reject) => {
     try {
 
+        process.env.D2_STATUS = 'pending'
+
         const { privateKey, network } = payload;
 
         log(`Network: ${network}`);
@@ -288,6 +290,10 @@ const wsTradeLoader = async (payload: {
             const check = trigger?.pkpWalletAddress?.toLowerCase() === pkpWalletAddress?.toLowerCase();
             return check;
         });
+
+        if (triggers?.length > 0) {
+            process.env.D2_STATUS = 'running'
+        }
 
         for (const trigger of triggers) {
             if (trigger) {
