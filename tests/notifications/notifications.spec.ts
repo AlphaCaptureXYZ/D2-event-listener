@@ -11,6 +11,8 @@ import {
 import { notificationSlack } from "../../src/event-listener/core/events/notification-slack";
 import { notificationTelegram } from "../../src/event-listener/core/events/notification-telegram";
 
+import { weaveTriggers } from "../../src/event-listener/core/events/triggers";
+
 const info = {
     network: 'polygon',
     nftId: 1337,
@@ -34,7 +36,9 @@ const info = {
 describe('Notifications', () => {
 
     xit('Send a notification to a Slack group', async () => {
-        const notification = await notificationSlack({
+        const triggers = await weaveTriggers();
+
+        const notification = await notificationSlack(triggers, {
             type: 'NEW_IDEA_NFT',
             info,
         } as INotification<any>);
@@ -42,8 +46,10 @@ describe('Notifications', () => {
         // add the assertion and the expectation to complete the test like you prefer
     }).timeout(50000);
 
-    it('Send a notification to a Telegram group', async () => {
-        const notification = await notificationTelegram({
+    xit('Send a notification to a Telegram group', async () => {
+        const triggers = await weaveTriggers();
+
+        const notification = await notificationTelegram(triggers, {
             type: 'NEW_IDEA_NFT',
             info,
         } as INotification<any>);

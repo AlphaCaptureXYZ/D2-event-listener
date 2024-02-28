@@ -7,18 +7,8 @@ import {
     INotificationPayload,
 } from '../../interfaces/notification.i';
 
-import * as config from '../../../event-listener/config/config';
-
-import { EnvType } from '../../../event-listener/interfaces/shared.i';
-
-import { WeaveDBModule } from '../../../event-listener/modules/weavedb.module';
-
-import { PkpAuthModule } from '../../../event-listener/modules/pkp-auth.module';
-
-
-// import { NotificatorModule } from '../../modules/notificator.module';
-
 export const notificationTelegram = async <T>(
+    triggers: any[],
     payload: INotification<T>
 ) => {
     try {
@@ -29,29 +19,7 @@ export const notificationTelegram = async <T>(
             info,
         } = payload;
 
-        console.log('this is the payload in the telegram not', payload);
-
-        // TELEGRAM
-
-        // const chain = 'mumbai';
-        const chain = config.WEAVEDB_CHAIN;
-
-        const pkpInfo = await config.getPKPInfo(chain);
-
-        const authSigh = await PkpAuthModule.getPkpAuthSig(
-            chain,
-            pkpInfo.pkpPublicKey,
-        );
-
-        const data = await WeaveDBModule.getAllData<any>(
-            chain,
-            {
-                type: 'trigger',
-            },
-            authSigh
-        );
-
-        console.log('weave data', data);
+        console.log('weave data', triggers);
         // 
         // we only send the idea notifications here, not the trades
         if (type === 'NEW_IDEA_NFT') {
@@ -71,20 +39,20 @@ export const notificationTelegram = async <T>(
             const ideaStrategyReference = strategy?.reference;
 
             // loop through until we have our relevant docId
-            for (const i in data) {
+            for (const i in triggers) {
                 if (i) {
 
                     // we need our strategy reference and the trigger type
-                    const triggerStrategyReference = data[i].strategy.reference || '';
-                    const triggerType = data[i].action || '';
+                    const triggerStrategyReference = triggers[i].strategy.reference || '';
+                    const triggerType = triggers[i].action || '';
 
                     if (triggerType === 'telegram-notification' && triggerStrategyReference === ideaStrategyReference) {
-                        // console.log('Telegram trigger', data[i]);
+                        // console.log('Telegram trigger', triggers[i]);
 
                         // where to post
-                        const chatId = data[i].settings.chatId || '';
-                        const chatToken = data[i].settings.chatToken || '';
-                        const threadId = Number(data[i].settings.threadId) || 0;
+                        const chatId = triggers[i].settings.chatId || '';
+                        const chatToken = triggers[i].settings.chatToken || '';
+                        const threadId = Number(triggers[i].settings.threadId) || 0;
 
                         const bot = new TelegramBot(chatToken);
 
@@ -97,8 +65,10 @@ export const notificationTelegram = async <T>(
                         }
 
                         // if we have a thread id (topic) then we need to pass an additional param
+                        // console.log('msgText', msgText);
                         if (threadId > 0) {
                             await bot.sendMessage(chatId, msgText, {message_thread_id: threadId});
+                            // await bot.sendMessage(chatId, msgText);
                         } else {
                             await bot.sendMessage(chatId, msgText);
                         }

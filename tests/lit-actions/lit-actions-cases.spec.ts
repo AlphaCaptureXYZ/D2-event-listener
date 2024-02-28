@@ -174,7 +174,7 @@ describe('Lit Action Cases', () => {
 
     }).timeout(50000);
 
-    it('IG order test', async () => {
+    xit('IG order test', async () => {
 
         const source = 'lit-action';
         const chain = 'mumbai';

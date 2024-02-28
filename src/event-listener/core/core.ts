@@ -19,6 +19,7 @@ import { createIdea } from "./events/create-idea";
 /* notifications */
 import { notificationSlack } from "./events/notification-slack";
 import { notificationTelegram } from "./events/notification-telegram";
+import { weaveTriggers } from "./events/triggers";
 
 /* helpers */
 import { wait } from "../helpers/helpers";
@@ -209,12 +210,11 @@ const watcherLoader = (
                         };
                         break;
                     case 'NOTIFICATION':
-                        await notificationSlack(data as INotification<any>);
-                        try {
-                            await notificationTelegram(data as INotification<any>);
-                        } catch (err) {
-                            // console.log('err', err.message);
-                        }
+                        const triggers = await weaveTriggers();
+
+                        await notificationSlack(triggers, data as INotification<any>);
+                        await notificationTelegram(triggers, data as INotification<any>);
+
                         break;
                     case 'CREATE_IDEA':
                         await createIdea({

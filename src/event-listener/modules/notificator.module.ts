@@ -5,6 +5,7 @@ import * as rp from 'request-promise-native';
 // quick test to notify the results of the event listener
 const sendNotificationSlack = async <T>(
     params: {
+        webhook: string,
         payload: {
             username: string;
             text: string;
@@ -28,8 +29,11 @@ const sendNotificationSlack = async <T>(
     try {
 
         const {
-            payload
+            payload,
+            webhook,
         } = params;
+        // console.log('payload', payload);
+        // console.log('process.env.SLACK_WEBHOOK_URL', process.env.SLACK_WEBHOOK_URL);
 
         const options = {
             headers: {
@@ -37,12 +41,13 @@ const sendNotificationSlack = async <T>(
                 'User-Agent': 'Request-Promise',
             },
             method: 'POST',
-            uri:  process.env.SLACK_WEBHOOK_URL,
+            uri:  webhook,
             json: true,
             body: payload
         };
 
-        await rp(options);
+        const response = await rp(options);
+        // console.log('response', response);
 
     } catch (err) { }
 };
