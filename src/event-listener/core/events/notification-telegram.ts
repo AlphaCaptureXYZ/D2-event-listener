@@ -67,7 +67,9 @@ export const notificationTelegram = async <T>(
                         // if we have a thread id (topic) then we need to pass an additional param
                         // console.log('msgText', msgText);
                         if (threadId > 0) {
-                            await bot.sendMessage(chatId, msgText, {message_thread_id: threadId});
+                            // await bot.sendMessage(chatId, msgText, {message_thread_id: threadId, link_preview_options: {is_disabled: true}});
+                            await bot.sendMessage(chatId, msgText, {message_thread_id: threadId, disable_web_page_preview: true});
+                            
                             // await bot.sendMessage(chatId, msgText);
                         } else {
                             await bot.sendMessage(chatId, msgText);
