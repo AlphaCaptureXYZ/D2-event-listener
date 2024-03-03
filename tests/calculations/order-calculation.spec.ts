@@ -20,15 +20,12 @@ import { PkpCredentialNftModule } from '../../src/event-listener/modules/pkp-cre
 
 describe('Calulate Order Sizes', () => {
 
-    xit('Get trigger and calculate the order size', async () => {
+    it('Get trigger and calculate the order size', async () => {
 
         // this is an IG specific calc
 
         // const chain = 'mumbai';
         const chain = 'polygon';
-
-        //
-        const mode = config.APP_ENV as EnvType;
 
         // doc Id for our trigger
         const docId = '2fe8c7f04da315d7c8fa55b64a472fe1';
@@ -61,8 +58,10 @@ describe('Calulate Order Sizes', () => {
 
         const pkpInfoForCredentials = await config.getPKPInfo(chainForCredentials);
         	
-        const epic = 'SG.D.SQUS.DAILY.IP';
+        // const epic = 'UC.D.PYPLVUS.DAILY.IP';
+        const epic = "SA.D.BABA.DAILY.IP";
         const direction: any = 'Buy';
+        const ideaType = "open";  // open, adjust or close
 
         const credentialInfo = await PkpCredentialNftModule.getFullCredential<{
             username: string;
@@ -116,10 +115,11 @@ describe('Calulate Order Sizes', () => {
 
                         // call;
                         const calc = await OrderCalcPre(
+                            ideaType,
                             network,
                             pkpAuthSig,
                             {
-                                env: mode,
+                                env: credentialInfo.decryptedCredential?.environment as any,
                                 source,
                                 payload: {
                                     auth: {

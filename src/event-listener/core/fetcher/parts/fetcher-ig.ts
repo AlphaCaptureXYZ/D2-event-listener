@@ -439,7 +439,10 @@ const placeBasicOrder = async (
     }
 ) => {
 
+    const ideaType = 'manual';
+
     const calc = await OrderCalcPre(
+        ideaType,
         network,
         pkpAuthSig,
         {
@@ -516,8 +519,10 @@ const placeManagedOrder = async (
     }
 ) => {
 
+    const ideaType = 'manual';
 
     const calc = await OrderCalcPre(
+        ideaType,
         network,
         pkpAuthSig,
         {
@@ -1119,7 +1124,7 @@ const getMarketInfoByEpic = async (
     }
 ) => {
 
-    const {
+    let {
         env,
         source,
         payload,
@@ -1141,14 +1146,19 @@ const getMarketInfoByEpic = async (
     const activeAccountSessionToken =
         payload?.auth?.activeAccountSessionToken;
 
+    // console.log('IG source', source);
+    // source = 'fetch';
     if (source === 'fetch') {
 
         const url = `${requestUrl}/gateway/deal/markets/${epic}`;
+        // console.log('url', url);
+        // console.log('CST', clientSessionToken);
+        // console.log('X-SECURITY-TOKEN', activeAccountSessionToken);
 
         const options: any = {
             method: 'GET',
             headers: {
-                'Version': '1',
+                'Version': '3',
                 'CST': clientSessionToken,
                 'X-IG-API-KEY': apiKey,
                 'X-SECURITY-TOKEN': activeAccountSessionToken,
@@ -1167,7 +1177,7 @@ const getMarketInfoByEpic = async (
 
     }
 
-    if (source === 'lit-action') {
+    else if (source === 'lit-action') {
 
         const code = `
             const go = async () => {
@@ -1177,7 +1187,7 @@ const getMarketInfoByEpic = async (
                 const options = {
                     method: 'GET',
                     headers: {
-                        'Version': '1',
+                        'Version': '3',
                         'CST': auth.clientSessionToken,
                         'X-IG-API-KEY': auth.apiKey,
                         'X-SECURITY-TOKEN': auth.activeAccountSessionToken,

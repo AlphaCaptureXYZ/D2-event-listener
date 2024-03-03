@@ -10,12 +10,14 @@ import { FetcherSource, EnvType } from "../../../../event-listener/interfaces/sh
 
 import {
   DirectionType,
+  IdeaType,
   IOrderCalc,
   OrderCalc,
 } from './shared/order-calculation';
 
 
 export const OrderCalcPre = async (
+    ideaType: IdeaType,
     network: string,
     pkpAuthSig: any,
     params: {
@@ -70,6 +72,8 @@ export const OrderCalcPre = async (
         }
       );
       console.log('igAssetInfo', igAssetInfo);
+      console.log('payload', payload);
+      console.log('auth', auth);
   
       // we can use the above for these...
       data.asset.ticker = igAssetInfo?.instrument?.epic;
@@ -149,7 +153,7 @@ export const OrderCalcPre = async (
 
       calcAccountBalanceAndPositions(data, account, positions);
       calcExistingPosition(data);
-      defaultOrderCalcUsingtheAccountBalance(data, triggerSettings, params?.payload.direction);       
+      defaultOrderCalcUsingtheAccountBalance(data, triggerSettings, params?.payload.direction, ideaType);       
 
     //   console.log('final data', data);
 
@@ -209,7 +213,7 @@ const calcExistingPosition = (data: IOrderCalc) => {
     }
 }
 
-const defaultOrderCalcUsingtheAccountBalance = (data: any, triggerSettings: any, direction: DirectionType) => {
+const defaultOrderCalcUsingtheAccountBalance = (data: any, triggerSettings: any, direction: DirectionType, ideaType: IdeaType) => {
 
     // we need to allow these to be passed in if we're going to use them
     const orderLimits = false;
@@ -225,6 +229,7 @@ const defaultOrderCalcUsingtheAccountBalance = (data: any, triggerSettings: any,
 
     OrderCalc.functions.defaultOrderCalcUsingtheAccountBalance(
         data,
+        ideaType,
         {
             orderLimits,
             defaultOrderSize,
