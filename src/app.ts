@@ -23,6 +23,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: false }));
 
 const PORT = process.env.PORT || 3006;
+const version = process.env.version || '1';
 
 app.get('/', (req, res) => {
 
@@ -37,6 +38,7 @@ app.get('/', (req, res) => {
         message: 'D2 Event Listener API running...',
         status: 'success',
         d2Status: status,
+        version,
     });
 });
 
