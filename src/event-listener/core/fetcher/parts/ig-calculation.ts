@@ -10,12 +10,19 @@ import { FetcherSource, EnvType } from "../../../../event-listener/interfaces/sh
 
 import {
   DirectionType,
+  IdeaType,
   IOrderCalc,
   OrderCalc,
 } from './shared/order-calculation';
 
+import {
+  IOrderCalcPortfolio,
+  OrderCalcPortfolio,
+} from './shared/portfolio-calculation';
+
 
 export const OrderCalcPre = async (
+    ideaType: IdeaType,
     network: string,
     pkpAuthSig: any,
     params: {
@@ -70,6 +77,8 @@ export const OrderCalcPre = async (
         }
       );
       console.log('igAssetInfo', igAssetInfo);
+      console.log('payload', payload);
+      console.log('auth', auth);
   
       // we can use the above for these...
       data.asset.ticker = igAssetInfo?.instrument?.epic;
@@ -149,7 +158,7 @@ export const OrderCalcPre = async (
 
       calcAccountBalanceAndPositions(data, account, positions);
       calcExistingPosition(data);
-      defaultOrderCalcUsingtheAccountBalance(data, triggerSettings, params?.payload.direction);       
+      defaultOrderCalcUsingtheAccountBalance(data, triggerSettings, params?.payload.direction, ideaType);       
 
     //   console.log('final data', data);
 
@@ -164,7 +173,7 @@ export const OrderCalcPre = async (
 // Calculation
 // these calculations are a direct from from D2 (with minor changes to params only)
 
-const calcAccountBalanceAndPositions = (data: IOrderCalc, account: IAccount, positions: any[]) => {
+const calcAccountBalanceAndPositions = (data: IOrderCalc | IOrderCalcPortfolio, account: IAccount, positions: any[]) => {
     // console.log('this.account', this.account);
     if (account) {
 
@@ -209,7 +218,7 @@ const calcExistingPosition = (data: IOrderCalc) => {
     }
 }
 
-const defaultOrderCalcUsingtheAccountBalance = (data: any, triggerSettings: any, direction: DirectionType) => {
+const defaultOrderCalcUsingtheAccountBalance = (data: any, triggerSettings: any, direction: DirectionType, ideaType: IdeaType) => {
 
     // we need to allow these to be passed in if we're going to use them
     const orderLimits = false;
@@ -225,6 +234,7 @@ const defaultOrderCalcUsingtheAccountBalance = (data: any, triggerSettings: any,
 
     OrderCalc.functions.defaultOrderCalcUsingtheAccountBalance(
         data,
+        ideaType,
         {
             orderLimits,
             defaultOrderSize,
@@ -236,7 +246,7 @@ const defaultOrderCalcUsingtheAccountBalance = (data: any, triggerSettings: any,
     );
 }
 
-const formatRawPositions = (data: IOrderCalc, positions: any[]) => {
+const formatRawPositions = (data: IOrderCalc | IOrderCalcPortfolio, positions: any[]) => {
     // reset our portfolio
     data.portfolio.raw.length = 0;
 
@@ -281,7 +291,7 @@ const formatRawPositions = (data: IOrderCalc, positions: any[]) => {
     return data;
 }
 
-const formatNetPositions = (data: IOrderCalc) => {
+const formatNetPositions = (data: IOrderCalc | IOrderCalcPortfolio) => {
     data.portfolio.net.length = 0;
     const rawPositions = data.portfolio.raw;
 
@@ -339,7 +349,7 @@ const formatNetPositions = (data: IOrderCalc) => {
     return data;
 }
 
-const portfolioStats = (data: IOrderCalc) => {
+const portfolioStats = (data: IOrderCalc | IOrderCalcPortfolio) => {
     // and reset our portfolio stats
     data.portfolioStats.long = 0;
     data.portfolioStats.short = 0;
@@ -364,3 +374,103 @@ const portfolioStats = (data: IOrderCalc) => {
 
     return data;
 }
+
+// Portfolio related
+
+
+export const OrderCalcPrePortfolio = async (
+  network: string,
+  pkpAuthSig: any,
+  params: {
+    env: EnvType,
+    source: FetcherSource,
+    payload: {
+      auth: {
+        apiKey: string,
+        clientSessionToken: string
+        activeAccountSessionToken: string,
+        accountId: string
+      },
+      portfolioIntended: any[],
+    },
+    trigger: any,
+  }
+) => {
+
+  const data = OrderCalcPortfolio.constants.defaultOrderCalcPortfolio;
+
+  try {
+
+    const {
+      env,
+      payload,
+      source,
+    } = params;
+
+    const {
+      auth
+    } = payload
+
+    // get and set our trigger settings
+    const triggerSettings = params.trigger.settings;
+    
+    const accounts: any[] = await fetcher.ig.getAccounts(
+      network,
+      pkpAuthSig,
+      {
+        env,
+        source,
+        payload: {
+          auth: {
+            apiKey: auth.apiKey,
+            clientSessionToken: auth.clientSessionToken,
+            activeAccountSessionToken: auth.activeAccountSessionToken,
+          }
+        }
+      }
+    );
+
+    let account = accounts?.find((res: any) => res.accountId === auth.accountId);
+
+    if (isNullOrUndefined(account)) {
+      account = accounts?.find((res: any) => res.preferred);
+    }
+  //   console.log('igAccount', account);
+
+
+      /* positions */
+      const positions: any[] = await fetcher.ig.getPositions(
+        network,
+        pkpAuthSig,
+        {
+          env,
+          source,
+          payload: {
+            auth: {
+              apiKey: auth.apiKey,
+              clientSessionToken: auth.clientSessionToken,
+              activeAccountSessionToken: auth.activeAccountSessionToken,
+            }
+          }
+        }
+      );
+    //   console.log('igPositions', positions);
+
+    const currency: any = account.currency;
+    // console.log('diffAssets', diffAssets);
+
+    calcAccountBalanceAndPositions(data, account, positions);
+    // defaultOrderCalcUsingtheAccountBalance(data, triggerSettings, params?.payload.direction, ideaType);       
+
+    console.log('final data', data);
+
+  } catch (err: any) {
+
+  }
+
+  return data;
+}
+
+// Calculation
+// these calculations are a direct from from D2 (with minor changes to params only)
+// THESE STILL NEED TO BE ADDED TO THE LIT ACTION

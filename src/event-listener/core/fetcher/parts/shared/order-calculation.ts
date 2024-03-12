@@ -2,6 +2,10 @@ import { decimalAdjust } from '../../../../helpers/helpers';
 
 export type DirectionType = 'buy' | 'sell';
 
+export type IdeaType = 'open' | 'adjust' | 'close' | 'manual' | 'portfolio';
+
+//////
+
 export interface IOrderCalc {
   asset: {
     ticker: string,
@@ -52,6 +56,9 @@ export interface IOrderCalc {
     remaining: number,
   },
   order: {
+    type: {
+      value: string,
+    }
     default: {
       value: number,
       valueWithConviction: number,
@@ -69,6 +76,7 @@ export interface IOrderCalc {
       exceedsMinQty: boolean,
       maxPortfolioExposureExceeded: boolean,
       maxPortfolioExposureExceededBy: number,
+      existingPositionOnOpenIdea: boolean,
     },
     potential: {
       portfolio: {
@@ -107,7 +115,6 @@ export interface IOrderCalc {
     }
   }
 }
-
 const defaultOrderCalc: IOrderCalc = {
   asset: {
     ticker: '',
@@ -162,6 +169,9 @@ const defaultOrderCalc: IOrderCalc = {
     remaining: 0,
   },
   order: {
+    type: {
+      value: '',
+    },
     default: {
       value: 0,
       valueWithConviction: 0,
@@ -179,6 +189,7 @@ const defaultOrderCalc: IOrderCalc = {
       exceedsMinQty: true,
       maxPortfolioExposureExceeded: false,
       maxPortfolioExposureExceededBy: 0,
+      existingPositionOnOpenIdea: false,
     },
     potential: {
       portfolio: {
@@ -218,8 +229,12 @@ const defaultOrderCalc: IOrderCalc = {
   }
 }
 
+//////
+
+
 const defaultOrderCalcUsingtheAccountBalance = (
   initialObject: IOrderCalc,
+  ideaType: IdeaType,
   valuesToSet: {
     orderLimits: boolean,
     defaultOrderSize: number,
@@ -231,6 +246,8 @@ const defaultOrderCalcUsingtheAccountBalance = (
 ): any => {
 
   try{
+
+    initialObject.order.type.value = ideaType;
 
     // update our  setting
     initialObject.order.calc.overrideLimits = valuesToSet.orderLimits;
@@ -346,6 +363,18 @@ const defaultOrderCalcUsingtheAccountBalance = (
           initialObject.order.final.order.percentage = initialObject.order.final.order.value / initialObject.account.leverageBalance * 100;
           initialObject.order.final.portfolio.value = Math.abs(initialObject.existingPosition.valueInBase) + Math.abs(initialObject.order.final.order.value);
           initialObject.order.final.portfolio.allocation = Math.abs(initialObject.order.potential.portfolio.value) / initialObject.account.leverageBalance * 100;
+
+      } else if (Math.abs(initialObject.existingPosition.valueInBase) > 0 && ideaType === 'open') {
+          // if the intent is to open a new position, but one is already open, then we don't buy anything
+
+          initialObject.order.final.order.value = 0;
+          initialObject.order.final.order.percentage = 0;
+          initialObject.order.final.portfolio.value = Math.abs(initialObject.existingPosition.valueInBase);
+          initialObject.order.final.portfolio.allocation = initialObject.order.final.portfolio.value / initialObject.account.leverageBalance * 100;
+
+          // update our error too
+          initialObject.order.calc.existingPositionOnOpenIdea = true;
+
       } else {  
           // use the potential (without adjustment)
           initialObject.order.final.order.value = initialObject.order.default.valueWithConviction;
