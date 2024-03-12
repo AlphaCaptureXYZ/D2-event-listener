@@ -44,7 +44,7 @@ jobs:
             sudo rm -rf D2-event-listener
             sudo git clone https://github.com/IXily/D2-event-listener.git
             sudo chown -R ${{secrets.USERNAME}} ./D2-event-listener
-            
+
             cd D2-event-listener
             sudo git checkout deploy-production
 
@@ -53,6 +53,7 @@ jobs:
             sudo sh ./scripts/pull_spinup-live.sh
   check:
     name: Deploy Check
+    needs: deploy
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Check
