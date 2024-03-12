@@ -22,4 +22,10 @@ docker-compose -f docker-compose.yml up --build --no-start
 sleep 5s
 docker-compose up --build -d
 
+sleep 10s
+
+echo "Finished!"
+echo "Get docker processes after the previous changes/updates"
+sudo docker ps
+
 sleep 60s
