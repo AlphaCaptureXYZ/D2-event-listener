@@ -36,7 +36,7 @@ echo "Awaiting to reset"
 
 echo "Stopping the current container"
 sudo docker stop $CURRENT_CONTAINER_ID
-sleep 80s
+sleep 120s
 echo "Starting the new container"
 sudo docker start $CURRENT_CONTAINER_ID
 sleep 5s
