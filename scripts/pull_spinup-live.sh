@@ -37,14 +37,15 @@ echo "Getting the new container id"
 CURRENT_ID=$(sudo docker ps -aqf "name=d2-event-listener")
 echo "the current container id is $CURRENT_ID"
 
-sleep 66s
+sleep 60s
 
+# reset (stop) and start again
 echo "Stopping the current container"
 sudo docker stop $CURRENT_ID
-sleep 16s
+sleep 120s
 echo "Starting the new container"
 sudo docker start $CURRENT_ID
-sleep 11s
+sleep 20s
 
 echo "Get docker processes after the previous stop and start"
 sudo docker ps
