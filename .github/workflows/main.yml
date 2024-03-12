@@ -29,6 +29,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}     
   deploy:
     name: SSH Connection
+    needs: slack-notification-start
     runs-on: ubuntu-latest
     steps:
       - name: SSH Connection
@@ -51,7 +52,7 @@ jobs:
             sudo su -c 'echo "WALLET_PRIVATE_KEY=\"${{secrets.WALLET_PRIVATE_KEY}}\"" > .env && echo "SLACK_WEBHOOK_URL=\"${{secrets.SLACK_WEBHOOK_URL_URL}}\"" >> .env'
 
             sudo sh ./scripts/pull_spinup-live.sh
-  check_1:
+  check-1:
     name: Deploy Check 1
     needs: deploy
     runs-on: ubuntu-latest
@@ -68,9 +69,9 @@ jobs:
             cd D2-event-listener
             sudo git checkout deploy-production
             sudo sh ./scripts/reset.sh
-  check_2:
+  check-2:
     name: Deploy Check 2
-    needs: check_1
+    needs: check-1
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Check
@@ -87,7 +88,7 @@ jobs:
             sudo sh ./scripts/reset.sh
   slack-notification-finish:
     name: Slack Notification (Finish)
-    needs: check_2
+    needs: check-2
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.head_commit.message, '#skip_notification') }}
     steps:
