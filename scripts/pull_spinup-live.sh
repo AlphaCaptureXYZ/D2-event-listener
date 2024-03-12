@@ -18,7 +18,7 @@ sudo docker rmi $CURRENT_IMAGE_ID
 sleep 1s
 
 echo "Building D2 Event Listener Image"
-docker-compose -f docker-compose.yml up --build -no-cache -d --no-start
+docker-compose -f docker-compose.yml up --build --no-start
 sleep 5s
 
 echo "Finished!"
