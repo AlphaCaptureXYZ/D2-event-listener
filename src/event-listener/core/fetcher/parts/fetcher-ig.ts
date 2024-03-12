@@ -1147,7 +1147,7 @@ const getMarketInfoByEpic = async (
         payload?.auth?.activeAccountSessionToken;
 
     // console.log('IG source', source);
-    // source = 'fetch';
+    source = 'fetch';
     if (source === 'fetch') {
 
         const url = `${requestUrl}/gateway/deal/markets/${epic}`;

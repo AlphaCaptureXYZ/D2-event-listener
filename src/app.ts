@@ -23,7 +23,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: false }));
 
 const PORT = process.env.PORT || 3006;
-const version = process.env.version || '1';
+const version = process.env.version || '2';
 
 app.get('/', (req, res) => {
 
@@ -32,11 +32,19 @@ app.get('/', (req, res) => {
         message: 'Ping'
     });
 
-    const status = process.env.D2_STATUS || null
+    const d2Status = process.env.D2_STATUS || null;
+
+    let message = 'D2 Event Listener API running...';
+    let status = 'success';
+
+    if (d2Status === 'pending') {
+        message = 'THE D2 EVENT LISTENER HAS NOT YET STARTED';
+        status = 'pending';
+    }
 
     res.status(200).json({
-        message: 'D2 Event Listener API running...',
-        status: 'success',
+        message,
+        status,
         d2Status: status,
         version,
     });

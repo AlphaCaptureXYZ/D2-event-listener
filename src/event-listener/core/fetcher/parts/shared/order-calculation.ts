@@ -2,7 +2,9 @@ import { decimalAdjust } from '../../../../helpers/helpers';
 
 export type DirectionType = 'buy' | 'sell';
 
-export type IdeaType = 'open' | 'adjust' | 'close' | 'manual';
+export type IdeaType = 'open' | 'adjust' | 'close' | 'manual' | 'portfolio';
+
+//////
 
 export interface IOrderCalc {
   asset: {
@@ -113,7 +115,6 @@ export interface IOrderCalc {
     }
   }
 }
-
 const defaultOrderCalc: IOrderCalc = {
   asset: {
     ticker: '',
@@ -227,6 +228,9 @@ const defaultOrderCalc: IOrderCalc = {
     }
   }
 }
+
+//////
+
 
 const defaultOrderCalcUsingtheAccountBalance = (
   initialObject: IOrderCalc,
