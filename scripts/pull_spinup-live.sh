@@ -22,13 +22,21 @@ docker-compose -f docker-compose.yml up --build --no-start
 sleep 5s
 docker-compose up --build -d
 
-sleep 120s
+sleep 60s
+
+echo "Getting the current container id"
+CURRENT_CONTAINER_ID=$(sudo docker ps -aqf "name=d2-event-listener")
+echo "the current container id is $CURRENT_CONTAINER_ID"
+
+echo "Getting current image id"
+CURRENT_IMAGE_ID=$(sudo docker images 'd2-event-listener' -a -q)
+echo "the current image id is $CURRENT_IMAGE_ID"
 
 echo "Awaiting to reset"
 
 echo "Stopping the current container"
 sudo docker stop $CURRENT_ID
-sleep 120s
+sleep 80s
 echo "Starting the new container"
 sudo docker start $CURRENT_ID
 sleep 5s
