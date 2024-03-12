@@ -35,10 +35,10 @@ echo "the current image id is $CURRENT_IMAGE_ID"
 echo "Awaiting to reset"
 
 echo "Stopping the current container"
-sudo docker stop $CURRENT_ID
+sudo docker stop $CURRENT_CONTAINER_ID
 sleep 80s
 echo "Starting the new container"
-sudo docker start $CURRENT_ID
+sudo docker start $CURRENT_CONTAINER_ID
 sleep 5s
 
 echo "Finished!"
