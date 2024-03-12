@@ -20,6 +20,7 @@ sleep 1s
 echo "Building D2 Event Listener Image"
 docker-compose -f docker-compose.yml up --build --no-start
 sleep 5s
+docker-compose up --build -d
 
 echo "Finished!"
 echo "Get docker processes after the previous changes/updates"
