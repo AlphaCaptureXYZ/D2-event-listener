@@ -270,6 +270,8 @@ const orderProcess = async (
                                 env: environment as any,
                                 source: 'fetch',
                                 credentials: {
+                                    accountId: 
+                                        credentialInfo.decryptedCredential?.accountId,
                                     apiKey:
                                         credentialInfo.decryptedCredential?.apiKey,
                                     username:
@@ -313,6 +315,11 @@ const orderProcess = async (
                             }
 
                             if (igDirection === 'Sell') {
+
+                                // add to an array even though it is only one here
+                                const epics = [];
+                                epics.push(asset);
+
                                 litActionResult =
                                     await fetcher.ig.closePosition(
                                         network,
@@ -332,7 +339,7 @@ const orderProcess = async (
                                                         igAuth?.accountId,
                                                 },
                                                 form: {
-                                                    epic: asset,
+                                                    epics,
                                                 },
                                             }
                                         }

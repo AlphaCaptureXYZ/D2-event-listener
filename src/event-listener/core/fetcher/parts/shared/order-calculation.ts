@@ -1,4 +1,5 @@
 import { decimalAdjust } from '../../../../helpers/helpers';
+import { IOrderCalcPortfolio } from './portfolio-calculation';
 
 export type DirectionType = 'buy' | 'sell';
 
@@ -232,6 +233,28 @@ const defaultOrderCalc: IOrderCalc = {
 //////
 
 
+const setAccountLeverageBalance = (
+  initialObject: IOrderCalc | IOrderCalcPortfolio,
+  valuesToSet: {
+    leverageMultiple: number,
+  }
+): any => {
+
+  try{
+
+    // update our trigger settings
+    initialObject.account.leverage = valuesToSet.leverageMultiple;
+    // the leverage balance was original using the default value of 1
+    initialObject.account.leverageBalance = initialObject.account.balance * initialObject.account.leverage;
+
+    return initialObject;
+
+  } catch(err) {
+    // console.log('error on order-calc', err);
+  }
+
+}
+
 const defaultOrderCalcUsingtheAccountBalance = (
   initialObject: IOrderCalc,
   ideaType: IdeaType,
@@ -433,5 +456,6 @@ export const OrderCalc = {
   },
   functions: {
     defaultOrderCalcUsingtheAccountBalance,
+    setAccountLeverageBalance,
   }
 }

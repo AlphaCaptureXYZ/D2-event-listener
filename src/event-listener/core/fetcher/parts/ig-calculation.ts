@@ -1,5 +1,7 @@
 import { isNullOrUndefined, countDecimals, currencyInfo } from '../../../helpers/helpers';
 
+import { IOrderPortfolioActions } from './shared/portfolio-calculation';
+
 import { IAssetInfo } from './_interfaces/asset-info.i';
 import { IPositionInfo } from './_interfaces/position.i';
 import { IAccount } from './_interfaces/account.i';
@@ -76,9 +78,9 @@ export const OrderCalcPre = async (
           }
         }
       );
-      console.log('igAssetInfo', igAssetInfo);
-      console.log('payload', payload);
-      console.log('auth', auth);
+      // console.log('igAssetInfo', igAssetInfo);
+      // console.log('payload', payload);
+      // console.log('auth', auth);
   
       // we can use the above for these...
       data.asset.ticker = igAssetInfo?.instrument?.epic;
@@ -156,6 +158,8 @@ export const OrderCalcPre = async (
         // pending to add the conversion and logic, etc
       }
 
+      // needed first for our portfolio stats
+      setAccountLeverageBalance(data, triggerSettings);      
       calcAccountBalanceAndPositions(data, account, positions);
       calcExistingPosition(data);
       defaultOrderCalcUsingtheAccountBalance(data, triggerSettings, params?.payload.direction, ideaType);       
@@ -375,6 +379,21 @@ const portfolioStats = (data: IOrderCalc | IOrderCalcPortfolio) => {
     return data;
 }
 
+// Add to Lit
+const setAccountLeverageBalance = (data: IOrderCalc | IOrderCalcPortfolio, triggerSettings: any) => {
+
+  const leverageMultiple = triggerSettings.maxLeverage;
+
+  // const direction = 'Long' as DirectionType;
+
+  OrderCalc.functions.setAccountLeverageBalance(
+      data,
+      {
+          leverageMultiple,
+      }
+  );
+}
+
 // Portfolio related
 
 
@@ -454,15 +473,16 @@ export const OrderCalcPrePortfolio = async (
           }
         }
       );
-    //   console.log('igPositions', positions);
+      console.log('igPositions', positions);
 
     const currency: any = account.currency;
     // console.log('diffAssets', diffAssets);
 
+    setAccountLeverageBalance(data, triggerSettings);      
     calcAccountBalanceAndPositions(data, account, positions);
     // defaultOrderCalcUsingtheAccountBalance(data, triggerSettings, params?.payload.direction, ideaType);       
 
-    console.log('final data', data);
+    // console.log('final data', data);
 
   } catch (err: any) {
 
@@ -471,6 +491,66 @@ export const OrderCalcPrePortfolio = async (
   return data;
 }
 
+
+
 // Calculation
 // these calculations are a direct from from D2 (with minor changes to params only)
 // THESE STILL NEED TO BE ADDED TO THE LIT ACTION
+
+export const OrderPortfolioRebalance = async (
+  network: string,
+  pkpAuthSig: any,
+  params: {
+    env: EnvType,
+    source: FetcherSource,
+    payload: {
+      auth: {
+        apiKey: string,
+        clientSessionToken: string
+        activeAccountSessionToken: string,
+        accountId: string
+      },
+      portfolioRebalance: IOrderPortfolioActions,
+    },
+    trigger: any,
+  }
+) => {
+
+  // const data = OrderCalcPortfolio.constants.defaultOrderCalcPortfolio;
+
+  try {
+
+    // extract all the epics to close
+    console.log('portfolioRebalance.close', params.payload.portfolioRebalance.close);
+    const epics = params.payload.portfolioRebalance.close.map(obj => obj.ticker);
+    console.log('epics', epics);
+
+    // the params need adjusting before they can be passed in
+
+    // sell all the positions
+    // await fetcher.ig.closePosition(
+    //   network,
+    //   pkpAuthSig,
+    //   params,
+    // );
+
+
+    // now request the 
+
+
+    // get the price of the asset
+    // worjk out the existing value
+    // compare to our intended value
+    // work out the qty
+    // round down based on the decimals
+    // ignore if below min
+    // either buy or sell
+
+  } catch (err: any) {
+
+
+  }
+
+  const data = null;
+  return data;
+}

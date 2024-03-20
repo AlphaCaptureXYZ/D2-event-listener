@@ -1,6 +1,14 @@
 import { rejects } from 'assert';
 import { decimalAdjust } from '../../../../helpers/helpers';
 
+export interface IOrderPortfolioActions {
+    new: any[],
+    decrease: any[],
+    same: any[],
+    increase: any[],
+    close: any[],
+}
+
 export interface IOrderCalcPortfolio {
     account: {
       balance: number,
@@ -33,7 +41,7 @@ export interface IOrderCalcPortfolio {
         net: number,
         remaining: number,
       },    
-  }
+}
   
 const defaultOrderCalcPortfolio: IOrderCalcPortfolio = {
     account: {
@@ -73,7 +81,15 @@ const defaultOrderCalcPortfolio: IOrderCalcPortfolio = {
     },
 
 }
-  
+
+const actions: IOrderPortfolioActions = {
+    new: [],
+    decrease: [],
+    same: [],
+    increase: [],
+    close: [],
+}
+
   //////
 const currentPortfolio = (
   settings: {
@@ -122,13 +138,19 @@ const calculatePortfolio = (
         return msg;
     }
 
-    const actions = {
-        new: [],
-        decrease: [],
-        same: [],
-        increase: [],
-        remove: [],
-    };
+    const leverageBalance = account.balance * settings.leverage * ((100 - settings.slippage)/100);
+    // adjusted for slippage
+    const adjustedLeverageBalance = account.balance * settings.leverage * ((100 - settings.slippage)/100);
+
+    // console.log('adjustedLeverageBalance', adjustedLeverageBalance);
+
+    // work out the allocation of the current portfolio
+    for (const i in portfolio.current) {
+        if (i) {
+            // use the leveraged non-slippage adjusted value...
+            portfolio.current[i].allocation = portfolio.current[i].value / leverageBalance * 100;
+        }
+    }
 
     for (const i in portfolio.current) {
         if (i) {
@@ -137,7 +159,7 @@ const calculatePortfolio = (
             // these will need to be sold i.e. removed completely
             const asset = portfolio.intended.filter(row => row.ticker === portfolio.current[i].ticker);
             if (asset.length === 0) {
-                actions.remove.push(portfolio.current[i]);
+                actions.close.push(portfolio.current[i]);
             } else {
 
                 // we only have a single object here (in all cases, as we check for duplicates above)
@@ -145,12 +167,39 @@ const calculatePortfolio = (
                 if (asset[0].allocation === portfolio.current[i].allocation) {
                     actions.same.push(asset[0]);
                 } else if (asset[0].allocation > portfolio.current[i].allocation) {
+                    // add the increase in value
+                    // add what the final value should be
+
+                    // value
+                    const valueIntended = asset[0].allocation * adjustedLeverageBalance;
+                    const valueCurrent = asset[0].allocation;
+                    const valueDiff = valueIntended - valueCurrent;
+
+                    const value = {
+                        intended: valueIntended,
+                        current: valueCurrent,
+                        diff: valueDiff,
+                    };
+                    asset[0].value = value;
                     actions.increase.push(asset[0]);
                 } else {
+                    // add the decrease in value
+                    // add what the final value should be
+
+                    // value
+                    const valueIntended = asset[0].allocation * adjustedLeverageBalance;
+                    const valueCurrent = asset[0].allocation;
+                    const valueDiff = valueCurrent - valueIntended;
+
+                    const value = {
+                        intended: valueIntended,
+                        current: valueCurrent,
+                        diff: valueDiff,
+                    };
+                    asset[0].value = value;
                     actions.decrease.push(asset[0]);
                 }
             }
-
         }
     }
 
@@ -169,10 +218,6 @@ const calculatePortfolio = (
     // calculate the actual orders
     // new orders are the easiest
 
-    const adjustedLeverageBalance = account.balance * settings.leverage * ((100 - settings.slippage)/100);
-
-    console.log('adjustedLeverageBalance', adjustedLeverageBalance);
-
     for (const m in actions.new) {
         if (m) {
          actions.new[m].value = adjustedLeverageBalance * (actions.new[m].allocation / 100);
@@ -183,23 +228,23 @@ const calculatePortfolio = (
     // but first we need to get the data from the broker
     // and get current qty and the pricing so we can work out what to buy or sell
  
-    for (const m in actions.increase) {
-        if (m) {
-         actions.increase[m].value = adjustedLeverageBalance * (actions.increase[m].allocation / 100);         
-        }
-    }
+    // for (const m in actions.increase) {
+    //     if (m) {
+    //      actions.increase[m].value = adjustedLeverageBalance * (actions.increase[m].allocation / 100);         
+    //     }
+    // }
 
-    for (const m in actions.decrease) {
-        if (m) {
-         actions.decrease[m].value = adjustedLeverageBalance * (actions.decrease[m].allocation / 100);         
-        }
-    }
+    // for (const m in actions.decrease) {
+    //     if (m) {
+    //      actions.decrease[m].value = adjustedLeverageBalance * (actions.decrease[m].allocation / 100);         
+    //     }
+    // }
+
 
     return actions;
 
 }
  
-
 const totalAllocationCheck = (
     portfolio: {
         intended: any[],
@@ -227,7 +272,6 @@ const totalAllocationCheck = (
     return response;
 }
 
-
 const duplicateChecks = (
     portfolio: {
         intended: any[],
@@ -244,6 +288,18 @@ const duplicateChecks = (
     }    
     return duplicates;
 }
+
+// const rebalancePortfolio = (data: IOrderPortfolioActions): any => {
+
+//     // now we have everything we need to place trades
+
+//     // we'll need to place the order in the correct brokerage
+//     // we'll keep the code here just to test
+
+
+//     return duplicates;
+// }
+
 
 export const OrderCalcPortfolio = {
   constants: {
