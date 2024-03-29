@@ -184,7 +184,9 @@ export const notificationTwitter = async <T>(
             } = info as INotificationEventPayload;
 
             const ideaStrategyReference = strategy?.reference;
+            // console.log('ideaStrategyReference', ideaStrategyReference);
             const ideaStrategyName = strategy?.name;
+            // console.log('ideaStrategyName', ideaStrategyName);
 
             // loop through until we have our relevant docId
             for (const i in triggers) {
@@ -192,6 +194,8 @@ export const notificationTwitter = async <T>(
 
                     // we need our strategy reference and the trigger type
                     const triggerStrategyReference = triggers[i].strategy.reference || '';
+                    // console.log('triggerStrategyReference', triggerStrategyReference);
+
                     const triggerType = triggers[i].action || '';
 
                     if (triggerType === 'twitter-post' && triggerStrategyReference === ideaStrategyReference) {
@@ -199,12 +203,19 @@ export const notificationTwitter = async <T>(
 
                         // TWITTER_CONSUMER_KEY
                         const appKey = triggers[i].settings.appKey || '';
+                        // console.log('TWITTER_CONSUMER_KEY', appKey);
+
                         // TWITTER_CONSUMER_SECRET
                         const appSecret = triggers[i].settings.appSecret || '';
+                        // console.log('TWITTER_CONSUMER_SECRET', appSecret);
+
                         // TWITTER_ACCESS_TOKEN,
                         const accessToken = triggers[i].settings.accessToken || '';
+                        // console.log('TWITTER_ACCESS_TOKEN', accessToken);
+
                         // TWITTER_ACCESS_TOKEN_SECRET,
                         const accessSecret = triggers[i].settings.accessSecret || '';
+                        // console.log('TWITTER_ACCESS_TOKEN_SECRET', accessSecret);
 
                         if (appKey.length > 0 && appSecret.length > 0 && accessToken.length > 0 && accessSecret.length > 0) {
 

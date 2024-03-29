@@ -23,7 +23,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: false }));
 
 const PORT = process.env.PORT || 3006;
-const version = process.env.version || '2';
+const version = process.env.version || '3';
 
 app.get('/', (req, res) => {
 

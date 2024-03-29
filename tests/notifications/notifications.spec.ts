@@ -20,23 +20,43 @@ describe('Notifications', () => {
     it('Send a notification to Twitter', async () => {
         const triggers = await weaveTriggers();
 
+        // const info = {
+        //     network: 'polygon',
+        //     nftId: 1337,
+        //     blockNumber: 53870198,
+        //     provider: 'IG Group',
+        //     ticker: 'SG.D.SNOWUS.DAILY.IP',
+        //     kind: 'close',
+        //     direction: 'long',
+        //     price: 23094,
+        //     creator: {
+        //         name: 'Cynan Rhodes',
+        //         walletAddress: '0x2767441E044aCd9bbC21a759fB0517494875092d',
+        //     },
+        //     company: 'Mawson Capital',
+        //     strategy: {
+        //         reference: 'f218a176db4e1d07d27ba6',
+        //         name: 'US Tech Momentum',
+        //     },
+        // }
+
         const info = {
             network: 'polygon',
-            nftId: 1337,
-            blockNumber: 53870198,
-            provider: 'IG Group',
-            ticker: 'SG.D.SNOWUS.DAILY.IP',
+            nftId: 1757,
+            blockNumber: 55222431,
+            provider: 'Binance',
+            ticker: 'CHZUSDT',
             kind: 'close',
             direction: 'long',
-            price: 23094,
+            price: 0.14737,
             creator: {
                 name: 'Cynan Rhodes',
                 walletAddress: '0x2767441E044aCd9bbC21a759fB0517494875092d',
             },
             company: 'Mawson Capital',
             strategy: {
-                reference: 'f218a176db4e1d07d27ba6',
-                name: 'US Tech Momentum',
+                reference: 'ce23cd4cf56ce46c0eef2c',
+                name: 'Crypto Momentum',
             },
         }
 
