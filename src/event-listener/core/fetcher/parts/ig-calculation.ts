@@ -522,12 +522,33 @@ export const OrderPortfolioRebalance = async (
 
     // extract all the epics to close
     console.log('portfolioRebalance.close', params.payload.portfolioRebalance.close);
-    const epics = params.payload.portfolioRebalance.close.map(obj => obj.ticker);
-    console.log('epics', epics);
+    const epicsToClose = params.payload.portfolioRebalance.close.map(obj => obj.ticker);
+    console.log('epicsToClose', epicsToClose);
 
     // the params need adjusting before they can be passed in
 
     // sell all the positions
+    // we need to format the payload slightly differently
+    const closePayload = {
+      network,
+      pkpAuthSig,
+      params: {
+        env: params.env,
+        source: params.source,
+        payload: {    
+          auth: {
+              apiKey: params.payload.auth.apiKey,
+              clientSessionToken: params.payload.auth.clientSessionToken,
+              activeAccountSessionToken: params.payload.auth.activeAccountSessionToken,
+              accountId: params.payload.auth.accountId,
+          },
+          form: {
+              epics: epicsToClose,
+          },
+        }
+      }
+    };
+
     // await fetcher.ig.closePosition(
     //   network,
     //   pkpAuthSig,
@@ -535,10 +556,11 @@ export const OrderPortfolioRebalance = async (
     // );
 
 
-    // now request the 
+    // now request the balance again
 
 
-    // get the price of the asset
+    // get the prices of all the assets that we need to open or adjust
+
     // worjk out the existing value
     // compare to our intended value
     // work out the qty

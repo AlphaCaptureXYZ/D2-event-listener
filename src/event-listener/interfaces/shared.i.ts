@@ -6,7 +6,7 @@ import CI = CONTRACT.CONTRACT_INTERFACES;
 
 export type EnvType = 'demo' | 'prod';
 
-export type FetcherSource = 'fetch' | 'lit-action';
+export type FetcherSource = 'fetch' | 'lit-action' | 'testing';
 
 export interface ID2EventListenerPayload {
     privateKey: string;

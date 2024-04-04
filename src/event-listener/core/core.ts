@@ -20,6 +20,8 @@ import { createIdea } from "./events/create-idea";
 import { notificationSlack } from "./events/notification-slack";
 import { notificationTelegram } from "./events/notification-telegram";
 import { notificationTwitter } from "./events/notification-twitter";
+import { notificationQwil } from "./events/notification-qwil";
+
 import { weaveTriggers } from "./events/triggers";
 
 /* helpers */
@@ -216,7 +218,7 @@ const watcherLoader = (
                         await notificationSlack(triggers, data as INotification<any>);
                         await notificationTelegram(triggers, data as INotification<any>);
                         await notificationTwitter(triggers, data as INotification<any>);
-
+                        await notificationQwil(triggers, data as INotification<any>);
                         break;
                     case 'CREATE_IDEA':
                         await createIdea({

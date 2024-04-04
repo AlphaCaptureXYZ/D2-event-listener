@@ -677,6 +677,7 @@ const placeManagedOrder = async (
 const closePosition = async (
     network: string,
     pkpAuthSig: any,
+    testing: boolean,
     params: {
         env: EnvType,
         source: FetcherSource,
@@ -727,7 +728,7 @@ const closePosition = async (
             const positionsByEpic = positions?.filter((res: any) => {
                 return res?.market?.epic === epic;
             });
-        
+            
             const dealIdsWithSize: Array<{
                 dealId: string,
                 size: number,
@@ -757,8 +758,10 @@ const closePosition = async (
         
                     const activeAccountSessionToken =
                         payload?.auth?.activeAccountSessionToken;
-        
-                    if (source === 'fetch') {
+
+                    if (source === 'testing') {
+                        
+                    } else if (source === 'fetch') {
         
                         const url = `${requestUrl}/gateway/deal/positions/otc`;
         
@@ -830,9 +833,7 @@ const closePosition = async (
                             request: body,
                         };
         
-                    }
-        
-                    if (source === 'lit-action') {
+                    } else if (source === 'lit-action') {
         
                         const code = `
                             const go = async () => {
