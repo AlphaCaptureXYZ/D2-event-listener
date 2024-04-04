@@ -320,10 +320,13 @@ const orderProcess = async (
                                 const epics = [];
                                 epics.push(asset);
 
+                                const testing = false;
+
                                 litActionResult =
                                     await fetcher.ig.closePosition(
                                         network,
                                         pkpAuthSig,
+                                        testing,
                                         {
                                             env: environment as any,
                                             source: 'fetch',
