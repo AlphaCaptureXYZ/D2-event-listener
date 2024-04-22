@@ -4,7 +4,7 @@ import { FetcherSource, EnvType } from "../../../../event-listener/interfaces/sh
 import { LitModule } from "../../../modules/lit.module";
 
 
-import { OrderCalcPre } from './ig-calculation';
+import { OrderCalcPre } from './calculation-ig';
 
 const igUrlSelector = {
     demo: 'https://demo-api.ig.com',

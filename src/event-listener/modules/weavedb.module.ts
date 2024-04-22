@@ -19,17 +19,23 @@ let db: any = null;
 
 const init = async () => {
     if (isNullOrUndefined(db)) {
+
+        // console.log('weave db A', db);
+
         try {
             const contractTxId = config.WEAVEDB_CONTRACT_TX_ID;
+            // console.log('contractTxId', contractTxId);
 
             db = new WeaveDB({
                 contractTxId,
                 nocache: true,
             });
+            // console.log('weave db', db);
 
             await db.initializeWithoutWallet();
 
             const privateKey = config.WALLET_PRIVATE_KEY;
+            // console.log('privateKey', privateKey);
 
             if (privateKey) {
                 const address = getCurrentWalletAddress();

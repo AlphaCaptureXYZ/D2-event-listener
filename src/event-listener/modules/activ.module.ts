@@ -28,10 +28,10 @@ const { ActivV4Module } = v4;
 const activ = ActivV4Module;
 
 type NetworkType =
-    | "hardhat"
-    | "goerli"
+    // | "hardhat"
+    // | "goerli"
     | "mumbai"
-    | "sepolia"
+    // | "sepolia"
     | "polygon";
 
 const state = {
@@ -105,7 +105,7 @@ const POLYGON_CONFIG: v4.IActivConfig = {
 };
 
 const getApi = async (
-    network: NetworkType = "mumbai"
+    network: NetworkType = "polygon"
 ): Promise<typeof activ> => {
     if (!getBoolean(state.configured[network])) {
 
@@ -143,10 +143,10 @@ const getApi = async (
     }
 
     const networkChainObj = {
-        hardhat: "hardhat",
-        goerli: "goerli",
+        // hardhat: "hardhat",
+        // goerli: "goerli",
         mumbai: "mumbai",
-        sepolia: "sepolia",
+        // sepolia: "sepolia",
         polygon: "polygon",
     };
 

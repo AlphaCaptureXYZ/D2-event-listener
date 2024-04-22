@@ -42,12 +42,21 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
 
     try {
 
+        // console.log('payload', payload);
+
         const {
             blockNumber,
             network,
             data,
             nftId,
         } = await getIdeaNFTInfoWithRetry(payload);
+
+        console.log('blockNumber', blockNumber);
+        console.log('network', network);
+        // console.log('data', data);
+        console.log('nftId', nftId);
+
+        // return;
 
         const pkpInfo = await config.getPKPInfo(network);
 
@@ -104,31 +113,47 @@ const orderProcess = async (
     } = payload;
 
     let pricingProvider = data?.pricing?.provider;
+    // console.log('pricingProvider', pricingProvider);
 
     let credentials = await Promise.all(triggers?.map(async (triggerInfo: any) => {
         try {
 
             const credentialNftUUID = triggerInfo?.account?.reference;
+            // console.log('credentialNftUUID', credentialNftUUID);
 
-            const credentialInfo =
-                await PkpCredentialNftModule.getFullCredential<any>({
-                    chain: network,
-                    credentialNftUUID,
-                    authSig: pkpAuthSig,
-                    pkpKey: pkpInfo.pkpPublicKey,
-                });
+            if (credentialNftUUID) {
+                const credentialInfo =
+                    await PkpCredentialNftModule.getFullCredential<any>({
+                        chain: network,
+                        credentialNftUUID,
+                        authSig: pkpAuthSig,
+                        pkpKey: pkpInfo.pkpPublicKey,
+                    });
 
-            triggerInfo.credentialInfo = credentialInfo;
+                triggerInfo.credentialInfo = credentialInfo;
+            }
 
         } catch (err) { }
 
         return triggerInfo;
     }));
+    // console.log('credentials A', credentials);
 
     credentials = credentials?.filter((credential) => {
-        pricingProvider = pricingProvider === 'IG Group' ? 'IG' : pricingProvider;
-        return credential?.credentialInfo?.provider === pricingProvider;
+
+        if (credential?.action === 'copy-trade' || credential?.action === 'trade-execution') {
+            // console.log('credential', credential);
+
+            pricingProvider = pricingProvider === 'IG Group' ? 'IG' : pricingProvider;
+            // console.log('pricingProvider', pricingProvider);
+
+            credential?.credentialInfo?.provider === pricingProvider;
+            // console.log('credential', credential);
+        }
+
+        return credential;
     });
+    // console.log('credentials B', credentials);
 
     const orderResults = await Promise.all(credentials?.map(async (triggerInfo: any) => {
 
@@ -138,249 +163,378 @@ const orderProcess = async (
 
         let orderId: any = null;
 
-        try {
-            const action = triggerInfo?.action;
+        if (credentialNftUUID) {
 
-            const credentialInfo = triggerInfo?.credentialInfo;
+            try {
+                const action = triggerInfo?.action;
+    
+                const credentialInfo = triggerInfo?.credentialInfo;
+    
+                const credentialOwner = credentialInfo?.owner;
+    
+                // const balanceInfo = await getBalance({
+                //     network,
+                //     walletAddress: credentialOwner,
+                // });
+    
+                const asset = data?.idea?.asset?.ticker;
+    
+                const environment = credentialInfo.environment;
+    
+                // we change the action name...allow for both temporarily
+                if (action === 'copy-trade' || action === 'trade-execution') {
+    
+                    // console.log('triggerInfo', triggerInfo);
 
-            const credentialOwner = credentialInfo?.owner;
-
-            // const balanceInfo = await getBalance({
-            //     network,
-            //     walletAddress: credentialOwner,
-            // });
-
-            const asset = data?.idea?.asset?.ticker;
-
-            const environment = credentialInfo.environment;
-
-            if (action === 'copy-trade') {
-
-                let error = null;
-                let litActionResult = null;
-
-                const kind = data?.idea?.kind?.toUpperCase();
-
-                switch (pricingProvider) {
-                    case 'Binance':
-
-                        const settings = triggerInfo?.settings || null;
-
-                        const userSetting = await getUserSettings(
-                            network,
-                            credentialOwner,
-                            pkpInfo,
-                        );
-
-                        const proxyUrl =
-                            userSetting?.proxy_url ||
-                            'https://ixily.io/api/proxy';
-
-                        const portfolioAccount =
-                            await fetcher.binance.getPortfolioAccount(
-                                network,
-                                pkpAuthSig,
-                                {
-                                    proxyUrl,
-                                    env: environment as any,
-                                    source: 'fetch',
-                                    payload: {
-                                        credentials: credentialInfo.decryptedCredential,
-                                        defaultBaseCurrency: 'USDT',
-                                    }
-                                },
-                            );
-
-                        const userTotalBalance = portfolioAccount?.baseCurrencyTotal || 0;
-
-                        const orderSize = settings?.orderSize || 0;
-
-                        const usdtAmount = userTotalBalance * (orderSize / 100);
-
-                        const qtyWithSymbolPrecisionResult =
-                            await fetcher.binance.getQtyWithSymbolPrecision(
-                                network,
-                                pkpAuthSig,
-                                {
-                                    env: environment as any,
-                                    source: 'fetch',
-                                    symbol: asset,
-                                    usdtAmount,
-                                    proxyUrl,
-                                }
-                            );
-
-                        error = qtyWithSymbolPrecisionResult?.error || null;
-                        const quantity = qtyWithSymbolPrecisionResult?.quantity || 0;
-
-                        // this is SPOT and we can just buy or sell (this is not furture to use short orders, etc)
-                        const directionByKind = {
-                            'open': 'BUY',
-                            'adjust': 'BUY',
-                            'close': 'SELL',
-                        };
-
-                        const direction = directionByKind[kind?.toLowerCase()];
-
-                        if (isNullOrUndefined(error)) {
-                            litActionResult =
-                                await fetcher.binance.placeOrder(
-                                    network,
-                                    pkpAuthSig,
-                                    {
-                                        env: environment as any,
-                                        source: 'fetch',
-                                        proxyUrl,
-                                        payload: {
-                                            credentials: credentialInfo.decryptedCredential,
-                                            form: {
-                                                asset,
-                                                direction,
-                                                quantity,
-                                            },
-                                        }
-                                    }
-                                );
-
-                            orderId =
-                                litActionResult?.response?.orderId || null;
+                    let error = null;
+                    let litActionResult = null;
+                    let triggerSettings = triggerInfo?.settings;
+    
+                    // check the status of the trigger
+                    // execution status is specific to this type of triggert
+                    const executionStatus = triggerSettings.executionStatus || false as boolean;
+                    // console.log('executionStatus', executionStatus);
+    
+                    // only attempt execution if enabled
+                    if (!executionStatus) {
+                        error = 'Execution disabled';
+                    } else {
+    
+                        let allowAssetToBeTraded = false;
+    
+                        // is the asset 
+                        const assetsIncludeStr = triggerSettings.assetsInclude || '';
+                        const assetsExcludeStr = triggerSettings.assetsExclude || '';
+    
+                        // convert to array for ease
+                        let assetsInclude = [];
+                        if (assetsIncludeStr !== '') {
+                            assetsInclude = assetsIncludeStr.split(',');
+                        }                        
+                        // console.log('assetsInclude', assetsInclude);
+                        let assetsExclude = [];
+                        if (assetsExcludeStr !== '') {
+                            assetsExclude = assetsExcludeStr.split(',');
                         }
-                        break;
+                        // console.log('assetsExclude', assetsExclude);
+    
+                        // if our asset is in the included list, then we can trade it
+                        // or if the list of included assets is blank
+                        if (assetsInclude.length === 0 || assetsInclude.includes(asset)) {
+                            allowAssetToBeTraded = true;
+                        }
 
-                    case 'IG':
-                    case 'IG Group':
+                        // if there is a list of assets to be traded, but this isn't in the list, then we can't trade
+                        if (assetsInclude.length > 0 && !assetsInclude.includes(asset)) {
+                            allowAssetToBeTraded = false;
+                            error = 'Asset not included in the allowed assets for trade execution';
+                        }
+                        
+                        // if our asset is in the excluded list, then we can't trade it
+                        // if there is a conflict, the exclusion over-rides
+                        if (assetsExclude.includes(asset)) {
+                            allowAssetToBeTraded = false;
+                            error = 'Asset explicitly excluded from trade execution';
+                        }
+                        // console.log('allowAssetToBeTraded', allowAssetToBeTraded);
+     
+                        const kind = data?.idea?.kind?.toUpperCase();
+                        // console.log('order kind', kind);
+                        // console.log('pricingProvider', pricingProvider);
+    
+                        // we need the execution partner i.e. where we place the trade
+                        const executionProvider = triggerInfo.credentialInfo.provider || '';
 
-                        const igDirectionByKind = {
-                            'open': 'Buy',
-                            // 'adjust': 'Buy',
-                            'close': 'Sell',
-                        };
-
-                        const igDirection = igDirectionByKind[kind?.toLowerCase()];
-
-                        // hard  coding here means that we 
-                        const igExpiry = '';
-
-                        // these are our order settings
-                        const triggerSettings = triggerInfo;
-
-                        if (isNullOrUndefined(error)) {
-
-                            const igAuth = await fetcher.ig.authentication(network, pkpAuthSig, {
-                                env: environment as any,
-                                source: 'fetch',
-                                credentials: {
-                                    accountId: 
-                                        credentialInfo.decryptedCredential?.accountId,
-                                    apiKey:
-                                        credentialInfo.decryptedCredential?.apiKey,
-                                    username:
-                                        credentialInfo.decryptedCredential?.username,
-                                    password:
-                                        credentialInfo.decryptedCredential?.password,
-                                },
-                            });
-
-                            if (igDirection === 'Buy') {
-                                litActionResult =
-                                    await fetcher.ig.placeManagedOrder(
+                        switch (executionProvider) {
+                            case 'Binance-disabled':
+    
+                                const userSetting = await getUserSettings(
+                                    network,
+                                    credentialOwner,
+                                    pkpInfo,
+                                );
+    
+                                const proxyUrl =
+                                    userSetting?.proxy_url ||
+                                    'https://ixily.io/api/proxy';
+    
+                                const portfolioAccount =
+                                    await fetcher.binance.getPortfolioAccount(
                                         network,
                                         pkpAuthSig,
                                         {
+                                            proxyUrl,
                                             env: environment as any,
                                             source: 'fetch',
                                             payload: {
-                                                auth: {
-                                                    apiKey:
-                                                        igAuth?.apiKey,
-                                                    clientSessionToken:
-                                                        igAuth?.clientSessionToken,
-                                                    activeAccountSessionToken:
-                                                        igAuth?.activeAccountSessionToken,
-                                                    accountId:
-                                                        igAuth?.accountId,
-                                                },
-                                                form: {
-                                                    direction: igDirection,
-                                                    epic: asset,
-                                                    expiry: igExpiry,
-                                                },
-                                            },
-                                            trigger: triggerSettings
+                                                credentials: credentialInfo.decryptedCredential,
+                                                defaultBaseCurrency: 'USDT',
+                                            }
                                         },
                                     );
-
-                                orderId =
-                                    litActionResult?.response?.dealId || null;
-                            }
-
-                            if (igDirection === 'Sell') {
-
-                                // add to an array even though it is only one here
-                                const epics = [];
-                                epics.push(asset);
-
-                                const testing = false;
-
-                                litActionResult =
-                                    await fetcher.ig.closePosition(
+    
+                                const userTotalBalance = portfolioAccount?.baseCurrencyTotal || 0;
+    
+                                const orderSize = triggerSettings.orderSize || 0;
+    
+                                const usdtAmount = userTotalBalance * (orderSize / 100);
+    
+                                const qtyWithSymbolPrecisionResult =
+                                    await fetcher.binance.getQtyWithSymbolPrecision(
                                         network,
                                         pkpAuthSig,
-                                        testing,
                                         {
                                             env: environment as any,
                                             source: 'fetch',
-                                            payload: {
-                                                auth: {
-                                                    apiKey:
-                                                        igAuth?.apiKey,
-                                                    clientSessionToken:
-                                                        igAuth?.clientSessionToken,
-                                                    activeAccountSessionToken:
-                                                        igAuth?.activeAccountSessionToken,
-                                                    accountId:
-                                                        igAuth?.accountId,
-                                                },
-                                                form: {
-                                                    epics,
-                                                },
-                                            }
+                                            symbol: asset,
+                                            usdtAmount,
+                                            proxyUrl,
                                         }
                                     );
+    
+                                error = qtyWithSymbolPrecisionResult?.error || null;
+                                const quantity = qtyWithSymbolPrecisionResult?.quantity || 0;
+    
+                                // this is SPOT and we can just buy or sell (this is not furture to use short orders, etc)
+                                const directionByKind = {
+                                    'open': 'BUY',
+                                    'adjust': 'BUY',
+                                    'close': 'SELL',
+                                };
+    
+                                const direction = directionByKind[kind?.toLowerCase()];
+    
+                                if (isNullOrUndefined(error)) {
+                                    litActionResult =
+                                        await fetcher.binance.placeOrder(
+                                            network,
+                                            pkpAuthSig,
+                                            {
+                                                env: environment as any,
+                                                source: 'fetch',
+                                                proxyUrl,
+                                                payload: {
+                                                    credentials: credentialInfo.decryptedCredential,
+                                                    form: {
+                                                        asset,
+                                                        direction,
+                                                        quantity,
+                                                    },
+                                                }
+                                            }
+                                        );
+    
+                                    orderId =
+                                        litActionResult?.response?.orderId || null;
+                                }
+                                break;
+    
+                            case 'IG-disabled':
+                            case 'IG Group-disabled':
+    
+                                const igDirectionByKind = {
+                                    'open': 'Buy',
+                                    // 'adjust': 'Buy',
+                                    'close': 'Sell',
+                                };
+    
+                                const igDirection = igDirectionByKind[kind?.toLowerCase()];
+    
+                                // hard  coding here means that we 
+                                const igExpiry = '';
+    
+    
+                                if (isNullOrUndefined(error)) {
+    
+                                    const igAuth = await fetcher.ig.authentication(network, pkpAuthSig, {
+                                        env: environment as any,
+                                        source: 'fetch',
+                                        credentials: {
+                                            accountId: 
+                                                credentialInfo.decryptedCredential?.accountId,
+                                            apiKey:
+                                                credentialInfo.decryptedCredential?.apiKey,
+                                            username:
+                                                credentialInfo.decryptedCredential?.username,
+                                            password:
+                                                credentialInfo.decryptedCredential?.password,
+                                        },
+                                    });
+    
+                                    if (igDirection === 'Buy') {
+                                        litActionResult =
+                                            await fetcher.ig.placeManagedOrder(
+                                                network,
+                                                pkpAuthSig,
+                                                {
+                                                    env: environment as any,
+                                                    source: 'fetch',
+                                                    payload: {
+                                                        auth: {
+                                                            apiKey:
+                                                                igAuth?.apiKey,
+                                                            clientSessionToken:
+                                                                igAuth?.clientSessionToken,
+                                                            activeAccountSessionToken:
+                                                                igAuth?.activeAccountSessionToken,
+                                                            accountId:
+                                                                igAuth?.accountId,
+                                                        },
+                                                        form: {
+                                                            direction: igDirection,
+                                                            epic: asset,
+                                                            expiry: igExpiry,
+                                                        },
+                                                    },
+                                                    trigger: triggerSettings
+                                                },
+                                            );
+    
+                                        orderId =
+                                            litActionResult?.response?.dealId || null;
+                                    }
+    
+                                    if (igDirection === 'Sell') {
+    
+                                        // add to an array even though it is only one here
+                                        const epics = [];
+                                        epics.push(asset);
+    
+                                        const testing = false;
+    
+                                        litActionResult =
+                                            await fetcher.ig.closePosition(
+                                                network,
+                                                pkpAuthSig,
+                                                testing,
+                                                {
+                                                    env: environment as any,
+                                                    source: 'fetch',
+                                                    payload: {
+                                                        auth: {
+                                                            apiKey:
+                                                                igAuth?.apiKey,
+                                                            clientSessionToken:
+                                                                igAuth?.clientSessionToken,
+                                                            activeAccountSessionToken:
+                                                                igAuth?.activeAccountSessionToken,
+                                                            accountId:
+                                                                igAuth?.accountId,
+                                                        },
+                                                        form: {
+                                                            epics,
+                                                        },
+                                                    }
+                                                }
+                                            );
+    
+                                        orderId =
+                                            litActionResult?.response?.find(res => res)?.dealId || null;
+                                    }
+    
+                                    error =
+                                        litActionResult?.response?.dealStatus === 'REJECTED' || null;
+                                }
+                                break;
+    
+    
+                            case 'GlobalBlock':
+                
+                                // these are our order settings
+                                triggerSettings = triggerInfo;
+                                // console.log('triggerInfo in GB', triggerInfo);
+    
+                                // check if our main ticker has a / or a -
+                                // if we can, then we can identify the two currencies
+                                // if we can't then we use 
+    
+                                // get the GlobalBlock alt ticker
+                                const altTicker = await fetcher.globalblock.getTicker(data);
+                                // console.log('altTicker', altTicker);
+    
+                                // get the base and the quote
+                                const actionRequest = true;
+    
+                                if (isNullOrUndefined(error) && actionRequest) {
+    
+                                    if (kind === 'OPEN') {
 
-                                orderId =
-                                    litActionResult?.response?.find(res => res)?.dealId || null;
-                            }
-
-                            error =
-                                litActionResult?.response?.dealStatus === 'REJECTED' || null;
+                                        litActionResult =                                
+                                            await fetcher.globalblock.placeManagedOrder(
+                                                network,
+                                                pkpAuthSig,
+                                                {
+                                                    env: environment as any,
+                                                    source: 'fetch',
+                                                    payload: {
+                                                        credentials: {
+                                                            publicKey: credentialInfo.decryptedCredential.publicKey,
+                                                            secretKey: credentialInfo.decryptedCredential.secretKey,
+                                                        },
+                                                        data: {
+                                                            baseCurrency: altTicker.baseCurrency,
+                                                            quoteCurrency: altTicker.quoteCurrency,
+                                                        }        
+                                                    },
+                                                    trigger: triggerSettings
+                                                },
+                                            );
+                                    } else if (kind === 'CLOSE') {
+    
+                                        // console.log('GB Close LitAction request', payload);
+                                        litActionResult =
+                                            await fetcher.globalblock.closePosition(
+                                                network,
+                                                pkpAuthSig,
+                                                {
+                                                    env: environment as any,
+                                                    source: 'fetch',
+                                                    payload: {
+                                                        credentials: {
+                                                            publicKey: credentialInfo.decryptedCredential.publicKey,
+                                                            secretKey: credentialInfo.decryptedCredential.secretKey,
+                                                        },
+                                                        data: {
+                                                            baseCurrency: altTicker.baseCurrency,
+                                                            quoteCurrency: altTicker.quoteCurrency,
+                                                        },
+                                                    },
+                                                }
+                                            );
+                                    }
+    
+                                    // error =
+                                    //     litActionResult?.response?.error === 'REJECTED' || null;
+                                }
+                                break;
+                
                         }
-                        break;
+                    }
+    
+                    result = {
+                        additionalInfo: {
+                            asset,
+                            nftId,
+                            blockNumber,
+                            credentialNftUUID,
+                            userWalletAddress: credentialOwner,
+                            environment,
+                        },
+                        request: litActionResult?.request || null,
+                        response: litActionResult?.response || null,
+                        error: error || litActionResult?.response?.error || null,
+                    };
+                    // console.log('results', result);
+    
                 }
-
-                result = {
-                    additionalInfo: {
-                        asset,
-                        nftId,
-                        blockNumber,
-                        credentialNftUUID,
-                        userWalletAddress: credentialOwner,
-                        environment,
-                        orderId,
-
-                    },
-                    request: litActionResult?.request || null,
-                    response: litActionResult?.response || null,
-                    error: error || litActionResult?.response?.error || null,
-                };
-
+    
+            } catch (err) {
+                console.log('newIdeaNFTEvent (error (listener logic))', {
+                    credentialNftUUID,
+                    err: err?.message,
+                });
             }
-
-        } catch (err) {
-            console.log('newIdeaNFTEvent (error (listener logic))', {
-                credentialNftUUID,
-                err: err?.message,
-            });
+    
         }
 
         return result;
@@ -485,7 +639,6 @@ const getIdeaNFTInfoWithRetry = async (
     return retryFunctionHelper({
         maxRetries: 3,
         retryCallback: async () => {
-
             const data = await getIdeaNFTInfo(payload);
 
             // if we can't decrypt the idea (access denied) we will retry
@@ -512,6 +665,10 @@ const getIdeaNFTInfo = async (
         contract,
     } = payload;
 
+    // console.log('network', network);
+    // console.log('blockNumber', blockNumber);
+    // console.log('contract', contract);
+
     let ipfsMetadataId: any = null;
     let withAccess = false;
     let nftId = -1;
@@ -529,10 +686,12 @@ const getIdeaNFTInfo = async (
     await loop(
         async () => {
             const nftIdeaUrl = `https://ipfs.io/ipfs/${ipfsMetadataId}`;
+            // console.log('nftIdeaUrl', nftIdeaUrl);
 
             const nftIdeaString = await getJsonContent(
                 nftIdeaUrl,
             );
+            // console.log('nftIdeaString', nftIdeaString);
 
             const nftObject = JSON.parse(nftIdeaString);
 

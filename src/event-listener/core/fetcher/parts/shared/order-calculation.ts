@@ -262,7 +262,7 @@ const defaultOrderCalcUsingtheAccountBalance = (
     orderLimits: boolean,
     defaultOrderSize: number,
     conviction: number,
-    maxSizePortofolio: number,
+    maxSizePortfolio: number,
     direction: DirectionType,
     leverageMultiple: number,
   }
@@ -271,6 +271,7 @@ const defaultOrderCalcUsingtheAccountBalance = (
   try{
 
     initialObject.order.type.value = ideaType;
+    console.log('ideaType', ideaType);
 
     // update our  setting
     initialObject.order.calc.overrideLimits = valuesToSet.orderLimits;
@@ -285,7 +286,7 @@ const defaultOrderCalcUsingtheAccountBalance = (
     initialObject.order.default.value = (valuesToSet.defaultOrderSize / 100) * initialObject.account.leverageBalance;
     initialObject.order.default.valueWithConviction = initialObject.order.default.value * (valuesToSet.conviction / 100);
     initialObject.order.settings.conviction = valuesToSet.conviction;
-    initialObject.order.settings.maxPortfolioSize = valuesToSet.maxSizePortofolio;
+    initialObject.order.settings.maxPortfolioSize = valuesToSet.maxSizePortfolio;
     initialObject.order.settings.maxPortfolioValue = (initialObject.order.settings.maxPortfolioSize / 100) * initialObject.account.leverageBalance;
 
     // EXISTING POSITION SIZE IN THE PORTFOLIO + OUR ORDER
@@ -445,7 +446,7 @@ const defaultOrderCalcUsingtheAccountBalance = (
     return initialObject;
 
   } catch(err) {
-    // console.log('error on order-calc', err);
+    console.log('error on order-calc', err.message);
   }
 
 }

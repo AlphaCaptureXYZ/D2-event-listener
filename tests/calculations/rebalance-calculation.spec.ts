@@ -14,7 +14,7 @@ import { WeaveDBModule } from '../../src/event-listener/modules/weavedb.module';
 
 import { PkpAuthModule } from '../../src/event-listener/modules/pkp-auth.module';
 
-import { OrderCalcPre, OrderCalcPrePortfolio, OrderPortfolioRebalance } from '../../src/event-listener/core/fetcher/parts/ig-calculation';
+import { OrderCalcPre, OrderCalcPrePortfolio, OrderPortfolioRebalance } from '../../src/event-listener/core/fetcher/parts/calculation-ig';
 
 import { PkpCredentialNftModule } from '../../src/event-listener/modules/pkp-credential-nft.module';
 

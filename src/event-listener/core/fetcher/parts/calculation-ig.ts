@@ -6,9 +6,9 @@ import { IAssetInfo } from './_interfaces/asset-info.i';
 import { IPositionInfo } from './_interfaces/position.i';
 import { IAccount } from './_interfaces/account.i';
 
-import * as fetcher from '../../../../event-listener/core/fetcher';
+import * as fetcher from '..';
 
-import { FetcherSource, EnvType } from "../../../../event-listener/interfaces/shared.i";
+import { FetcherSource, EnvType } from "../../../interfaces/shared.i";
 
 import {
   DirectionType,
@@ -231,7 +231,7 @@ const defaultOrderCalcUsingtheAccountBalance = (data: any, triggerSettings: any,
     // this is the trigger object
     // { maxLeverage: 10, orderSize: 5, maxPositionSize: 10 },
     const defaultOrderSize = triggerSettings.orderSize;
-    const maxSizePortofolio = triggerSettings.maxPositionSize;
+    const maxSizePortfolio = triggerSettings.maxPositionSize;
     const leverageMultiple = triggerSettings.maxLeverage;
 
     // const direction = 'Long' as DirectionType;
@@ -243,7 +243,7 @@ const defaultOrderCalcUsingtheAccountBalance = (data: any, triggerSettings: any,
             orderLimits,
             defaultOrderSize,
             conviction,
-            maxSizePortofolio,
+            maxSizePortfolio,
             direction,
             leverageMultiple,
         }

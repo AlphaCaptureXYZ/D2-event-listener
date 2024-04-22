@@ -50,7 +50,7 @@
     "rxjs": "^7.5.6",
     "siwe": "^1.1.6",
     "twitter-api-v2": "^1.16.1",
-    "weavedb-sdk-node": "^0.37.2",
+    "weavedb-sdk-node": "^0.39.2",
     "web3": "^4.1.2",
     "ws": "^8.3.0"
   },

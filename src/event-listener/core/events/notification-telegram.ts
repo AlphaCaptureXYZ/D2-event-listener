@@ -19,7 +19,7 @@ export const notificationTelegram = async <T>(
             info,
         } = payload;
 
-        console.log('weave data', triggers);
+        // console.log('weave data', triggers);
         // 
         // we only send the idea notifications here, not the trades
         if (type === 'NEW_IDEA_NFT') {

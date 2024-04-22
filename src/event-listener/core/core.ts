@@ -202,6 +202,9 @@ const watcherLoader = (
                 const event = res.type as EventType;
                 const data = res?.data || null;
 
+                // console.log('rest', res);
+                // console.log('event', event);
+                // console.log('data', data);
 
                 // event selector
                 switch (event) {
