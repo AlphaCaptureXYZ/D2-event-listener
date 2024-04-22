@@ -35,7 +35,7 @@
     "date-fns": "^2.30.0",
     "dotenv": "^16.0.3",
     "ethers": "^5.5.1",
-    "express": "^4.18.2",
+    "express": "^4.19.2",
     "got": "^14.2.1",
     "isomorphic-fetch": "^3.0.0",
     "jimp": "^0.22.7",
@@ -51,7 +51,7 @@
     "siwe": "^1.1.6",
     "twitter-api-v2": "^1.16.1",
     "weavedb-sdk-node": "^0.39.2",
-    "web3": "^4.1.2",
+    "web3": "^4.8.0",
     "ws": "^8.3.0"
   },
   "devDependencies": {
