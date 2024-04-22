@@ -11,6 +11,8 @@ const igUrlSelector = {
     prod: 'https://api.ig.com',
 };
 
+const brokerName = 'IG Group';
+
 const getApiUrl = (env: EnvType) => {
     return igUrlSelector[env] || igUrlSelector['demo'];
 };
@@ -279,7 +281,7 @@ const placeOrder = async (
             guaranteedStop: false,
             forceOpen: true,
         };
-        console.log('body submitted to IG', body);
+        // console.log('body submitted to IG', body);
 
         let globalResponse = null;
 
@@ -1319,6 +1321,27 @@ const getMarketInfoByEpic = async (
 
 };
 
+const getTicker = (data: any) => {
+
+    const ideaTicker = data?.idea?.asset.ticker;
+    // console.log('asset', data?.idea?.asset);
+
+    // default this for now
+    let epic = ideaTicker;
+
+    // get the GlobalBlock alt ticker
+    const alternativetickers = data?.idea?.asset.alternativeProviderSymbols || [];
+    // console.log('alternativetickers', alternativetickers);
+
+    // if there is GB ticker, then we can use that
+    const assetIG = alternativetickers.filter(res => res.provider === brokerName);
+    if (assetIG.length > 0) {
+      epic = assetIG[0];    
+    }
+
+    return epic;
+}
+
 export {
     authentication,
     placeBasicOrder,
@@ -1327,4 +1350,5 @@ export {
     getPositions,
     getAccounts,
     getMarketInfoByEpic,
+    getTicker,
 }

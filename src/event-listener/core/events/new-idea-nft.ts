@@ -329,9 +329,13 @@ const orderProcess = async (
                                 }
                                 break;
     
-                            case 'IG-disabled':
-                            case 'IG Group-disabled':
+                            case 'IG':
+                            case 'IG Group':
     
+                                // get the GlobalBlock alt ticker
+                                const altTickerIG = await fetcher.ig.getTicker(data);
+
+                                // we only support long orders at this point
                                 const igDirectionByKind = {
                                     'open': 'Buy',
                                     // 'adjust': 'Buy',
@@ -340,10 +344,9 @@ const orderProcess = async (
     
                                 const igDirection = igDirectionByKind[kind?.toLowerCase()];
     
-                                // hard  coding here means that we 
+                                // hard coding here means that we 
                                 const igExpiry = '';
-    
-    
+        
                                 if (isNullOrUndefined(error)) {
     
                                     const igAuth = await fetcher.ig.authentication(network, pkpAuthSig, {
@@ -361,7 +364,7 @@ const orderProcess = async (
                                         },
                                     });
     
-                                    if (igDirection === 'Buy') {
+                                    if (kind === 'OPEN') {
                                         litActionResult =
                                             await fetcher.ig.placeManagedOrder(
                                                 network,
@@ -382,7 +385,7 @@ const orderProcess = async (
                                                         },
                                                         form: {
                                                             direction: igDirection,
-                                                            epic: asset,
+                                                            epic: altTickerIG,
                                                             expiry: igExpiry,
                                                         },
                                                     },
@@ -394,11 +397,12 @@ const orderProcess = async (
                                             litActionResult?.response?.dealId || null;
                                     }
     
-                                    if (igDirection === 'Sell') {
+                                    if (kind === 'CLOSE') {
     
                                         // add to an array even though it is only one here
+                                        // this is for an allowance of multi close elsewhere
                                         const epics = [];
-                                        epics.push(asset);
+                                        epics.push(altTickerIG);
     
                                         const testing = false;
     
