@@ -271,7 +271,7 @@ const defaultOrderCalcUsingtheAccountBalance = (
   try{
 
     initialObject.order.type.value = ideaType;
-    console.log('ideaType', ideaType);
+    // console.log('ideaType', ideaType);
 
     // update our  setting
     initialObject.order.calc.overrideLimits = valuesToSet.orderLimits;
@@ -390,7 +390,6 @@ const defaultOrderCalcUsingtheAccountBalance = (
 
       } else if (Math.abs(initialObject.existingPosition.valueInBase) > 0 && ideaType === 'open') {
           // if the intent is to open a new position, but one is already open, then we don't buy anything
-
           initialObject.order.final.order.value = 0;
           initialObject.order.final.order.percentage = 0;
           initialObject.order.final.portfolio.value = Math.abs(initialObject.existingPosition.valueInBase);
@@ -412,6 +411,9 @@ const defaultOrderCalcUsingtheAccountBalance = (
     
     // now we have a price, we can work out the qty
     initialObject.order.final.order.quantity.raw = initialObject.order.final.order.value / initialObject.order.final.price.value;
+    // console.log('final calc C - initialObject.order.final.order.value ', initialObject.order.final.order.value );
+    // console.log('final calc C - initialObject.order.final.price.value ', initialObject.order.final.price.value );
+    // console.log('final calc C - initialObject.order.final.order.quantity.raw ', initialObject.order.final.order.quantity.raw );
 
     // round the qty
     if (initialObject.asset.fractional) {
@@ -426,18 +428,19 @@ const defaultOrderCalcUsingtheAccountBalance = (
       // if fraction isn't supported, then we need an int
       initialObject.order.final.order.quantity.rounded = Math.floor(initialObject.order.final.order.quantity.raw);
     }
+    // console.log('final calc C - initialObject.order.final ', initialObject.order.final);
 
 
     // are we above the minimum qty
     if (initialObject.order.final.order.quantity.rounded < initialObject.asset.minQty) {
-      initialObject.order.calc.exceedsMinQty = true;
-    } else {
       initialObject.order.calc.exceedsMinQty = false;
+    } else {
+      initialObject.order.calc.exceedsMinQty = true;
     }
 
     // allow for the min qty and exceeding any portfolio values (or not)
     // if it's below the minimum, then everything goes to zero
-    if (initialObject.order.calc.exceedsMinQty) {
+    if (!initialObject.order.calc.exceedsMinQty) {
       initialObject.order.final.order.value = 0;
       initialObject.order.final.order.quantity.raw = 0;
       initialObject.order.final.order.quantity.rounded = 0;

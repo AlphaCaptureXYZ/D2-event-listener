@@ -166,6 +166,7 @@ const getSingleAsset = async (
     const baseCurrency = payload?.asset.baseCurrency;
     const quoteCurrency = payload?.asset.quoteCurrency;
 
+    // console.log('source', source);
     if (source === 'fetch') {
 
         requestUrl = requestUrl + '/v2/markets/' + baseCurrency + '/' + quoteCurrency;
@@ -195,7 +196,7 @@ const getSingleAsset = async (
         const code = `
             const go = async () => {
 
-                const url = '${requestUrl}/v1/markes/${baseCurrency}/${quoteCurrency}';
+                const url = '${requestUrl}/v2/markets/${baseCurrency}/${quoteCurrency}';
 
                 const options = {
                     method: 'GET',
@@ -277,7 +278,9 @@ const postPlaceMarketOrder = async (
     const baseCurrency = payload?.data.baseCurrency;
     const quoteCurrency = payload?.data.quoteCurrency;
     const direction = payload?.data.direction;
+    // console.log('direction', direction);
     const quantity = payload?.data.quantity;
+    // console.log('quantity', quantity);
 
     if (source === 'fetch') {
 
@@ -288,8 +291,9 @@ const postPlaceMarketOrder = async (
             "baseAsset": baseCurrency,
             "quoteAsset": quoteCurrency,
             "side": direction,
-            "quoteQty": quantity
+            "baseQty": quantity
         };
+        // console.log('body', body);
 
         const options: any = {
             method: 'POST',
@@ -308,6 +312,7 @@ const postPlaceMarketOrder = async (
         const res = await fetch(requestUrl, options);
         // console.log('res', res);
         const data = await res.json();
+        // const data = '';
         // console.log('data', data);
         response = data;
 
@@ -322,7 +327,7 @@ const postPlaceMarketOrder = async (
                     "baseAsset": '${baseCurrency}',
                     "quoteAsset": '${quoteCurrency}',
                     "side": '${direction}',
-                    "quoteQty": ${quantity},
+                    "baseQty": ${quantity},
                 };
         
                 const options = {
@@ -446,21 +451,21 @@ const closePosition = async (
             quote: payload.data.quoteCurrency,
         }
     };    
-    console.log('paramsPos', paramsPos);
+    // console.log('paramsPos', paramsPos);
     const positions = await getPositions(
         network,
         pkpAuthSig,
         paramsPos
     );
-    console.log('positions', positions);
+    // console.log('positions', positions);
 
     // get the position that we want to close
     const positionToClose = positions.filter(res => res.currency === payload.data.baseCurrency);
 
     // get the qty
-    console.log('positionToClose', positionToClose);
+    // console.log('positionToClose', positionToClose);
     const closeqty = positionToClose[0].available;
-    console.log('closeqty', closeqty);
+    // console.log('closeqty', closeqty);
 
     // now instruct the close
     let response;
@@ -482,6 +487,7 @@ const closePosition = async (
                 }
             }
         };    
+        console.log('paramsclose', paramsClose);
     
         response = await postPlaceMarketOrder (
             network,
@@ -518,7 +524,7 @@ const placeManagedOrder = async (
 ) => {
 
     const ideaType = 'manual';
-    const direction = 'Long' as DirectionType;
+    const direction = 'buy' as DirectionType;
 
     const calc = await OrderCalcPre(
         ideaType,
@@ -545,39 +551,48 @@ const placeManagedOrder = async (
     // console.log('calc?.account?', calc.account);
     const currencyCode = calc?.account?.currencyCode;
 
-    console.log('this should be our final calc', calc);
-    console.log('this should be our final order', calc.order);
+    // console.log('this should be our final calc', calc);
+    // console.log('this should be our final order', calc.order);
 
-    console.log('this should be our final order', calc.order.final);
+    // console.log('this should be our final order', calc.order.final);
     // console.log('this should be our final portfolio', calc.order.final.portfolio);
     // console.log('this should be our final price', calc.order.final.price);
+    // console.log('this should be our final qty', calc.order.final.order.quantity.rounded);
 
-    // const response = await postPlaceMarketOrder(
-    //     network,
-    //     pkpAuthSig,
-    //     {
-    //         env: params?.env,
-    //         source: params?.source,
-    //         payload: {
-    //             credentials: {
-    //                 publicKey: params.payload.credentials.publicKey,
-    //                 secretKey: params.payload.credentials.secretKey,
-    //             },
-    //             data: {
-    //                 baseCurrency: params.payload.data.baseCurrency,
-    //                 quoteCurrency: params.payload.data.quoteCurrency,
-    //                 direction,
-    //                 quantity: Number(calc.order.final.order.quantity),
-    //             }
-    //         }
-    //     }
-    // )
+    let response;
+    if (calc.order.final.order.quantity.rounded === 0) {
+        response = 'Order quantity was zero';
+    } else {
 
-    // response.request = {
-    //     ...response?.request,
-    //     calc,
-    // }
-    const response = calc;
+        response = await postPlaceMarketOrder(
+            network,
+            pkpAuthSig,
+            {
+                env: params?.env,
+                source: params?.source,
+                payload: {
+                    credentials: {
+                        publicKey: params.payload.credentials.publicKey,
+                        secretKey: params.payload.credentials.secretKey,
+                    },
+                    data: {
+                        baseCurrency: params.payload.data.baseCurrency,
+                        quoteCurrency: params.payload.data.quoteCurrency,
+                        direction,
+                        quantity: Number(calc.order.final.order.quantity.rounded),
+                    }
+                }
+            }
+        )     
+        
+        response.request = {
+            ...response?.request,
+            calc,
+        }            
+    }
+
+    // const response = calc;
+    // console.log('response', response);
 
     return response;
 

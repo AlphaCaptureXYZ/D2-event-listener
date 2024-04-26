@@ -473,7 +473,7 @@ export const OrderCalcPrePortfolio = async (
           }
         }
       );
-      console.log('igPositions', positions);
+      // console.log('igPositions', positions);
 
     const currency: any = account.currency;
     // console.log('diffAssets', diffAssets);
@@ -521,9 +521,9 @@ export const OrderPortfolioRebalance = async (
   try {
 
     // extract all the epics to close
-    console.log('portfolioRebalance.close', params.payload.portfolioRebalance.close);
+    // console.log('portfolioRebalance.close', params.payload.portfolioRebalance.close);
     const epicsToClose = params.payload.portfolioRebalance.close.map(obj => obj.ticker);
-    console.log('epicsToClose', epicsToClose);
+    // console.log('epicsToClose', epicsToClose);
 
     // the params need adjusting before they can be passed in
 

@@ -21,7 +21,7 @@ import {
 } from './shared/portfolio-calculation';
 
 const leverageMultiple = 1; // there is no leverage on GlobalBlock
-const direction = 'Long' as DirectionType; // it can only be long with cash
+const direction = 'buy' as DirectionType; // it can only be long with cash
 
 export const OrderCalcPre = async (
   ideaType: IdeaType,
@@ -60,6 +60,7 @@ export const OrderCalcPre = async (
 
     // get and set our trigger settings
     const triggerSettings = params.trigger.settings;
+    // console.log('triggerSettings', triggerSettings);
     
     // { maxLeverage: 10, orderSize: 5, maxPositionSize: 10 },
 
@@ -83,7 +84,7 @@ export const OrderCalcPre = async (
         }
       }
     );  
-    // console.log('assetInfo')
+    // console.log('assetInfo', assetInfo);
 
     // we can use the above for these...
     data.asset.ticker = params.payload.asset.baseCurrency;  // it should be the asset we are trying to buy or sell i.e. it's not a pair but a single coin
@@ -140,11 +141,18 @@ export const OrderCalcPre = async (
 const calcExistingPosition = (data: IOrderCalc) => {
   // filter out our net portfolio
   const netPositions = data.portfolio.net;
+
+  data.existingPosition.valueInBase = 0;
+  data.existingPosition.currentPortfolioAllocation = 0;
+
   for (const p in netPositions) {
       if (p) {
+        // console.log('netPositions[p].ticker', netPositions[p].ticker);
+        // console.log('data.asset.ticker', data.asset.ticker);
         if (netPositions[p].ticker === data.asset.ticker) {
           data.existingPosition.valueInBase = netPositions[p].value;
           data.existingPosition.currentPortfolioAllocation = data.existingPosition.valueInBase / data.account.leverageBalance * 100;
+          break;
         }
       }
   }
@@ -216,8 +224,10 @@ const defaultOrderCalcUsingtheAccountBalance = (data: any, triggerSettings: any,
   // this is the trigger object
   let defaultOrderSize = 0;
   let maxSizePortfolio = 0;
-  defaultOrderSize = triggerSettings.defaultOrderSize;
-  maxSizePortfolio = triggerSettings.maxSizePortfolio; 
+  defaultOrderSize = triggerSettings.orderSize;
+  maxSizePortfolio = triggerSettings.maxPositionSize; 
+  // console.log('defaultOrderSize', defaultOrderSize);
+  // console.log('maxSizePortfolio', maxSizePortfolio);
 
   OrderCalc.functions.defaultOrderCalcUsingtheAccountBalance(
       data,
