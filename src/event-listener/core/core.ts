@@ -218,10 +218,10 @@ const watcherLoader = (
                     case 'NOTIFICATION':
                         const triggers = await weaveTriggers();
 
-                        // await notificationSlack(triggers, data as INotification<any>);
-                        // await notificationTelegram(triggers, data as INotification<any>);
-                        // await notificationTwitter(triggers, data as INotification<any>);
-                        // await notificationQwil(triggers, data as INotification<any>);
+                        await notificationSlack(triggers, data as INotification<any>);
+                        await notificationTelegram(triggers, data as INotification<any>);
+                        await notificationTwitter(triggers, data as INotification<any>);
+                        await notificationQwil(triggers, data as INotification<any>);
                         break;
                     case 'CREATE_IDEA':
                         await createIdea({
