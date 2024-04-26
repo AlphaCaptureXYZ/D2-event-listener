@@ -66,6 +66,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
             network,
             pkpKey,
         );
+        console.log('post pkpAuthSig');
 
         const triggers = await getTriggersByStrategy(
             network,
@@ -73,6 +74,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
             data?.strategy?.reference,
             pkpInfo,
         );
+        console.log('post triggers', triggers.length);
 
         eventResult = await orderProcess({
             network,
@@ -113,13 +115,13 @@ const orderProcess = async (
     } = payload;
 
     let pricingProvider = data?.pricing?.provider;
-    // console.log('pricingProvider', pricingProvider);
+    console.log('pricingProvider', pricingProvider);
 
     let credentials = await Promise.all(triggers?.map(async (triggerInfo: any) => {
         try {
 
             const credentialNftUUID = triggerInfo?.account?.reference;
-            // console.log('credentialNftUUID', credentialNftUUID);
+            console.log('credentialNftUUID', credentialNftUUID);
 
             if (credentialNftUUID) {
                 const credentialInfo =
@@ -446,7 +448,7 @@ const orderProcess = async (
                 
                                 // these are our order settings
                                 triggerSettings = triggerInfo;
-                                // console.log('triggerInfo in GB', triggerInfo);
+                                console.log('triggerInfo in GB', triggerInfo);
     
                                 // check if our main ticker has a / or a -
                                 // if we can, then we can identify the two currencies

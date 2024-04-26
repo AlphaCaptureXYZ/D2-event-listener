@@ -195,7 +195,7 @@ const watcherLoader = (
 ) => {
     // watcher process
     try {
-        // console.log('in watcherLoader');
+        console.log('in watcherLoader');
         if (!watcherLoaded) {
             EventEmitter().listen().subscribe(async (res) => {
 
