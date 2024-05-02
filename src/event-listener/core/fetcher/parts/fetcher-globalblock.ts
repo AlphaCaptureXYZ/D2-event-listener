@@ -514,7 +514,10 @@ const closePosition = async (
 
     // get the qty
     // console.log('positionToClose', positionToClose);
-    const closeqty = positionToClose[0].available;
+    let closeqty = 0;
+    if (positionToClose.length > 0) {
+        closeqty = positionToClose[0].available || 0;
+    }
     // console.log('closeqty', closeqty);
 
     // now instruct the close

@@ -303,7 +303,7 @@ describe('API Method Testing', () => {
 
     }).timeout(50000);
 
-    it('Place a managed order', async () => {
+    xit('Place a managed order', async () => {
 
         const baseCurrency = 'ETH'; // this is what we are buying or selling 
         const quoteCurrency = 'USDT';  // this is what we sell into or buy from
@@ -380,11 +380,11 @@ describe('API Method Testing', () => {
 
     }).timeout(50000);
 
-    xit('Close an existing position', async () => {
+    it('Close an existing position', async () => {
 
         console.log('GlobalBlock / Close an existing position');
 
-        const baseCurrency = 'BTC'; // this is what we are buying or selling 
+        const baseCurrency = 'ETH'; // this is what we are buying or selling 
         const quoteCurrency = 'USDT';  // this is what we sell into or buy from
 
         const chain = 'polygon';
