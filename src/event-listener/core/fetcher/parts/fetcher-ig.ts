@@ -469,7 +469,12 @@ const placeOrder = async (
 
             // console.log('track 1', litActionCall)
 
-            response = litActionCall?.response as any;
+            // response = litActionCall?.response as any;
+
+            response = {
+                response: litActionCall?.response as any,
+                request: body,
+            };
 
         } else {
 

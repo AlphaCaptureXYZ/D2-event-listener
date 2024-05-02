@@ -226,24 +226,30 @@ const orderProcess = async (
                             allowAssetToBeTraded = true;
                         }
 
-                        // if there is a list of assets to be traded, but this isn't in the list, then we can't trade
-                        if (assetsInclude.length > 0 && !assetsInclude.includes(asset)) {
-                            allowAssetToBeTraded = false;
-                            error = 'Asset not included in the allowed assets for trade execution';
-                        }
-                        
-                        // if our asset is in the excluded list, then we can't trade it
-                        // if there is a conflict, the exclusion over-rides
-                        if (assetsExclude.includes(asset)) {
-                            allowAssetToBeTraded = false;
-                            error = 'Asset explicitly excluded from trade execution';
-                        }
-                        // console.log('allowAssetToBeTraded', allowAssetToBeTraded);
-     
                         const kind = data?.idea?.kind?.toUpperCase();
                         // console.log('order kind', kind);
                         // console.log('pricingProvider', pricingProvider);
-    
+
+                        // it is possible to close exissting positions, but not to open
+                        // new ones if the asset is explicitly excluded from trade execution
+
+                        // if our asset is in the excluded list, then we can't trade it
+                        // if there is a conflict, the exclusion over-rides
+                        if (kind === 'OPEN' || kind === 'ADJUST') {
+
+                            // if there is a list of assets to be traded, but this isn't in the list, then we can't trade
+                            if (assetsInclude.length > 0 && !assetsInclude.includes(asset)) {
+                                allowAssetToBeTraded = false;
+                                error = 'Asset not included in the allowed assets for trade execution';
+                            }
+                                
+                            if (assetsExclude.includes(asset)) {
+                                allowAssetToBeTraded = false;
+                                error = 'Asset explicitly excluded from trade execution';
+                            }
+                            // console.log('allowAssetToBeTraded', allowAssetToBeTraded);
+                        }
+
                         // we need the execution partner i.e. where we place the trade
                         const executionProvider = triggerInfo.credentialInfo.provider || '';
 
@@ -334,7 +340,7 @@ const orderProcess = async (
                             case 'IG':
                             case 'IG Group':
     
-                                // get the GlobalBlock alt ticker
+                                // get the alt ticker
                                 const altTickerIG = await fetcher.ig.getTicker(data);
 
                                 // we only support long orders at this point
@@ -456,10 +462,12 @@ const orderProcess = async (
     
                                 // get the GlobalBlock alt ticker
                                 const altTicker = await fetcher.globalblock.getTicker(data);
-                                // console.log('altTicker', altTicker);
+                                console.log('altTicker', altTicker);
+                                // console.log('kind', kind);
     
                                 // get the base and the quote
                                 const actionRequest = true;
+                                // console.log('actionRequest', actionRequest);
     
                                 if (isNullOrUndefined(error) && actionRequest) {
     
@@ -485,6 +493,7 @@ const orderProcess = async (
                                                     trigger: triggerSettings
                                                 },
                                             );
+                                        // console.log('litActionResult', litActionResult);
                                     } else if (kind === 'CLOSE') {
     
                                         // console.log('GB Close LitAction request', payload);
@@ -642,6 +651,7 @@ const orderProcess = async (
 const getIdeaNFTInfoWithRetry = async (
     payload: INewIdeaNFT
 ) => {
+    console.log('in getIdeaNFTInfoWithRetry');
     return retryFunctionHelper({
         maxRetries: 3,
         retryCallback: async () => {
@@ -671,9 +681,9 @@ const getIdeaNFTInfo = async (
         contract,
     } = payload;
 
-    // console.log('network', network);
-    // console.log('blockNumber', blockNumber);
-    // console.log('contract', contract);
+    console.log('network A', network);
+    console.log('blockNumber A', blockNumber);
+    // console.log('contract A', contract);
 
     let ipfsMetadataId: any = null;
     let withAccess = false;
@@ -688,170 +698,179 @@ const getIdeaNFTInfo = async (
         withAccess: boolean,
         network: string,
     } = null;
+    console.log('info', info);
 
-    await loop(
-        async () => {
-            const nftIdeaUrl = `https://ipfs.io/ipfs/${ipfsMetadataId}`;
-            // console.log('nftIdeaUrl', nftIdeaUrl);
+    try {
+        await loop(
+            async () => {
+                console.log('request nftIdea');
 
-            const nftIdeaString = await getJsonContent(
-                nftIdeaUrl,
-            );
-            // console.log('nftIdeaString', nftIdeaString);
+                const nftIdeaUrl = `https://ipfs.io/ipfs/${ipfsMetadataId}`;
+                console.log('nftIdeaUrl', nftIdeaUrl);
 
-            const nftObject = JSON.parse(nftIdeaString);
+                const nftIdeaString = await getJsonContent(
+                    nftIdeaUrl,
+                );
+                console.log('nftIdeaString', nftIdeaString);
 
-            withAccess = nftObject?.idea?.kind === 'close' ? true : false;
+                const nftObject = JSON.parse(nftIdeaString);
 
-            try {
-                if (
-                    nftObject.access?.encryption?.key !== undefined &&
-                    nftObject.idea !== '' &&
-                    typeof nftObject.idea === 'string'
-                ) {
+                withAccess = nftObject?.idea?.kind === 'close' ? true : false;
 
-                    const encryptedData = nftObject.idea;
-                    const encryptedSymmetricKey = nftObject.access.encryption.key;
+                try {
+                    if (
+                        nftObject.access?.encryption?.key !== undefined &&
+                        nftObject.idea !== '' &&
+                        typeof nftObject.idea === 'string'
+                    ) {
 
-                    const contractRecipe = config.getContractRecipe(network);
+                        const encryptedData = nftObject.idea;
+                        const encryptedSymmetricKey = nftObject.access.encryption.key;
 
-                    const acConditions = [
-                        {
-                            contractAddress: contractRecipe.coreContractAddress,
-                            standardContractType: 'ERC1155',
-                            method: 'balanceOf',
-                            parameters: [':userAddress', nftId.toString()],
-                            returnValueTest: {
-                                comparator: '>',
-                                value: '0',
+                        const contractRecipe = config.getContractRecipe(network);
+
+                        const acConditions = [
+                            {
+                                contractAddress: contractRecipe.coreContractAddress,
+                                standardContractType: 'ERC1155',
+                                method: 'balanceOf',
+                                parameters: [':userAddress', nftId.toString()],
+                                returnValueTest: {
+                                    comparator: '>',
+                                    value: '0',
+                                },
+                                chain: network,
                             },
-                            chain: network,
-                        },
-                    ];
+                        ];
 
-                    const restoredStringIdea =
-                        await LitModule().decryptString(
-                            encryptedData,
-                            encryptedSymmetricKey,
-                            acConditions,
-                        );
+                        const restoredStringIdea =
+                            await LitModule().decryptString(
+                                encryptedData,
+                                encryptedSymmetricKey,
+                                acConditions,
+                            );
 
-                    const restoredIdea = JSON.parse(restoredStringIdea);
+                        const restoredIdea = JSON.parse(restoredStringIdea);
 
-                    nftObject.idea = restoredIdea;
-                    withAccess = true;
+                        nftObject.idea = restoredIdea;
+                        withAccess = true;
 
+                    }
+                    // in this point we can't decrypt the idea (access denied)
+                } catch (err) {
+                    console.log('newIdeaNFTEvent (error 1)', err?.message);
                 }
-                // in this point we can't decrypt the idea (access denied)
-            } catch (err) {
-                console.log('newIdeaNFTEvent (error 1)', err?.message);
-            }
 
-            info = {
-                blockNumber,
-                nftId,
-                data: nftObject,
-                cid: ipfsMetadataId,
-                ipfsUrl: nftIdeaUrl,
-                withAccess,
-                network,
-            };
+                info = {
+                    blockNumber,
+                    nftId,
+                    data: nftObject,
+                    cid: ipfsMetadataId,
+                    ipfsUrl: nftIdeaUrl,
+                    withAccess,
+                    network,
+                };
+                console.log('info B', info);
 
-        },
-        async () => {
-            let isPassed = false
-
-            const metadataIdByBlockId = await contract.getMetadataIdByBlockId(
-                payload.blockNumber,
-            );
-
-            nftId = metadataIdByBlockId[1]?.toNumber();
-            ipfsMetadataId = metadataIdByBlockId[2];
-
-            if ([null, undefined, 'none'].includes(ipfsMetadataId)) {
-                throw new Error('NFT MODULE ERROR: No metadata found for this block')
-            };
-
-            if (ipfsMetadataId) {
-                isPassed = true
-            }
-
-            return isPassed
-        },
-        {
-            loopTimeInMs: 10000,
-            limitTimeSecond: 240,
-        },
-        async (err: any) => {
-            console.log('newIdeaNFTEvent (error 2)', err?.message);
-        },
-    );
-
-    if (withAccess) {
-        console.log('');
-        console.log('=================================================================');
-        console.log(`New idea NFT event received!`);
-        console.log(`network: ${network}`);
-        console.log(`nftId: ${nftId}`);
-        console.log(`blockNumber: ${blockNumber}`);
-        console.log(`Provider: ${info?.data?.pricing?.provider}`);
-        console.log(`Ticker: ${info?.data?.idea?.asset?.ticker}`);
-        console.log(`Kind: ${info?.data?.idea?.kind}`);
-        console.log(`Direction: ${info?.data?.idea?.trade?.direction}`);
-        console.log(`Price: $${info?.data?.idea?.priceInfo?.price?.globalPrice}`);
-        console.log(`Creator: ${info?.data?.creator?.name} (${info?.data?.creator?.walletAddress})`);
-        console.log(`Company: ${info?.data?.creator?.company}`);
-        console.log(`Strategy: ${info?.data?.strategy?.name} (${info?.data?.strategy?.reference})`);
-        console.log('=================================================================');
-        console.log('');
-
-        EventEmitter().emit<INotification<INotificationEventPayload>>('NOTIFICATION', {
-            type: 'NEW_IDEA_NFT',
-            info: {
-                network,
-                nftId: nftId.toString(),
-                blockNumber,
-                provider: info?.data?.pricing?.provider,
-                ticker: info?.data?.idea?.asset?.ticker,
-                kind: info?.data?.idea?.kind,
-                direction: info?.data?.idea?.trade?.direction,
-                price: info?.data?.idea?.priceInfo?.price?.globalPrice,
-                creator: {
-                    name: info?.data?.creator?.name,
-                    walletAddress: info?.data?.creator?.walletAddress,
-                },
-                company: info?.data?.creator?.company,
-                strategy: {
-                    reference: info?.data?.strategy?.reference,
-                    name: info?.data?.strategy?.name,
-                },
             },
-        });
+            async () => {
+                console.log('newIdeaNFTEvent A');
+                let isPassed = false
 
-        wsLogger({
-            type: 'info',
-            message: `New idea NFT event received! (nftID: ${nftId}, BlockNumber: ${blockNumber}, Ticker: ${info?.data?.idea?.asset?.ticker}, Direction: ${info?.data?.idea?.trade?.direction}, Kind: ${info?.data?.idea?.kind}, Provider: ${info?.data?.pricing?.provider}, Strategy: ${info?.data?.strategy?.name} (${info?.data?.strategy?.reference}))`,
-            data: {
-                network,
-                nftId,
-                blockNumber,
-                provider: info?.data?.pricing?.provider,
-                ticker: info?.data?.idea?.asset?.ticker,
-                kind: info?.data?.idea?.kind,
-                direction: info?.data?.idea?.trade?.direction,
-                price: info?.data?.idea?.priceInfo?.price?.globalPrice,
-                creator: {
-                    name: info?.data?.creator?.name,
-                    walletAddress: info?.data?.creator?.walletAddress,
+                const metadataIdByBlockId = await contract.getMetadataIdByBlockId(
+                    payload.blockNumber,
+                );
+
+                nftId = metadataIdByBlockId[1]?.toNumber();
+                ipfsMetadataId = metadataIdByBlockId[2];
+
+                if ([null, undefined, 'none'].includes(ipfsMetadataId)) {
+                    throw new Error('NFT MODULE ERROR: No metadata found for this block')
+                };
+
+                if (ipfsMetadataId) {
+                    isPassed = true
+                }
+
+                return isPassed
+            },
+            {
+                loopTimeInMs: 10000,
+                limitTimeSecond: 240,
+            },
+            async (err: any) => {
+                console.log('newIdeaNFTEvent (error 2)', err?.message);
+            },
+        );
+
+        if (withAccess) {
+            console.log('');
+            console.log('=================================================================');
+            console.log(`New idea NFT event received!`);
+            console.log(`network: ${network}`);
+            console.log(`nftId: ${nftId}`);
+            console.log(`blockNumber: ${blockNumber}`);
+            console.log(`Provider: ${info?.data?.pricing?.provider}`);
+            console.log(`Ticker: ${info?.data?.idea?.asset?.ticker}`);
+            console.log(`Kind: ${info?.data?.idea?.kind}`);
+            console.log(`Direction: ${info?.data?.idea?.trade?.direction}`);
+            console.log(`Price: $${info?.data?.idea?.priceInfo?.price?.globalPrice}`);
+            console.log(`Creator: ${info?.data?.creator?.name} (${info?.data?.creator?.walletAddress})`);
+            console.log(`Company: ${info?.data?.creator?.company}`);
+            console.log(`Strategy: ${info?.data?.strategy?.name} (${info?.data?.strategy?.reference})`);
+            console.log('=================================================================');
+            console.log('');
+
+            EventEmitter().emit<INotification<INotificationEventPayload>>('NOTIFICATION', {
+                type: 'NEW_IDEA_NFT',
+                info: {
+                    network,
+                    nftId: nftId.toString(),
+                    blockNumber,
+                    provider: info?.data?.pricing?.provider,
+                    ticker: info?.data?.idea?.asset?.ticker,
+                    kind: info?.data?.idea?.kind,
+                    direction: info?.data?.idea?.trade?.direction,
+                    price: info?.data?.idea?.priceInfo?.price?.globalPrice,
+                    creator: {
+                        name: info?.data?.creator?.name,
+                        walletAddress: info?.data?.creator?.walletAddress,
+                    },
+                    company: info?.data?.creator?.company,
+                    strategy: {
+                        reference: info?.data?.strategy?.reference,
+                        name: info?.data?.strategy?.name,
+                    },
                 },
-                company: info?.data?.creator?.company,
-                strategy: {
-                    reference: info?.data?.strategy?.reference,
-                    name: info?.data?.strategy?.name,
-                },
-            }
-        });
-    };
+            });
+
+            wsLogger({
+                type: 'info',
+                message: `New idea NFT event received! (nftID: ${nftId}, BlockNumber: ${blockNumber}, Ticker: ${info?.data?.idea?.asset?.ticker}, Direction: ${info?.data?.idea?.trade?.direction}, Kind: ${info?.data?.idea?.kind}, Provider: ${info?.data?.pricing?.provider}, Strategy: ${info?.data?.strategy?.name} (${info?.data?.strategy?.reference}))`,
+                data: {
+                    network,
+                    nftId,
+                    blockNumber,
+                    provider: info?.data?.pricing?.provider,
+                    ticker: info?.data?.idea?.asset?.ticker,
+                    kind: info?.data?.idea?.kind,
+                    direction: info?.data?.idea?.trade?.direction,
+                    price: info?.data?.idea?.priceInfo?.price?.globalPrice,
+                    creator: {
+                        name: info?.data?.creator?.name,
+                        walletAddress: info?.data?.creator?.walletAddress,
+                    },
+                    company: info?.data?.creator?.company,
+                    strategy: {
+                        reference: info?.data?.strategy?.reference,
+                        name: info?.data?.strategy?.name,
+                    },
+                }
+            });
+        };
+    } catch(err) {
+        console.log('newIdeaNFTEvent (error 4)', err?.message);
+    }
 
     return info;
 }

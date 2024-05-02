@@ -303,9 +303,9 @@ describe('API Method Testing', () => {
 
     }).timeout(50000);
 
-    xit('Place a managed order', async () => {
+    it('Place a managed order', async () => {
 
-        const baseCurrency = 'BTC'; // this is what we are buying or selling 
+        const baseCurrency = 'ETH'; // this is what we are buying or selling 
         const quoteCurrency = 'USDT';  // this is what we sell into or buy from
 
         const chain = 'polygon';
@@ -361,15 +361,15 @@ describe('API Method Testing', () => {
                 },
                 trigger: {
                     settings: {
-                        defaultOrderSize: 1,
-                        maxSizePortfolio: 100,
+                        orderSize: 10,
+                        maxPositionSize: 100,
                     }
                 }
     
             }
 
             const data = await fetcher.globalblock.placeManagedOrder(chain, pkpAuthSig, params);
-            // console.log('full order object', data);
+            console.log('full order object', data);
 
         }
 
@@ -380,7 +380,7 @@ describe('API Method Testing', () => {
 
     }).timeout(50000);
 
-    it('Close an existing position', async () => {
+    xit('Close an existing position', async () => {
 
         console.log('GlobalBlock / Close an existing position');
 
@@ -459,25 +459,24 @@ describe('API Method Testing', () => {
         // given there is no test env for GB, this will execute a real order
         // const blockNumber = 55605736;
         // const blockNumber = 55668442; // THETAUSDT
-        const blockNumber = 55527197; // BTCUSDT
+        // const blockNumber = 55527197; // BTCUSDT
+        const blockNumber = 56499314; // ETHUSDT
         
-        // XRP/USDT
+        console.log('config.WALLET_PRIVATE_KEY', config.WALLET_PRIVATE_KEY);
+        const data: any[] = await D2EventListener({
+            network: 'polygon',
+            privateKey: config.WALLET_PRIVATE_KEY,
+            test: {
+                enabled: false,
+                blockNumber,
+            }
+        });
 
-        // console.log('config.WALLET_PRIVATE_KEY', config.WALLET_PRIVATE_KEY);
-        // const data: any[] = await D2EventListener({
-        //     network: 'polygon',
-        //     privateKey: config.WALLET_PRIVATE_KEY,
-        //     test: {
-        //         enabled: false,
-        //         blockNumber,
-        //     }
-        // });
+        console.log('data', data);
 
-        // console.log('data', data);
+        const orderDetail = data.find(res => res);
 
-        // const orderDetail = data.find(res => res);
-
-        // console.log('orderDetail', orderDetail);
+        console.log('orderDetail', orderDetail);
 
     }).timeout(50000);
 

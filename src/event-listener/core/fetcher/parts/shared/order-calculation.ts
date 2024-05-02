@@ -282,17 +282,22 @@ const defaultOrderCalcUsingtheAccountBalance = (
     initialObject.account.leverageBalance = initialObject.account.balance * initialObject.account.leverage;
 
     // DEFAULT ORDER SIZE
+    // console.log('valuesToSet', valuesToSet);
     initialObject.order.default.portfolioAllocation = valuesToSet.defaultOrderSize;
     initialObject.order.default.value = (valuesToSet.defaultOrderSize / 100) * initialObject.account.leverageBalance;
     initialObject.order.default.valueWithConviction = initialObject.order.default.value * (valuesToSet.conviction / 100);
     initialObject.order.settings.conviction = valuesToSet.conviction;
     initialObject.order.settings.maxPortfolioSize = valuesToSet.maxSizePortfolio;
+    // console.log('initialObject.order.settings.maxPortfolioSize', initialObject.order.settings.maxPortfolioSize);
     initialObject.order.settings.maxPortfolioValue = (initialObject.order.settings.maxPortfolioSize / 100) * initialObject.account.leverageBalance;
+    // console.log('initialObject.order.settings.maxPortfolioValue', initialObject.order.settings.maxPortfolioValue);
 
     // EXISTING POSITION SIZE IN THE PORTFOLIO + OUR ORDER
     const aggregatePosition = initialObject.existingPosition.valueInBase + initialObject.order.default.valueWithConviction;
 
     // our remaining position size (related to the existing portfolio position) needs to be calculated here
+    // console.log('initialObject.order.settings.maxPortfolioValue', initialObject.order.settings.maxPortfolioValue);
+    // console.log('initialObject.existingPosition.valueInBase', initialObject.existingPosition.valueInBase);
     initialObject.existingPosition.remainingValue = initialObject.order.settings.maxPortfolioValue - initialObject.existingPosition.valueInBase;
     initialObject.existingPosition.currentPortfolioAllocation = (initialObject.existingPosition.valueInBase / initialObject.account.leverageBalance) * 100 || 0;
 

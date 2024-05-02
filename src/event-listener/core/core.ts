@@ -125,7 +125,8 @@ export const D2EventListener = async (
         if (isAUnitTest) {
             await wait(1, 'seconds');
 
-            EventEmitter().emit<INewIdeaNFT>(
+            // log('Sending Test EventEmitter for NEW_IDEA_NFT');
+            await EventEmitter().emit<INewIdeaNFT>(
                 'NEW_IDEA_NFT',
                 {
                     contract,
@@ -134,6 +135,7 @@ export const D2EventListener = async (
                     blockNumber: payload.test.blockNumber,
                 }
             );
+            resolve(true);
         }
 
     } catch (err) {

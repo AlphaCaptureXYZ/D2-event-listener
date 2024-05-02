@@ -295,80 +295,130 @@ const postPlaceMarketOrder = async (
         };
         // console.log('body', body);
 
-        const options: any = {
-            method: 'POST',
-            headers: {
-                'x-api-key': publicKey,
-                'x-secret-key': secretKey,
-                'Accept': 'application/json; charset=UTF-8',
-                'Content-Type': 'application/json; charset=UTF-8',
-            },
-            redirect: 'follow',
-            mode: 'cors',
-            body: JSON.stringify(body)
+        let globalResponse = null;
+
+        // only make the post IF the size > 0
+        if (Number(payload.data.quantity) > 0) {
+
+            const options: any = {
+                method: 'POST',
+                headers: {
+                    'x-api-key': publicKey,
+                    'x-secret-key': secretKey,
+                    'Accept': 'application/json; charset=UTF-8',
+                    'Content-Type': 'application/json; charset=UTF-8',
+                },
+                redirect: 'follow',
+                mode: 'cors',
+                body: JSON.stringify(body)
+            };
+            // console.log('options', options);
+            
+            const res = await fetch(requestUrl, options);
+            // console.log('res', res);
+            const data = await res.json();
+            // const data = '';
+            // console.log('data', data);
+            // response = data;
+            // const data = 'this is the GB response';
+            globalResponse = data;
+
+        } else {
+            globalResponse = {
+                error: 'Order quanity was zero so no request was made to IG Group',
+            }
+        }
+
+        response = {
+            response: globalResponse,
+            request: body,
         };
-        // console.log('options', options);
-        
-        const res = await fetch(requestUrl, options);
-        // console.log('res', res);
-        const data = await res.json();
-        // const data = '';
-        // console.log('data', data);
-        response = data;
+
 
     } else if (source === 'lit-action') {
 
-        const code = `
-            const go = async () => {
+        let globalResponse = null;
 
-                const url = '${requestUrl}/v1/order';
+        const body = {
+            baseAsset: baseCurrency,
+            quoteAsset: quoteCurrency,
+            side: direction,
+            baseQty: quantity,
+        };
 
-                const body = {
-                    "baseAsset": '${baseCurrency}',
-                    "quoteAsset": '${quoteCurrency}',
-                    "side": '${direction}',
-                    "baseQty": ${quantity},
+        // only make the post IF the size > 0
+        if (Number(payload.data.quantity) > 0) {
+
+            const code = `
+                const go = async () => {
+
+                    const url = '${requestUrl}/v1/order';
+
+                    const body = {
+                        "baseAsset": '${baseCurrency}',
+                        "quoteAsset": '${quoteCurrency}',
+                        "side": '${direction}',
+                        "baseQty": ${quantity},
+                    };
+            
+                    const options = {
+                        method: 'POST',
+                        headers: {
+                            'x-api-key': '${publicKey}',
+                            'x-secret-key': '${secretKey}',
+                            'Accept': 'application/json; charset=UTF-8',
+                            'Content-Type': 'application/json; charset=UTF-8',
+                        },
+                        redirect: 'follow',
+                        mode: 'cors',
+                        body: JSON.stringify(body)     
+                    };
+
+                    const res = await fetch(requestUrl, options);
+                    const data = await res.json();        
+                    Lit.Actions.setResponse({response: JSON.stringify(data)});
                 };
-        
-                const options = {
-                    method: 'POST',
-                    headers: {
-                        'x-api-key': '${publicKey}',
-                        'x-secret-key': '${secretKey}',
-                        'Accept': 'application/json; charset=UTF-8',
-                        'Content-Type': 'application/json; charset=UTF-8',
+
+                go();
+            `;        
+            // console.log('options', code);
+
+            const litActionCall = await LitModule().runLitAction({
+                chain: network,
+                litActionCode: code,
+                listActionCodeParams: {
+                    ...params?.payload,
+                    auth: {
+                        publicKey,
+                        secretKey,
                     },
-                    redirect: 'follow',
-                    mode: 'cors',
-                    body: JSON.stringify(body)     
-                };
+                },
+                nodes: 1,
+                showLogs: false,
+                authSig: pkpAuthSig,
+            });
 
-                const res = await fetch(requestUrl, options);
-                const data = await res.json();        
-                Lit.Actions.setResponse({response: JSON.stringify(data)});
+            globalResponse = litActionCall?.response as any;        
+            // console.log('litActionCall response', response);
+
+            response = {
+                response: globalResponse,
+                request: body,
             };
 
-            go();
-        `;        
-        // console.log('options', code);
+        } else {
 
-        const litActionCall = await LitModule().runLitAction({
-            chain: network,
-            litActionCode: code,
-            listActionCodeParams: {
-                ...params?.payload,
-                auth: {
-                    publicKey,
-                    secretKey,
-                },
-            },
-            nodes: 1,
-            showLogs: false,
-            authSig: pkpAuthSig,
-        });
+            const globalResponse = {
+                error: 'Order quanity was zero so no request was made to IG Group',
+            }
 
-        response = litActionCall?.response as any;        
-        console.log('litActionCall response', response);
+            response = {
+                response: globalResponse,
+                request: body,
+            };
+
+        }        
+        
     } else if (source === 'testing') {
 
         const code = `
@@ -487,14 +537,14 @@ const closePosition = async (
                 }
             }
         };    
-        console.log('paramsclose', paramsClose);
+        // console.log('paramsclose', paramsClose);
     
         response = await postPlaceMarketOrder (
             network,
             pkpAuthSig,
             paramsClose
         );
-        console.log('response', response);
+        // console.log('response', response);
     } else {
         response = 'Quantity to close is zero';
     }
@@ -525,6 +575,7 @@ const placeManagedOrder = async (
 
     const ideaType = 'manual';
     const direction = 'buy' as DirectionType;
+    console.log('pre calc trigger', params?.trigger);
 
     const calc = await OrderCalcPre(
         ideaType,
@@ -548,10 +599,10 @@ const placeManagedOrder = async (
         }
     );
 
-    // console.log('calc?.account?', calc.account);
+    // console.log('calc?.account?', calc);
     const currencyCode = calc?.account?.currencyCode;
 
-    // console.log('this should be our final calc', calc);
+    console.log('this should be our final calc', calc);
     // console.log('this should be our final order', calc.order);
 
     // console.log('this should be our final order', calc.order.final);
@@ -563,7 +614,6 @@ const placeManagedOrder = async (
     if (calc.order.final.order.quantity.rounded === 0) {
         response = 'Order quantity was zero';
     } else {
-
         response = await postPlaceMarketOrder(
             network,
             pkpAuthSig,
@@ -592,7 +642,7 @@ const placeManagedOrder = async (
     }
 
     // const response = calc;
-    // console.log('response', response);
+    console.log('response', response);
 
     return response;
 

@@ -52,6 +52,7 @@ export const OrderCalcPre = async (
       env,
       payload,
       source,
+      trigger,
     } = params;
 
     const {
@@ -59,7 +60,7 @@ export const OrderCalcPre = async (
     } = payload
 
     // get and set our trigger settings
-    const triggerSettings = params.trigger.settings;
+    const triggerSettings = trigger.settings;
     // console.log('triggerSettings', triggerSettings);
     
     // { maxLeverage: 10, orderSize: 5, maxPositionSize: 10 },
@@ -229,17 +230,20 @@ const defaultOrderCalcUsingtheAccountBalance = (data: any, triggerSettings: any,
   // console.log('defaultOrderSize', defaultOrderSize);
   // console.log('maxSizePortfolio', maxSizePortfolio);
 
+  const valuesToSet = {
+    orderLimits,
+    defaultOrderSize,
+    conviction,
+    maxSizePortfolio,
+    direction,
+    leverageMultiple,
+  }
+  // console.log('valuesToSet', valuesToSet);
+
   OrderCalc.functions.defaultOrderCalcUsingtheAccountBalance(
       data,
       ideaType,
-      {
-          orderLimits,
-          defaultOrderSize,
-          conviction,
-          maxSizePortfolio,
-          direction,
-          leverageMultiple,
-      }
+      valuesToSet,
   );
 }
 
