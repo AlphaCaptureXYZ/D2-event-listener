@@ -74,6 +74,7 @@ export const newIdeaNFTEvent = async (payload: INewIdeaNFT) => {
             data?.strategy?.reference,
             pkpInfo,
         );
+        
         console.log('post triggers', triggers.length);
 
         eventResult = await orderProcess({

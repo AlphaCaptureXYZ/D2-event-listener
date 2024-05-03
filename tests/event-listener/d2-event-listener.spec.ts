@@ -56,6 +56,6 @@ describe('D2EventListener Implementation', () => {
         // expect(orderResponse).to.have.property('status');
         // expect(orderResponse.status).to.be.equal('FILLED');
 
-    }).timeout(999999999999999999999999999999999);
+    }).timeout(9898989898989898989898989898989898989898989898989);
 
 });

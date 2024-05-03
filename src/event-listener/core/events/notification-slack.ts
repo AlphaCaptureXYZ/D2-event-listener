@@ -17,9 +17,9 @@ export const notificationSlack = async <T>(
             info,
         } = payload;
 
-        console.log('notificationSlack (type)', type);
-        console.log('notificationSlack (info)', info);
-        console.log('notificationSlack (triggers)', triggers);
+        // console.log('notificationSlack (type)', JSON.stringify(type));
+        // console.log('notificationSlack (info)', JSON.stringify(info));
+        // console.log('notificationSlack (triggers)', JSON.stringify(triggers));
 
         if (type === 'NEW_ORDER') {
 
@@ -46,7 +46,17 @@ export const notificationSlack = async <T>(
                     const triggerStrategyReference = triggers[i].strategy.reference || '';
                     const triggerType = triggers[i].action || '';
 
-                    if (triggerType === 'slack-webhook' && triggerStrategyReference === ideaStrategyReference) {
+                    const check =
+                        triggerType === 'slack-webhook' &&
+                        triggerStrategyReference === ideaStrategyReference;
+
+                    // console.log('[NEW_ORDER] notificationSlack (check)', `
+                    //         ${triggerType} === 'slack-webhook' &&
+                    //         ${triggerStrategyReference} === ${ideaStrategyReference}
+                    // `);
+                    // console.log('[NEW_ORDER] notificationSlack (check)', check);
+
+                    if (check) {
                         // console.log('Telegram trigger', weaveData[i]);
                         const webhook = triggers[i].settings.webhook || '';
 
@@ -213,7 +223,19 @@ export const notificationSlack = async <T>(
                     const triggerStrategyReference = triggers[i].strategy.reference || '';
                     const triggerType = triggers[i].action || '';
 
-                    if (triggerType === 'slack-webhook' && triggerStrategyReference === ideaStrategyReference) {
+
+                    const check =
+                        triggerType === 'slack-webhook' &&
+                        triggerStrategyReference === ideaStrategyReference;
+
+                    // console.log('[NEW_IDEA_NFT] notificationSlack (check)', `
+                    //         ${triggerType} === 'slack-webhook' &&
+                    //         ${triggerStrategyReference} === ${ideaStrategyReference}
+                    // `);
+
+                    // console.log('[NEW_IDEA_NFT] notificationSlack (check)', check);
+
+                    if (check) {
                         // console.log('Telegram trigger', weaveData[i]);
                         const webhook = triggers[i].settings.webhook || '';
 
