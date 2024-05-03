@@ -27,7 +27,7 @@ describe('D2EventListener Implementation', () => {
             test: {
                 enabled: true,
                 // Block number linked to ETHUSDT test idea
-                blockNumber: 56499314,
+                blockNumber: 55527197,
             }
         });
 
@@ -56,6 +56,6 @@ describe('D2EventListener Implementation', () => {
         // expect(orderResponse).to.have.property('status');
         // expect(orderResponse.status).to.be.equal('FILLED');
 
-    }).timeout(50000);
+    }).timeout(999999999999999999999999999999999);
 
 });

@@ -122,11 +122,13 @@ const getAllData = async <T>(
         let docs = [] as any[];
 
         try {
+            console.log('[weavedb] loading info...');
             docs = await db.cget(
                 COLLECTION_NAME,
                 ['type'],
                 ['type', '==', type],
             );
+            console.log('[weavedb] info loaded!');
         } catch (err: any) {
             console.log('[weavedb] getAllData (error "db.cget(...)")', err?.message);
         }

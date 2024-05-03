@@ -135,7 +135,7 @@ export const D2EventListener = async (
                     blockNumber: payload.test.blockNumber,
                 }
             );
-            resolve(true);
+            // resolve(true);
         }
 
     } catch (err) {
@@ -218,7 +218,11 @@ const watcherLoader = (
                         };
                         break;
                     case 'NOTIFICATION':
+                        console.log('Notification event detected...')
+
                         const triggers = await weaveTriggers();
+
+                        console.log('[NOTIFICATION] Triggers found: ', triggers?.length, '\n')
 
                         await notificationSlack(triggers, data as INotification<any>);
                         await notificationTelegram(triggers, data as INotification<any>);

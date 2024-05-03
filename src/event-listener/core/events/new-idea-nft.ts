@@ -698,7 +698,6 @@ const getIdeaNFTInfo = async (
         withAccess: boolean,
         network: string,
     } = null;
-    console.log('info', info);
 
     try {
         await loop(
@@ -711,7 +710,8 @@ const getIdeaNFTInfo = async (
                 const nftIdeaString = await getJsonContent(
                     nftIdeaUrl,
                 );
-                console.log('nftIdeaString', nftIdeaString);
+                
+                // console.log('nftIdeaString', nftIdeaString);
 
                 const nftObject = JSON.parse(nftIdeaString);
 
@@ -781,6 +781,8 @@ const getIdeaNFTInfo = async (
                     payload.blockNumber,
                 );
 
+                console.log('metadataIdByBlockId', metadataIdByBlockId);
+
                 nftId = metadataIdByBlockId[1]?.toNumber();
                 ipfsMetadataId = metadataIdByBlockId[2];
 
@@ -802,6 +804,8 @@ const getIdeaNFTInfo = async (
                 console.log('newIdeaNFTEvent (error 2)', err?.message);
             },
         );
+
+        console.log('withAccess', withAccess);
 
         if (withAccess) {
             console.log('');
@@ -871,6 +875,8 @@ const getIdeaNFTInfo = async (
     } catch(err) {
         console.log('newIdeaNFTEvent (error 4)', err?.message);
     }
+
+    console.log('info', info)
 
     return info;
 }

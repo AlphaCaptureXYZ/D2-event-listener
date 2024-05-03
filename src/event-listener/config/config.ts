@@ -22,11 +22,14 @@ const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY as string;
 
 const getPKPInfo = async (network: string): Promise<IPkpInfo> => {
     try {
-        // console.log('in getPKPInfo', network);
+        console.log('in getPKPInfo', network);
+        
         const data = await WeaveDBModule.getAllData<any>(network, {
             type: 'pkp-info',
             byUserWalletFilter: true,
         });
+
+        console.log('getPKPInfo (data)', data);
 
         const dataSize = data?.length;
         const pkpInfo = dataSize > 0 ? data[dataSize - 1] : null;

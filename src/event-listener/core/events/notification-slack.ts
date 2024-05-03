@@ -17,6 +17,10 @@ export const notificationSlack = async <T>(
             info,
         } = payload;
 
+        console.log('notificationSlack (type)', type);
+        console.log('notificationSlack (info)', info);
+        console.log('notificationSlack (triggers)', triggers);
+
         if (type === 'NEW_ORDER') {
 
             const {
