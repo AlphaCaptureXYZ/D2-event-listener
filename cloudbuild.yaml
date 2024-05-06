@@ -1,0 +1,58 @@
+steps:
+  - id: "Inject env variables"
+    name: node:18.16.0
+    entrypoint: npm
+    args: ["run", "create-env"]
+    env:
+      - "APP_ENV=${_APP_ENV}"
+      - "SLACK_WEBHOOK_URL=${_SLACK_WEBHOOK_URL}"
+      - "WALLET_PRIVATE_KEY=${_WALLET_PRIVATE_KEY}"
+  - id: "Build container image for D2-EVENT-LISTENER: $SHORT_SHA"
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - build
+      - -f
+      - Dockerfile
+      - -t
+      - us.gcr.io/backend-restful-api/d2-event-listener:$SHORT_SHA
+      - .
+    timeout: 3000s
+  - id: "Register the container image"
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - push
+      - us.gcr.io/backend-restful-api/d2-event-listener:$SHORT_SHA
+  - id: "List and remove past images"
+    name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        # List all tags for the "d2-event-listener" image
+        tags=$(gcloud container images list-tags us.gcr.io/backend-restful-api/d2-event-listener --format='get(tags)')
+
+        # Keep only the three latest tags
+        keep_tags=$(echo "$tags" | head -n 3)
+
+        # Remove all tags except the three latest ones
+        echo "$tags" | grep -v "$keep_tags" | xargs -I{} gcloud container images delete us.gcr.io/backend-restful-api/d2-event-listener:{}
+  # fix env substituition
+  - id: "Pre-process kubernetes configuration for D2-EVENT-LISTENER"
+    name: gcr.io/backend-restful-api/envsubst
+    env: ["SHORT_SHA=$SHORT_SHA"]
+    args: ["k8s/deployment-d2-listener.yaml"]
+  # deploy container image to GKE
+  # deploy D2-EVENT-LISTENER
+  - id: "Deploying to cluster D2-EVENT-LISTENER"
+    name: "gcr.io/cloud-builders/gke-deploy"
+    timeout: 3200s
+    args:
+      - run
+      - --image=us.gcr.io/backend-restful-api/d2-event-listener:$SHORT_SHA
+      - --filename=k8s/
+      - --project=backend-restful-api
+      - --location=europe-west2-c
+      - --cluster=cluster-1
+      - --timeout=25m
+      - --output="./outputwo"
+timeout: 6900s

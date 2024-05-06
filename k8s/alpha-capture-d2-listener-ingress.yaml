@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alphacapture-d2-listener-ingress
+  annotations:
+    kubernetes.io/ingress.class: gce
+    # Set the desired timeout to 1 hour
+    ingress.gcp.kubernetes.io/backend-config: '{"timeoutSec": 50}'
+    # kubernetes.io/ingress.global-static-ip-name: alphacapture-xyz-ip
+    networking.gke.io/managed-certificates: alphacapture-xyz-certi
+    # kubernetes.io/ingress.allow-http: "false"
+    timeoutSec: "50"
+spec:
+  rules:
+    - host: "d2-listener.alphacapture.xyz"
+      http:
+        paths:
+          - path: /*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: d2-listener-service
+                port:
+                  number: 4009

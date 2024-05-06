@@ -1,0 +1,58 @@
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "d2-listener"
+  namespace: "default"
+  labels:
+    app: "d2-listener"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "d2-listener"
+  template:
+    metadata:
+      labels:
+        app: "d2-listener"
+    spec:
+      serviceAccountName: ksa-auth-sql-bra
+      priorityClassName: high2-priority
+      containers:
+        - name: "d2-listener"
+          image: "us.gcr.io/backend-restful-api/d2-event-listener:${SHORT_SHA}"
+          env:
+            - name: PORT
+              value: "80"
+          volumeMounts:
+            - name: ssl-certs
+              mountPath: /etc/ssl/certs
+          ports:
+            - name: http
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 20
+          resources:
+            requests:
+              memory: "100Mi"
+              cpu: "5m"
+      volumes:
+        - name: ssl-certs
+          hostPath:
+            path: /etc/ssl/certs
+      hostNetwork: false

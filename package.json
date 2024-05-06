@@ -7,11 +7,13 @@
     "dev": "cross-env APP_ENV=development nodemon",
     "build": "rimraf dist && tsc --project ./tsconfig.json",
     "start": "cross-env APP_ENV=production node dist/app.js",
-    "deploy": "git push origin main:deploy-production",
+    "deploy": "git push origin main:deploy-k8s",
     "test": "rimraf dist && mocha --config unit-mocharc.js --exit",
     "activ-update": "rimraf node_modules/@ixily/activ && npm i @ixily/activ@latest --force",
     "weavedb": "nodemon ./__backup/database/weavedb.ts --exec ts-node",
-    "examples": "nodemon ./examples/examples.ts --exec ts-node"
+    "examples": "nodemon ./examples/examples.ts --exec ts-node",
+    "create-env": "printenv > .env",
+    "deploy-git": "git push origin main:deploy-production"
   },
   "repository": {
     "type": "git",

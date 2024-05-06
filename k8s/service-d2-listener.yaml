@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: d2-listener-service # Name of Service
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}' # Creates a NEG after an Ingress is created
+    cloud.google.com/backend-config: '{"ports": {"4009":"maximum-timeout-for-sse-backendconfig"}, "timeoutSec": 50}'
+spec: # Service's specification
+  type: NodePort
+  selector:
+    app: d2-listener-service # Selects Pods labelled run: d2-listener-service
+  ports:
+    - name: http-d2-listener-port
+      protocol: TCP
+      port: 4009
+      targetPort: 80
