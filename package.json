@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "cross-env APP_ENV=development nodemon",
     "build": "rimraf dist && tsc --project ./tsconfig.json",
+    "start-dev": "npm run build && cross-env APP_ENV=production node dist/app.js",
     "start": "cross-env APP_ENV=production pm2 start dist/app.js --name d2-event-listener && pm2 logs d2-event-listener --lines 0",
     "deploy": "git push origin main:deploy-k8s",
     "test": "rimraf dist && mocha --config unit-mocharc.js --exit",
