@@ -8,7 +8,7 @@ metadata:
 spec: # Service's specification
   type: NodePort
   selector:
-    app: d2-listener-service # Selects Pods labelled run: d2-listener-service
+    app: d2-listener # Selects Pods labelled run: d2-listener-service
   ports:
     - name: http-d2-listener-port
       protocol: TCP

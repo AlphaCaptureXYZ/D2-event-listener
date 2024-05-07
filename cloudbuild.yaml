@@ -12,7 +12,7 @@ steps:
     args:
       - build
       - -f
-      - Dockerfile
+      - k8s-docker/Dockerfile
       - -t
       - us.gcr.io/backend-restful-api/d2-event-listener:$SHORT_SHA
       - .
