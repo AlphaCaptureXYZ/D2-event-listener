@@ -21,13 +21,23 @@ describe('D2EventListener Implementation', () => {
         //     }
         // });
 
+        // const data: any[] = await D2EventListener({
+        //     network: 'polygon',
+        //     privateKey: config.WALLET_PRIVATE_KEY,
+        //     test: {
+        //         enabled: true,
+        //         // Block number linked to ETHUSDT test idea
+        //         blockNumber: 55527197,
+        //     }
+        // });
+
         const data: any[] = await D2EventListener({
             network: 'polygon',
             privateKey: config.WALLET_PRIVATE_KEY,
             test: {
                 enabled: true,
-                // Block number linked to ETHUSDT test idea
-                blockNumber: 55527197,
+                // Block number linked to ETHUSDT CLOSE test idea
+                blockNumber: 56509141,
             }
         });
 

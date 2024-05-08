@@ -380,7 +380,7 @@ describe('API Method Testing', () => {
 
     }).timeout(50000);
 
-    it('Close an existing position', async () => {
+    xit('Close an existing position', async () => {
 
         console.log('GlobalBlock / Close an existing position');
 
@@ -451,7 +451,7 @@ describe('API Method Testing', () => {
 
     }).timeout(50000);
 
-    xit('Global order test', async () => {
+    it('Global order test', async () => {
 
         // note this will create a real order
         console.log('in the GB listener test')

@@ -455,7 +455,7 @@ const orderProcess = async (
                 
                                 // these are our order settings
                                 triggerSettings = triggerInfo;
-                                console.log('triggerInfo in GB', triggerInfo);
+                                // console.log('triggerInfo in GB', triggerInfo);
     
                                 // check if our main ticker has a / or a -
                                 // if we can, then we can identify the two currencies
@@ -463,7 +463,7 @@ const orderProcess = async (
     
                                 // get the GlobalBlock alt ticker
                                 const altTicker = await fetcher.globalblock.getTicker(data);
-                                console.log('altTicker', altTicker);
+                                // console.log('altTicker', altTicker);
                                 // console.log('kind', kind);
     
                                 // get the base and the quote
@@ -473,6 +473,7 @@ const orderProcess = async (
                                 if (isNullOrUndefined(error) && actionRequest) {
     
                                     if (kind === 'OPEN') {
+                                        // console.log('GB Open LitAction request', payload);
 
                                         litActionResult =                                
                                             await fetcher.globalblock.placeManagedOrder(
@@ -519,8 +520,8 @@ const orderProcess = async (
                                             );
                                     }
     
-                                    // error =
-                                    //     litActionResult?.response?.error === 'REJECTED' || null;
+                                    error =
+                                        litActionResult?.response?.error === 'REJECTED' || null;
                                 }
                                 break;
                 
@@ -682,8 +683,8 @@ const getIdeaNFTInfo = async (
         contract,
     } = payload;
 
-    console.log('network A', network);
-    console.log('blockNumber A', blockNumber);
+    // console.log('network A', network);
+    // console.log('blockNumber A', blockNumber);
     // console.log('contract A', contract);
 
     let ipfsMetadataId: any = null;
@@ -771,7 +772,7 @@ const getIdeaNFTInfo = async (
                     withAccess,
                     network,
                 };
-                console.log('info B', info);
+                // console.log('info B', info);
 
             },
             async () => {
@@ -877,7 +878,7 @@ const getIdeaNFTInfo = async (
         console.log('newIdeaNFTEvent (error 4)', err?.message);
     }
 
-    console.log('info', info)
+    // console.log('info', info)
 
     return info;
 }
