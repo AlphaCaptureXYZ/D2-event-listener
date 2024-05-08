@@ -19,7 +19,7 @@ app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: false }));
 
 const PORT = +(process.env.PORT || "3006");
-const version = process.env.version || "10";
+const version = process.env.version || "11";
 
 app.get("/", (req, res) => {
   wsLogger({
