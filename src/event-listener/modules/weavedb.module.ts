@@ -24,10 +24,14 @@ const init = async () => {
     try {
       const contractTxId = config.WEAVEDB_CONTRACT_TX_ID;
       // console.log('contractTxId', contractTxId);
+      const WARP = 'https://dre-3.warp.cc/contract';
 
       db = new WeaveDB({
         contractTxId,
+        remoteStateSyncEnabled: true,
+        remoteStateSyncSource: WARP,
         nocache: true,
+
       });
       // console.log('weave db', db);
 
@@ -115,7 +119,7 @@ const getAllData = async <T>(
     while (done === false) {
       await new Promise((r) => setTimeout(r, 1000));
       try {
-        console.log("[weavedb] loading info...");
+        // console.log("[weavedb] loading info...");
         docs = await db.cget(COLLECTION_NAME, ["type"], ["type", "==", type]);
         console.log("[weavedb] info loaded!");
         done = true;
